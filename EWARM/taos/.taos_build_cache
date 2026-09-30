@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BuildDb>
+    <Tool>
+        <Name>linker</Name>
+        <Parent>
+            <Path>D:\Научная работа\4 курс\taos_h_boot\EWARM\taos\Exe\taos.out</Path>
+            <Output>
+                <Path>D:\Научная работа\4 курс\taos_h_boot\EWARM\taos\List\taos.map</Path>
+            </Output>
+        </Parent>
+    </Tool>
+</BuildDb>

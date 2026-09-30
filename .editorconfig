@@ -1,0 +1,12 @@
+# Sources use Windows-1251 (CP1251) for Russian comments.
+# Do not change charset to utf-8 without explicit conversion of all affected files.
+
+root = true
+
+[*]
+charset = windows-1251
+end_of_line = crlf
+insert_final_newline = true
+
+[*.{md,json,yml,yaml,xml}]
+charset = utf-8

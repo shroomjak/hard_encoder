@@ -1,0 +1,1026 @@
+# ninja log v5
+6	282	7989796419803487	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/FLASH/spi_driver.pbi	fc6ad9680345412b
+342	417	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_flash_ex.xcl	99b9ef315f1386e3
+584	656	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_hal_msp.xcl	f724b247503b236d
+967	1178	7987392922145921	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rng.pbi	b4390193dc045d7c
+488	561	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_i2c.xcl	42db4a3ddee477f1
+908	1135	7987392921726880	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_dma.pbi	90026a0bd1e1021d
+247	322	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_cortex.xcl	c0e1c58f5bbccbd4
+321	389	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_exti.xcl	36f8438a7f090c71
+263	338	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dma_ex.xcl	58d264ae6ea0103
+1901	2277	7088637403482977	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_flash.pbi	7c87e705c6430bf7
+390	769	7088637388422919	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_flash_ex.pbi	89f08da4382609ed
+634	1229	7089478707971156	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/FLASH/spi_driver.pbi	c0a1a306fca4521c
+2280	2698	7088637407714247	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_dma.pbi	4bb63ef7b8ee1c00
+655	726	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_tim_ex.xcl	7699311552492e2b
+901	1502	7089532309983375	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/taos_part0.pbi	615566c719ca608b
+736	804	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_adc.xcl	e5aa5eae40d40f92
+7	636	7089478701965198	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_it.pbi	eadf79e64013c163
+140	245	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_pwr_ex.xcl	b5b75b9f055ecfb3
+882	953	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_spi.xcl	ec93baad368778fe
+771	833	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_dma.xcl	57606d6f65332d0d
+540	852	7987392918889635	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_pwr_ex.pbi	7242209616b970c7
+501	579	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_i2c_ex.xcl	939d83fbf5748bb0
+422	497	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_pwr_ex.xcl	26655f59bbb85942
+1505	2129	7089532316260058	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/taos.pbd	5ae6ec50b8173a1f
+3515	3931	7088637420037018	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_rcc.pbi	e7f296601fa81775
+2231	2628	7088637407002341	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rcc_ex.pbi	227048941a484a99
+772	1144	7088637392162873	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_pwr.pbi	d5f921b4610ae616
+1042	1411	7088637394839993	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_pwr_ex.pbi	a9ccbf1f57603a3b
+3988	4538	7088637426113182	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/taos_part3.pbi	614ee06a9871f257
+577	650	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rcc_ex.xcl	d971851b8c10de89
+6	631	7089478701844874	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_hal_msp.pbi	5d655c98849d97bd
+638	701	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Application/User/main.xcl	62b989bc9350d7ab
+837	899	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_exti.xcl	ebcf7b95f3ea5e2f
+93	168	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/CMSIS/arm_sin_f32.xcl	5776071c6fe46b8
+3553	3941	7088637420127267	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_gpio.pbi	36c407750f47818e
+494	573	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_pwr.xcl	964049c8f309bab3
+876	943	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_gpio.xcl	8032279ee3bb8c0f
+1155	1396	7987392924330284	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_utils.pbi	101ab2dce6d35cf3
+333	409	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_flash.xcl	f734c3bc1d964490
+808	877	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_rcc.xcl	53e1b4eeb640f563
+413	489	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_gpio.xcl	b6e62f37d95ffdd7
+1524	1898	7088637399712956	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_i2c_ex.pbi	a9eaddc54b7d3dcc
+7	95	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_it.xcl	f1277b419ea0fe9
+2093	2492	7088637329417615	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_cortex.pbi	1b8737c0abe226fb
+1137	1386	7987392924230124	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_tim.pbi	be76455d455c2c2e
+8	89	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/CMSIS/arm_common_tables.xcl	46290b35ed42cf9d
+5	83	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/CMSIS/system_stm32f7xx.xcl	3f3beb43be0a8412
+1266	1881	7089478714498966	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/taos_part1.pbi	eaa75edc09396d30
+87	162	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/FLASH/spi_driver.xcl	d888ea3e682a7aca
+254	329	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal.xcl	ae18101c1dccb2d8
+407	483	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dma.xcl	1120fc78ed94e6ea
+181	258	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dac.xcl	4ba465d9bcd3207b
+327	403	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_exti.xcl	53c68f836d268943
+1414	1781	7088637398549862	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_crc_ex.pbi	603d951f87451f57
+661	732	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_tim.xcl	66408057cf69bd7e
+565	634	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rcc.xcl	5a338e75b9e0eafc
+2379	2759	7088637408315837	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_exti.pbi	9dc4fa6e2a7cdfa1
+705	766	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_dac.xcl	b4a782aadf6ec1a7
+903	968	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_utils.xcl	662ef1719b06db37
+2259	2355	7088637328043959	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/CMSIS/arm_sin_f32.pbi	bdde531f910631d3
+958	1487	7088637319360864	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/CMSIS/arm_common_tables.pbi	3815e7a1aa801464
+8	384	7088637384562652	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/CMSIS/system_stm32f7xx.pbi	9d88f94696419f5b
+4	899	7089532303957367	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Application/User/main.pbi	1de114eae3e66daf
+761	1236	7088637393095352	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dac.pbi	44a44f200d4ff25f
+1992	2377	7088637404495673	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rcc.pbi	95ba329b04203c8f
+730	797	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rng.xcl	cab763ead93ef357
+3943	4359	7088637424318405	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_utils.pbi	1fc578c8e770de9b
+1238	1615	7088637396885434	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dma_ex.pbi	413c6b4b05f1c7a8
+1146	1522	7088637395942934	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dma.pbi	12a0ff05f04f216e
+1618	1990	7088637400635406	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_exti.pbi	346b9f5147477d87
+703	906	7987392919435645	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_exti.pbi	56d99c4d657880db
+385	758	7088637388312628	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal.pbi	95107d290a0076fb
+665	1040	7088637391130124	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_gpio.pbi	3c5a2f9791fb5fbf
+3018	3551	7088637416237145	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_spi.pbi	3dd41da93c8204e5
+1783	2229	7088637403021754	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_i2c.pbi	e7c2c3bdef5a2b25
+3218	3604	7088637416768323	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_dac.pbi	2b90a6ad5bd92a75
+2761	3216	7088637412888003	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_tim.pbi	4de0361e3c3659af
+2699	3101	7088637411744962	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_tim_ex.pbi	ff6ac6af6285621c
+118	237	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_exti.xcl	6d0868490a78080e
+3104	3513	7088637415855898	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_adc.pbi	14d13276f1fd06d2
+5163	5692	7088637437643851	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/taos_part2.pbi	a10d0e405b5e897
+4612	5191	7088637432640547	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/taos_part5.pbi	6dff0fb7859762a5
+4361	4934	7088637430073715	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/taos_part4.pbi	e8b0b11e06277a3
+299	649	7989796423472065	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part1.pbi	508943036decc692
+2133	4566	7089532339932981	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/taos.pbw	ef9f2affe971eba8
+87	152	6998971800000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/Eeprom/eeprom_emul.xcl	38b679a29ce54db2
+157	224	6998971800000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/Eeprom/EmulatedEeprom.xcl	7bb2ca115bc99e4c
+591	957	7010076722165410	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/Eeprom/eeprom_emul.pbi	18391c4662b3d562
+934	1471	7010076727299060	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/Eeprom/EmulatedEeprom.pbi	a93f4f879988b6ac
+99	177	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_crc.xcl	b12ee04124f0e0a
+166	243	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_crc_ex.xcl	86eb56ea18040f93
+7	388	7088637384612784	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_crc.pbi	5be81e8e95eea8c8
+947	1008	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_tim.xcl	5a3e9b8add1ef2b8
+3933	4372	7088637424438733	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_tim.pbi	504bbb0803ec0b90
+802	871	7088637310000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_rng.xcl	b1fd00fc16f885ad
+2630	3016	7088637410892697	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rng.pbi	f47bf3e7496b90f1
+3605	3987	7088637420598512	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_rng.pbi	134bc19cc0c97d6a
+173	250	7088637300000000	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/FLASH/standardflash.xcl	2cde2a691ee0f1ff
+284	352	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_gpio.xcl	b7493f564c816fba
+638	1265	7089478708322090	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/Drivers/FLASH/standardflash.pbi	9f633a51649ecad4
+4374	4610	7088637426845130	C:/Work/FAROS/taos_h_mk3/EWARM/taos/BrowseInfo/taos_part6.pbi	69b5d3ef60e5e1c
+395	688	7987392917250698	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/CMSIS/arm_common_tables.pbi	862d6b457b167976
+16	137	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/CMSIS/system_stm32f7xx.xcl	5035ce83da58f6ef
+358	426	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_utils.xcl	d0541be8e32978ab
+14	112	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_it.xcl	4a36fc8e967046b7
+15	115	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/FLASH/spi_driver.xcl	202b1e689fc1b6ce
+12	132	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/CMSIS/arm_common_tables.xcl	5415e5232f181682
+16	107	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/CMSIS/arm_sin_f32.xcl	2c30e303f0d5510e
+17	125	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dac.xcl	4480f85922d3a379
+115	241	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_crc.xcl	7c6759eb5e5bd9e1
+20	129	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal.xcl	27a40968d4ff9510
+21	122	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/FLASH/standardflash.xcl	2bf45fd47796492b
+111	217	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_cortex.xcl	45678d136a4178a5
+17	140	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_crc_ex.xcl	e12ad899757ba9d4
+132	227	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dma_ex.xcl	c8f987e3479cb593
+125	230	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_flash.xcl	2d9b1d61016b6599
+122	223	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_flash_ex.xcl	bcc5e29b5241b7da
+237	326	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_tim.xcl	85c44bb7c822d037
+18	119	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_gpio.xcl	55d8f39097184fe
+128	234	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dma.xcl	15358d968ca0e133
+222	264	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_pwr.xcl	ff05f7aaa7a41414
+136	279	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_i2c_ex.xcl	ae9ece99207b066d
+143	249	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rcc.xcl	b0b4d18830a2fa68
+226	310	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_i2c.xcl	ec30992c00229e4a
+245	338	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rcc_ex.xcl	7805b58681762c48
+230	316	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_hal_msp.xcl	48e3027250610d14
+419	620	7987392916571679	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/CMSIS/system_stm32f7xx.pbi	274305f23ebf8f4e
+233	330	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.xcl	c95855c7246bc649
+255	341	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_tim_ex.xcl	2bfb32bb645c6f18
+248	334	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_dac.xcl	e494e59cd2fc29a7
+270	345	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rng.xcl	eed0fb1b6e0ea29d
+854	1050	7987392920877930	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_flash.pbi	8ebfb723e3161662
+241	321	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_adc.xcl	c7bbcbace5f8b831
+315	367	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_rcc.xcl	8876172ff0b87a05
+330	407	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_dma.xcl	71c760ae8a84f2ac
+333	420	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_rng.xcl	d20d0e0005333271
+326	396	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_spi.xcl	bd1bbe1f88c7ce88
+3	282	7989799583250787	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_it.pbi	80bdc08d3ef1c92c
+5	280	7989796419773532	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_hal_msp.pbi	7c6a63842a38f573
+351	414	7987392910000000	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_tim.xcl	c7641f9a7a20ccea
+401	614	7987392916511880	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_cortex.pbi	3392ee3951ff8bcd
+1106	1438	7987392924759298	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_spi.pbi	1bde69bee648547f
+431	507	7987392915437942	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/CMSIS/arm_sin_f32.pbi	692df145a617850b
+2	430	7989855485910396	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+857	1063	7987392920997937	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_crc.pbi	d0a586f00032b886
+6	298	7989796419963522	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/FLASH/standardflash.pbi	e293013e121e47ec
+508	701	7987392917381339	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal.pbi	baad029a6decd21d
+1440	1771	7987392928089059	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part5.pbi	b6a7ecad6ebcce9a
+688	893	7987392919298582	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_crc_ex.pbi	172419dfe7606504
+661	890	7987392919258714	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dma.pbi	dc88f284101b0d05
+616	830	7987392918669342	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dma_ex.pbi	df5a29ca2c2367f5
+832	1141	7987392921776715	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_i2c_ex.pbi	d1e200789afaea5d
+851	1175	7987392922116015	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_i2c.pbi	e95f9a959c6690a2
+690	901	7987392919389593	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dac.pbi	5c78352f569c56ad
+622	855	7987392918909556	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_flash_ex.pbi	2a7758a6c9f5fd2f
+765	965	7987392920028788	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_gpio.pbi	f2e13c353764463
+763	957	7987392919949061	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_pwr.pbi	c084297e5d9d2d43
+337	538	7987392915747779	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rcc.pbi	98b781ab56157ab
+959	1153	7987392921906280	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_gpio.pbi	8e2bfa33fb545a54
+1053	1392	7987392924290416	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_rcc.pbi	efae469c95b7e9eb
+892	1215	7987392922525679	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_tim_ex.pbi	54adaffe5beb3f9d
+895	1104	7987392921387043	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_dac.pbi	8739894996ff73aa
+903	1101	7987392921377079	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rcc_ex.pbi	79d6374679592cb9
+1103	1322	7987392923590809	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_rng.pbi	466adfac27a867d0
+1065	1282	7987392923194806	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_exti.pbi	b6898ab2eac91d99
+1143	1367	7987392924030755	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_adc.pbi	3083007b70f53693
+1177	1434	7987392924709466	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_tim.pbi	4836783fb6354bfc
+1437	1576	7987392926134815	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part6.pbi	f4634b2f6692713
+1388	1709	7987392927469693	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part4.pbi	2a801e59aa2f0846
+1324	1645	7987392926830435	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part2.pbi	1873df2debb2f725
+1217	1579	7987392926164717	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part3.pbi	1f33c070f097387b
+433	766	7989855489263402	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+769	1134	7989855492948089	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1136	2343	7989855504733748	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+1	422	7989855560074146	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+424	754	7989855563395053	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+756	1113	7989855566991562	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1115	2327	7989855578833861	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	420	7989856136797783	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+422	751	7989856140120962	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+755	1123	7989856143839627	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1127	2306	7989856155360349	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+4	425	7989856261009908	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+426	759	7989856264351428	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+762	1116	7989856267938822	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1120	2300	7989856279451377	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+3	420	7989857691679646	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+422	753	7989857695010125	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+756	1108	7989857698561710	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1111	2297	7989857710142316	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	428	7989861133257261	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+430	763	7989861136609652	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+767	1119	7989861140185783	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1121	2310	7989861151777502	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	438	7989861408391402	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+440	778	7989861411794910	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+781	1139	7989861415406342	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1142	2345	7989861427186682	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+1	419	7989861482438884	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+421	750	7989861485756645	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+754	1113	7989861489386282	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1116	2314	7989861501084599	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	420	7989862360754107	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+422	756	7989862364116769	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+760	1122	7989862367773701	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1124	2318	7989862379446090	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	425	7989862535288917	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+427	786	7989862538897905	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+788	1150	7989862542539909	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1151	2362	7989862554362635	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+4	426	7989862609697153	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+427	761	7989862613050304	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+764	1121	7989862616653848	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1124	2320	7989862628362318	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+1	429	7989863186249333	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+430	767	7989863189645122	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+770	1127	7989863193244221	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1131	2334	7989863204998528	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+3	423	7989863260445810	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+424	756	7989863263776245	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+759	1117	7989863267386117	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1119	2317	7989863279100550	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	431	7989863485267727	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+432	767	7989863488634599	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+770	1129	7989863492258984	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1132	2329	7989863503954691	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	422	7989864011646092	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+423	757	7989864014999045	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+760	1116	7989864018596207	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1119	2321	7989864030360306	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+3	421	7989864085695646	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+423	763	7989864089119412	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+766	1124	7989864092730067	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1127	2331	7989864104521116	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	420	7989864461203089	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+422	755	7989864464552565	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+758	1119	7989864468186012	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1122	2323	7989864479943642	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	424	7989865892253332	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+426	758	7989865895594107	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+761	1122	7989865899242739	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1126	2320	7989865910940571	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	428	7989865966387024	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+429	762	7989865969732315	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+766	1125	7989865973356434	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1128	2330	7989865985119882	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	422	7989866140913319	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+424	759	7989866144296237	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+763	1125	7989866147944677	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1127	2325	7989866159651570	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	415	7989950095120117	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+417	757	7989950098536576	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+760	1118	7989950102150883	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1121	2331	7989950113960262	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	422	7989950367531404	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+424	763	7989950370951112	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+766	1121	7989950374527397	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1125	2341	7989950386441116	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+1	424	7989953155667881	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+426	758	7989953159016102	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+760	1114	7989953162579190	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1117	2317	7989953174319944	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	416	7989953229584358	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+418	751	7989953232933045	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+754	1102	7989953236444802	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1105	2326	7989953248391940	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+3	425	7989953303779849	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+426	761	7989953307146635	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+764	1121	7989953310736144	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1123	2330	7989953322534041	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	416	7989963378265263	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+418	774	7989963381856248	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+776	1156	7989963385678380	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1159	2384	7989963397670387	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+3	419	7989963453099471	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+421	750	7989963456409983	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+753	1106	7989963459966559	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1109	2323	7989963471872922	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	423	7989963527196007	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+424	758	7989963530557541	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+761	1116	7989963534132756	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1119	2333	7989963546006876	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	428	7989963601447277	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+429	766	7989963604837080	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+768	1130	7989963608470297	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1133	2341	7989963620285747	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	421	7989963675652283	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+423	762	7989963679061435	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+766	1120	7989963682639779	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1123	2318	7989963694344838	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+1	419	7989963749608907	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+420	750	7989963752921476	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+754	1113	7989963756552909	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1116	2328	7989963768398700	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+1	425	7989968297606325	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+427	765	7989968301009612	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+768	1125	7989968304609739	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1128	2350	7989968316557542	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	419	7989970100866985	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+420	755	7989970104224438	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+758	1113	7989970107809506	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+2	420	7989970171582211	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+421	754	7989970174932858	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+756	1104	7989970178420804	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1106	2324	7989970190342454	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	415	7989970698005088	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+417	751	7989970701359797	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+755	1107	7989970704915925	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+4	1199	7989970778570335	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	416	7989971237453725	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+417	754	7989971240849047	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+757	1104	7989971244337345	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1107	2299	7989971256013764	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	416	7989972065240886	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+417	750	7989972068578172	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+753	1104	7989972072119100	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1107	2313	7989972083933508	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+1	418	7989972139228904	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+420	769	7989972142735418	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+772	1129	7989972146349527	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1132	2347	7989972158232794	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	420	7989972213594579	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+422	754	7989972216929945	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+757	1112	7989972220511079	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1115	2315	7989972232258201	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+3	417	7989972287564322	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+419	752	7989972290920937	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+755	1106	7989972294464627	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1109	2300	7989972306111860	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	423	7989972361371006	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+425	763	7989972364763004	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+766	1120	7989972368336614	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1123	2320	7989972380061350	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+1	423	7989972435337972	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+425	751	7989972438627645	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+755	1109	7989972442207097	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1112	2346	7989972454236755	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+4	306	7990682318924839	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_hal_msp.pbi	7c6a63842a38f573
+5	307	7990682318924839	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/FLASH/spi_driver.pbi	fc6ad9680345412b
+2	309	7990682318924839	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_it.pbi	80bdc08d3ef1c92c
+5	316	7990682319081068	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/FLASH/standardflash.pbi	e293013e121e47ec
+4	451	7990682320340122	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+317	682	7990682322799631	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part1.pbi	508943036decc692
+453	790	7990682323883670	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+794	1163	7990682327605937	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1166	2391	7990682339505289	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+1	534	7990682402384030	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+535	867	7990682405592771	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+871	1221	7990682409260088	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1224	2418	7990682420851982	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	420	7990714574769560	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+422	760	7990714578165448	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+762	1115	7990714581717862	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1118	2280	7990714593075318	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	417	7990813715010519	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+418	761	7990813718454066	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+763	1121	7990813722054254	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+2	1174	7990813795918341	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+1	417	7990928355931566	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+419	763	7990928359380637	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+767	1152	7990928363278438	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1155	2380	7990928375277357	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+1	409	7991486852929915	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+410	745	7991486856297513	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+747	1099	7991486859823956	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1101	3856	7991486871573362	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	276	7991509484108973	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_hal_msp.pbi	7c6a63842a38f573
+3	281	7991509484148884	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/FLASH/spi_driver.pbi	fc6ad9680345412b
+1	282	7991509484168782	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_it.pbi	80bdc08d3ef1c92c
+3	294	7991509484288420	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/FLASH/standardflash.pbi	e293013e121e47ec
+2	422	7991509485569082	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	84166820199c055d
+295	638	7991509487726610	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part1.pbi	508943036decc692
+424	758	7991509488921232	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	a4935ab8d37fc4a5
+760	1117	7991509492515310	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	def2c4c0376e7930
+1119	2307	7991509504119187	C:/Work/FAROS/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	6b94b1d813f39ace
+2	132	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.xcl	ecfb597e37f816bb
+19	146	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_hal_msp.xcl	1257a4b18690db95
+27	157	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_crc.xcl	1cfef77ad7c7b57d
+15	166	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_it.xcl	ba104a5a41c0e3fd
+23	174	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_crc_ex.xcl	31173432992b42aa
+31	182	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal.xcl	c4baf0c16aa499a5
+38	192	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/FLASH/standardflash.xcl	bd7bdeab3ce699f4
+34	201	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dac.xcl	2b720514ec539a15
+139	229	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_cortex.xcl	277b63a2cf52eb5c
+152	252	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_flash.xcl	1082baa7a8b5f36e
+163	303	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dma.xcl	aaccdac735843543
+179	324	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dma_ex.xcl	af2a00f5091bc3c1
+189	343	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_gpio.xcl	23314e286892fcc
+197	352	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_exti.xcl	32868f64c5060a3e
+171	362	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_flash_ex.xcl	7d24b406372ccf53
+207	373	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_i2c_ex.xcl	e1577275ad5b4e62
+236	382	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rcc.xcl	cf142c89f9052af6
+258	393	8051300790000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_i2c.xcl	58a2573df6909f90
+309	428	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rcc_ex.xcl	65dcee3b148e835f
+330	466	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_pwr.xcl	182eff950f7da866
+369	496	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/CMSIS/arm_common_tables.xcl	f688e184b4c2acbf
+358	506	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/CMSIS/arm_sin_f32.xcl	be6c4b6086cadabb
+378	517	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/CMSIS/system_stm32f7xx.xcl	d5c8b4200cb5c715
+389	526	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/FLASH/spi_driver.xcl	b512aa30d6c4d7f5
+401	536	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_dac.xcl	64d1479f64303ff3
+349	547	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_pwr_ex.xcl	4bbf8de1ca5fcbdc
+433	558	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_tim.xcl	620e89e936ac6754
+475	574	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_adc.xcl	8bc3fe385349c3b6
+502	607	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rng.xcl	2df4005b1da72c96
+512	625	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_tim_ex.xcl	4ceff27bf45bf0c4
+522	637	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_dma.xcl	4f9eb9fff2138ce6
+555	665	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_gpio.xcl	6b6e1eb0d19364ee
+543	675	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_spi.xcl	c33fa4185c9c8bf
+565	685	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_rcc.xcl	cabc750b618a9c54
+532	693	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_rng.xcl	a8ff649356c4e57d
+581	701	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_exti.xcl	7918b019ec5a0f9d
+644	742	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_tim.xcl	d1115f444212acdd
+671	781	8051300800000000	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_utils.xcl	8892fb8c8cb2f66b
+747	853	8051300804643631	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/CMSIS/arm_sin_f32.pbi	b0c90adc2dfc62a0
+707	1071	8051300806824521	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/CMSIS/system_stm32f7xx.pbi	9be853f59f41f4ee
+698	1084	8051300806954516	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal.pbi	1f175653ec1500c6
+632	1146	8051300807562501	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/CMSIS/arm_common_tables.pbi	45635b1922317fdd
+855	1221	8051300808319272	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_cortex.pbi	9ca33527f74a53b4
+690	1295	8051300809057897	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_hal_msp.pbi	e0131de1cfa395fc
+682	1314	8051300809247504	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_it.pbi	4e1397d74a6c7b7f
+788	1419	8051300810266060	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/FLASH/standardflash.pbi	5acfc115fd2d9417
+1087	1448	8051300810585779	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_crc.pbi	780240cfaa497694
+1148	1500	8051300811109732	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_exti.pbi	80967f34184a0c1d
+614	1561	8051300811723122	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	c4c59203eed41d52
+1224	1567	8051300811767793	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dma_ex.pbi	78e64a6a2a30a149
+1074	1634	8051300812455590	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/FLASH/spi_driver.pbi	ebff3f06f8e1ec12
+1298	1650	8051300812609872	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dma.pbi	4af82f400a873402
+1316	1676	8051300812860369	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_flash_ex.pbi	d11ef07cad33b302
+1422	1768	8051300813783070	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_i2c_ex.pbi	ab335a244436ef8f
+1450	1810	8051300814206302	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_dac.pbi	e05dfe71f707ba93
+1503	1829	8051300814411019	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_flash.pbi	3465af670d38d7cd
+1563	1908	8051300815197328	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_gpio.pbi	e810275ba585847f
+1570	1921	8051300815324202	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_crc_ex.pbi	f4cc0266745ac0
+1652	1977	8051300815875294	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_pwr.pbi	46e767781afd8e29
+1679	2019	8051300816307468	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rcc.pbi	25b6b5272623a3f6
+1636	2046	8051300816582990	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_i2c.pbi	3695a8c4c5179d87
+1771	2106	8051300817155387	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_pwr_ex.pbi	535affabdd71a6ab
+1813	2154	8051300817668982	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_exti.pbi	9593a0a29e58309a
+1833	2178	8051300817898613	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rcc_ex.pbi	22dc01c6ab11e98d
+1911	2279	8051300818900888	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_gpio.pbi	246e581bbe1aef04
+1924	2327	8051300819388307	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_tim.pbi	5e702d795fa2e146
+2021	2345	8051300819576195	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_rng.pbi	5893bb03d2f32b17
+1979	2358	8051300819616148	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_adc.pbi	5c7a69c5c99607c8
+2108	2526	8051300821370596	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_spi.pbi	5ab178c1d8c6e2e6
+2157	2534	8051300821441179	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_tim_ex.pbi	934256e77e509ddf
+2049	2540	8051300821506821	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_rcc.pbi	ebd457b38ca61456
+2181	2553	8051300821652527	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_dma.pbi	47e8f015b27e09d8
+2330	2689	8051300822999888	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_dac.pbi	5e3e71690952055c
+2281	2724	8051300823361847	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_hal_rng.pbi	d14df09f1a93cbb8
+2355	2744	8051300823559067	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_utils.pbi	b62ad0e2529c980c
+2361	2759	8051300823703860	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Drivers/STM32F7xx_HAL_Driver/stm32f7xx_ll_tim.pbi	5cde2cf42cae49ec
+2760	2973	8051300825863419	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos_part6.pbi	8390191c5fb0e6b4
+2529	3024	8051300826371290	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos_part2.pbi	f6fff3b57d76d288
+2556	3068	8051300826813443	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos_part5.pbi	e3d26323ab1b0bfe
+2537	3098	8051300827118902	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	937210105d876bca
+2543	3122	8051300827352790	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos_part1.pbi	32f625f55651a810
+2693	3184	8051300827967182	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos_part3.pbi	a3d6cd700de658fd
+2727	3225	8051300828389437	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos_part4.pbi	d53fa4dec82ff981
+3229	3725	8051300833394018	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	70ac98fc4b5a90d9
+3728	5359	8051300849301491	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	e08b6042fe1bcfc5
+2	641	8051302920837370	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	c4c59203eed41d52
+643	1098	8051302925414873	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	937210105d876bca
+1103	1649	8051302930927302	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	70ac98fc4b5a90d9
+1654	3457	8051302948533379	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	e08b6042fe1bcfc5
+3	603	8051310655734221	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	c4c59203eed41d52
+604	1065	8051310660366292	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	937210105d876bca
+1068	1548	8051310665199687	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	70ac98fc4b5a90d9
+1551	3161	8051310680984347	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	e08b6042fe1bcfc5
+2	418	8051425718952535	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/stm32f7xx_it.pbi	4e1397d74a6c7b7f
+420	888	8051425723677144	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	937210105d876bca
+891	1405	8051425728855756	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	70ac98fc4b5a90d9
+1409	3063	8051425745072233	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	e08b6042fe1bcfc5
+3	671	8051428556687934	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/Application/User/main.pbi	c4c59203eed41d52
+673	1147	8051428561476375	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	937210105d876bca
+3	514	8051428619770416	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	70ac98fc4b5a90d9
+516	2206	8051428636210456	C:/work/faros/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	e08b6042fe1bcfc5
+991	7821	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/spi_driver.xcl	f94c9f3fbce1516a
+968	7835	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_sin_f32.xcl	f72b5066e622f426
+976	7848	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/system_stm32f7xx.xcl	eb6522ead6215922
+998	7862	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.xcl	39322a0a06ddcffb
+960	7877	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_hal_msp.xcl	cf12f2b151128091
+953	7889	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_common_tables.xcl	4016beccf2ebb5f4
+1006	7902	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/standardflash.xcl	b535f5dc5a7783fd
+1	7915	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_it.xcl	1b473dc635208196
+7825	8146	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.xcl	b6354ac64c677176
+7839	8194	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.xcl	49ad92b759cb41a
+7853	8237	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.xcl	cb7890e5b152bd06
+7867	8254	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.xcl	dc10b2db535c5cf
+7880	8288	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.xcl	face8255e3150ae7
+7894	8302	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.xcl	6ec8c15c82ce12dd
+7906	8316	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.xcl	bf6713f5f4d2f3e6
+7919	8332	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.xcl	48c395e32bdf44db
+8150	8402	8118651220000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.xcl	4da7588394d4d9b4
+8292	8587	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.xcl	b057cab69b17eb67
+8198	8599	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.xcl	34c61cbb4e54cbc1
+8241	8614	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.xcl	b09b22b1bf280d7
+8336	8635	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.xcl	ad07d7d02c9dcca9
+8257	8648	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.xcl	a50c883d01e8d737
+8320	8664	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.xcl	9b300a688b00598b
+8306	8678	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.xcl	9e2defae9dd7a0d3
+8406	8732	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.xcl	c4ac5903c6338b8c
+8591	8921	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.xcl	16fe8effbffe3888
+8619	8992	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.xcl	75d2b746295229c6
+8604	9343	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.xcl	7e3130eb8a3ec8ce
+8924	9353	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.xcl	2881548554ee7c2f
+8639	9365	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.xcl	225a7c527c41018b
+8653	9378	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.xcl	5c60bc488491eb04
+8668	9390	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.xcl	9e936e3116c20bd5
+8682	9399	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.xcl	462fbd08698e5d0a
+8736	9406	8118651230000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.xcl	f04195340adf8ffd
+9357	9611	8118651240000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.xcl	f04e42508af41d1a
+9370	9622	8118651240000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.xcl	d7ccd997ae078624
+9345	9634	8118651240000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.xcl	39efd199859fb202
+9381	9645	8118651240000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.xcl	2e020ef221e643bd
+9627	9835	8118651242918457	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_sin_f32.pbi	831d353cf6622aa9
+9409	10157	8118651246043482	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.pbi	70855b7e519c17e2
+9638	10325	8118651247817665	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/system_stm32f7xx.pbi	174147965de2f900
+9401	10489	8118651249378925	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_common_tables.pbi	fc21a466effd120b
+9393	10737	8118651251923166	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_hal_msp.pbi	4ad4565ee6948558
+10160	10778	8118651252238077	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.pbi	6914d09419ce42c1
+9615	10794	8118651252517242	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/standardflash.pbi	3d9be5d239ea1093
+9650	10805	8118651252517242	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/spi_driver.pbi	57138eeed61f97a1
+9840	10895	8118651253506105	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_it.pbi	e445ecbdf815cc76
+10328	11015	8118651254708735	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.pbi	8656bed9d8b28800
+10493	11137	8118651255886754	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.pbi	6bb2e9c5b02d9161
+8996	11300	8118651257564651	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+10782	11430	8118651258871124	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.pbi	b85242e6085913d
+10798	11450	8118651259060551	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.pbi	df31f6148d9acd2
+10809	11496	8118651259523257	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.pbi	3ab16c38cf79994c
+10741	11531	8118651259850277	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.pbi	156c89a84cad8f42
+10899	11605	8118651260598597	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.pbi	7c701f5c63e39799
+11020	11719	8118651261739624	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.pbi	482aa4ab0eadb0fb
+11139	11925	8118651263817660	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.pbi	6ba6e82b836ec087
+11303	11987	8118651264430109	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.pbi	2dacd480fcbf12d5
+11434	12118	8118651265709682	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.pbi	f7a228f76b87f21c
+11453	12131	8118651265709682	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.pbi	5e1bcc2d6168b6b3
+11500	12210	8118651266644429	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.pbi	fdea49b3ece47f96
+11535	12229	8118651266847830	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.pbi	f9e40176b0524f76
+11609	12382	8118651268389467	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.pbi	89f172f3ff92807d
+11722	12420	8118651268769077	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.pbi	1d852dd2a5868bc0
+11928	12590	8118651270442421	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.pbi	675d440495ba39
+11991	12702	8118651271559173	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.pbi	3fc70668116adbb3
+12136	12872	8118651273303874	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.pbi	7cf3030c4fd57555
+12122	13551	8118651273303874	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.pbi	44cdff1b51cae509
+12233	13561	8118651273464593	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.pbi	ffba5a0ca6334277
+12213	13572	8118651273784767	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.pbi	57c2d553432a859d
+12424	13582	8118651275056051	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.pbi	1b8670f0074ae3b1
+12386	13593	8118651275056051	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.pbi	810038f80f482cda
+12594	13603	8118651276059722	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.pbi	d40800e08e793b28
+12706	13614	8118651276677156	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.pbi	3f8a2c1928f14dc6
+13575	14179	8118651286372282	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.pbi	581f5453ceb0898c
+13555	14209	8118651286668359	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.pbi	ea32a56cf3b8134e
+13586	14562	8118651290214947	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part3.pbi	25d8383b55b0bd38
+13596	14597	8118651290554991	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part2.pbi	f45f028803c2c0ce
+13606	14669	8118651291278785	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part4.pbi	b6d104a4672bc3
+14212	14706	8118651291658829	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part6.pbi	e0b9ddb568da5ec
+13564	14735	8118651291953933	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part1.pbi	9aa49393a32f134d
+12876	14787	8118651292469292	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+14183	15097	8118651295556136	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part5.pbi	1e68c58b040aab6d
+15099	16614	8118651310731275	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+16616	29297	8118651435870294	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+3	1160	8118652364437982	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+1163	2231	8118652375150744	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+2232	3812	8118652390971190	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+3815	8960	8118652441029477	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+40	357	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/spi_driver.xcl	ff1a6c05c9940ad3
+2	392	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.xcl	521d687d9caf06d9
+20	408	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.xcl	55c089eb854882d2
+13	424	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.xcl	83cfc6b0df9fdf35
+58	461	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/system_stm32f7xx.xcl	f79a3d0d58b1f59a
+29	478	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/standardflash.xcl	5596d0e35d842de9
+49	497	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_sin_f32.xcl	5c3d15e292fa670c
+67	512	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.xcl	882e5f47f96adf4
+361	745	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.xcl	c92d6afb2087480b
+413	798	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.xcl	b72fa60b7d06c2a9
+466	811	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.xcl	7ab2e04e6273fe0b
+428	849	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.xcl	7cfccc52bbb6b7ff
+500	861	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.xcl	31c01472a41ad041
+482	896	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.xcl	e0250293c01761e4
+395	910	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.xcl	f5166f0f18a97d23
+516	942	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.xcl	e5285e62f1e4e217
+815	1149	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.xcl	88280f88001fd6f8
+748	1164	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.xcl	320e4e23dfbfcd6d
+802	1186	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.xcl	e25d9cd22189541c
+854	1202	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_common_tables.xcl	4997ec8e1311bc66
+865	1216	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_it.xcl	38489b18c9368a85
+900	1305	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_hal_msp.xcl	fae4a09230d15bd2
+946	1324	8118658320000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.xcl	718dc8180163e84
+914	1482	8118658330000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.xcl	de1c8ac7b7f1823c
+1168	1536	8118658330000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.xcl	b2655df2b8ed508a
+1191	1584	8118658330000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.xcl	8e9b089e7758c02e
+1220	1602	8118658330000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.xcl	f091d5903786cfd2
+1154	1617	8118658330000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.xcl	e218ba84e959c2c5
+1206	1705	8118658330000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.xcl	796437cc118bc210
+1328	1721	8118658330000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.xcl	ca4771dcf782525d
+1309	1816	8118658330000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.xcl	a51f7d08947f5bc6
+1486	1867	8118658330000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.xcl	6bc51b47cb0e476d
+1541	1911	8118658330000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.xcl	71c321ef2cad58c4
+1622	1998	8118658330000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.xcl	34d4b9636a8b57bc
+1607	2067	8118658330000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.xcl	e605b4634068e7da
+1725	2122	8118658330000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.xcl	b0fd60e6e1c0d4f5
+1820	2192	8118658330000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.xcl	93b52237cd6f25cf
+1871	2270	8118658330000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.xcl	2ba7e31bc9577221
+2003	2340	8118658340068856	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_sin_f32.pbi	831d353cf6622aa9
+2274	2972	8118658346430750	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/system_stm32f7xx.pbi	174147965de2f900
+1916	3087	8118658347570949	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/spi_driver.pbi	57138eeed61f97a1
+1710	3100	8118658347576212	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_hal_msp.pbi	4ad4565ee6948558
+2343	3112	8118658347711334	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.pbi	df31f6148d9acd2
+2126	3269	8118658349381010	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_common_tables.pbi	fc21a466effd120b
+2196	3359	8118658350295241	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_it.pbi	e445ecbdf815cc76
+2071	3376	8118658350448726	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/standardflash.pbi	3d9be5d239ea1093
+1589	3571	8118658352381037	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+3116	3779	8118658354501524	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.pbi	8656bed9d8b28800
+2976	3795	8118658354600912	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.pbi	6914d09419ce42c1
+3091	3812	8118658354834411	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.pbi	70855b7e519c17e2
+3104	3894	8118658355643073	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.pbi	b85242e6085913d
+3274	4013	8118658356812843	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.pbi	6bb2e9c5b02d9161
+3364	4051	8118658357188861	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.pbi	156c89a84cad8f42
+3380	4179	8118658358482372	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.pbi	2dacd480fcbf12d5
+3575	4256	8118658359248701	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.pbi	f9e40176b0524f76
+3799	4487	8118658361576138	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.pbi	675d440495ba39
+3784	4503	8118658361706174	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.pbi	3ab16c38cf79994c
+3815	4599	8118658362662749	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.pbi	3fc70668116adbb3
+3898	4612	8118658362800203	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.pbi	5e1bcc2d6168b6b3
+4019	4739	8118658364095733	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.pbi	f7a228f76b87f21c
+4056	4766	8118658364359861	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.pbi	fdea49b3ece47f96
+4184	4951	8118658366228924	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.pbi	7c701f5c63e39799
+4261	5127	8118658367934533	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.pbi	89f172f3ff92807d
+4491	5225	8118658368910167	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.pbi	482aa4ab0eadb0fb
+4604	5413	8118658370845918	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.pbi	1d852dd2a5868bc0
+4617	5427	8118658370845918	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.pbi	1b8670f0074ae3b1
+4507	5441	8118658370933150	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.pbi	6ba6e82b836ec087
+4743	5572	8118658372424631	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.pbi	44cdff1b51cae509
+4772	5680	8118658373509400	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.pbi	ea32a56cf3b8134e
+5230	6049	8118658377197895	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.pbi	ffba5a0ca6334277
+5431	6195	8118658378604412	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.pbi	810038f80f482cda
+5446	6224	8118658378931479	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.pbi	581f5453ceb0898c
+5418	6242	8118658378984335	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.pbi	57c2d553432a859d
+5576	6410	8118658380806776	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.pbi	3f8a2c1928f14dc6
+5133	6470	8118658381370885	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part2.pbi	f45f028803c2c0ce
+4956	6631	8118658383020171	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part1.pbi	9aa49393a32f134d
+6199	6874	8118658385446684	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.pbi	d40800e08e793b28
+6055	6893	8118658385647935	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.pbi	7cf3030c4fd57555
+6247	6905	8118658385681591	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part6.pbi	e0b9ddb568da5ec
+5686	7225	8118658388951998	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+6229	7360	8118658390244417	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part3.pbi	25d8383b55b0bd38
+6416	7449	8118658391227842	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part4.pbi	b6d104a4672bc3
+6897	7794	8118658394665627	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part5.pbi	1e68c58b040aab6d
+7796	9317	8118658409908565	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+9320	14554	8118658460603702	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+2	414	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.xcl	72fd287f49c0878c
+42	429	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_hal_msp.xcl	317f4d07511ebc8d
+49	441	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_common_tables.xcl	50c90efe79a43cf8
+66	452	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/system_stm32f7xx.xcl	a0121d3f7b37e25b
+35	461	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_it.xcl	8118f13567caa3b2
+58	468	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.xcl	702acaed3cbc783f
+83	477	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_sin_f32.xcl	db28bd443c428d88
+74	489	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/spi_driver.xcl	f50b0c9833c91c05
+418	715	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/standardflash.xcl	f3fa50ef6f24759f
+433	778	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.xcl	9d0eb920e702bf6d
+444	794	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.xcl	fbe4e0e0d9861ba7
+463	810	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.xcl	c21029385cb93070
+456	824	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.xcl	c3be83981877ec7b
+480	837	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.xcl	cb8f73fb14395758
+492	849	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.xcl	bb7f8647b2bfe95b
+471	862	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.xcl	32218f2b2868436
+718	961	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.xcl	d8634a661a028351
+799	1106	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.xcl	e5bde52b3667ac78
+782	1138	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.xcl	5921ac7bfe03e569
+815	1167	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.xcl	ef8ba2f4f61ca6c
+854	1181	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.xcl	536f8ce664f2c45
+829	1195	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.xcl	e5573ab6945f003f
+865	1224	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.xcl	ca469a0ecb593eb3
+842	1240	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.xcl	cd1c915d5c5912e2
+965	1270	8118665800000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.xcl	e29b25eab6430e44
+1110	1396	8118665810000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.xcl	7b9e627833507a2b
+1141	1510	8118665810000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.xcl	321fea8f0f006b7a
+1171	1545	8118665810000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.xcl	6ef69871960ec20a
+1186	1574	8118665810000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.xcl	38e6cf1be4dd50a3
+1200	1593	8118665810000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.xcl	c51c990b491b57f2
+1245	1608	8118665810000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.xcl	dbbd6309ac79ee3e
+1274	1644	8118665810000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.xcl	d5b588fb5fb7fbd1
+1230	1661	8118665810000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.xcl	c88fd53016d3418b
+1403	1711	8118665810000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.xcl	ba3cf52c296012e7
+1551	1916	8118665810000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.xcl	d8f6dcfc625fd673
+1614	1929	8118665810000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.xcl	258ea878649ba9c
+1598	1948	8118665810000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.xcl	5e8a016ce20e16ca
+1650	1976	8118665810000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.xcl	ef5273cc6783fc11
+1952	2157	8118665817829093	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_sin_f32.pbi	831d353cf6622aa9
+1665	2462	8118665820907561	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/system_stm32f7xx.pbi	174147965de2f900
+1580	2696	8118665823206394	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_hal_msp.pbi	4ad4565ee6948558
+2161	2737	8118665823628118	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.pbi	df31f6148d9acd2
+1716	2827	8118665824546598	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/spi_driver.pbi	57138eeed61f97a1
+1935	2849	8118665824763457	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_common_tables.pbi	fc21a466effd120b
+1920	2997	8118665826222926	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/standardflash.pbi	3d9be5d239ea1093
+1982	3028	8118665826556189	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_it.pbi	e445ecbdf815cc76
+2465	3061	8118665826898001	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.pbi	156c89a84cad8f42
+1515	3156	8118665827846856	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+2698	3331	8118665829566347	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.pbi	70855b7e519c17e2
+2739	3349	8118665829795480	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.pbi	b85242e6085913d
+2830	3455	8118665830798698	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.pbi	6914d09419ce42c1
+2852	3476	8118665831050260	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.pbi	8656bed9d8b28800
+3000	3629	8118665832559993	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.pbi	6bb2e9c5b02d9161
+3032	3642	8118665832723821	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.pbi	f9e40176b0524f76
+3064	3764	8118665833925360	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.pbi	6ba6e82b836ec087
+3159	3798	8118665834262411	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.pbi	7c701f5c63e39799
+3353	3982	8118665836049359	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.pbi	f7a228f76b87f21c
+3334	4011	8118665836398170	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.pbi	2dacd480fcbf12d5
+3458	4122	8118665837497303	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.pbi	675d440495ba39
+3479	4133	8118665837580391	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.pbi	fdea49b3ece47f96
+3633	4264	8118665838907229	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.pbi	5e1bcc2d6168b6b3
+3802	4457	8118665840865399	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.pbi	1d852dd2a5868bc0
+3647	4468	8118665840824181	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.pbi	89f172f3ff92807d
+3768	4480	8118665841040210	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.pbi	3fc70668116adbb3
+4016	4647	8118665842761457	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.pbi	3ab16c38cf79994c
+3985	4659	8118665842808027	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.pbi	482aa4ab0eadb0fb
+4126	4811	8118665844396431	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.pbi	1b8670f0074ae3b1
+4137	4904	8118665845327373	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.pbi	44cdff1b51cae509
+4268	5098	8118665847251364	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.pbi	581f5453ceb0898c
+4485	5310	8118665849380199	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.pbi	3f8a2c1928f14dc6
+4472	5351	8118665849758238	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.pbi	810038f80f482cda
+4662	5711	8118665853349295	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.pbi	d40800e08e793b28
+4815	6042	8118665856645782	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.pbi	7cf3030c4fd57555
+4907	6240	8118665858674622	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.pbi	ea32a56cf3b8134e
+4651	6268	8118665858926451	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part2.pbi	f45f028803c2c0ce
+5104	6315	8118665859413425	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.pbi	57c2d553432a859d
+4460	6353	8118665859768359	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part1.pbi	9aa49393a32f134d
+5357	6457	8118665860859883	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.pbi	ffba5a0ca6334277
+6320	6910	8118665865410763	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part6.pbi	e0b9ddb568da5ec
+5715	7056	8118665866877209	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part3.pbi	25d8383b55b0bd38
+5316	7106	8118665867372238	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+6044	7222	8118665868542295	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part4.pbi	b6d104a4672bc3
+6461	7438	8118665870697948	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part5.pbi	1e68c58b040aab6d
+7441	9241	8118665888724070	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+2	4993	8118666021841863	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+45	437	8118691130000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_common_tables.xcl	4016beccf2ebb5f4
+61	456	8118691130000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/spi_driver.xcl	f94c9f3fbce1516a
+27	473	8118691130000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_hal_msp.xcl	cf12f2b151128091
+54	490	8118691130000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.xcl	6ec8c15c82ce12dd
+78	505	8118691130000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_sin_f32.xcl	f72b5066e622f426
+2	520	8118691130000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.xcl	b057cab69b17eb67
+69	535	8118691130000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.xcl	39322a0a06ddcffb
+36	550	8118691130000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_it.xcl	1b473dc635208196
+447	809	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/standardflash.xcl	b535f5dc5a7783fd
+495	891	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.xcl	cb7890e5b152bd06
+462	922	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/system_stm32f7xx.xcl	eb6522ead6215922
+478	939	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.xcl	b09b22b1bf280d7
+540	960	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.xcl	face8255e3150ae7
+510	979	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.xcl	b6354ac64c677176
+524	997	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.xcl	dc10b2db535c5cf
+555	1014	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.xcl	49ad92b759cb41a
+900	1183	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.xcl	4da7588394d4d9b4
+813	1202	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.xcl	ad07d7d02c9dcca9
+927	1250	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.xcl	a50c883d01e8d737
+966	1320	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.xcl	48c395e32bdf44db
+947	1362	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.xcl	34c61cbb4e54cbc1
+984	1379	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.xcl	bf6713f5f4d2f3e6
+1018	1402	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.xcl	7e3130eb8a3ec8ce
+1001	1421	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.xcl	16fe8effbffe3888
+1206	1562	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.xcl	9e2defae9dd7a0d3
+1189	1579	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.xcl	9b300a688b00598b
+1257	1628	8118691140000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.xcl	c4ac5903c6338b8c
+1327	1670	8118691150000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.xcl	9e936e3116c20bd5
+1367	1746	8118691150000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.xcl	f04195340adf8ffd
+1386	1779	8118691150000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.xcl	75d2b746295229c6
+1429	1797	8118691150000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.xcl	5c60bc488491eb04
+1407	1816	8118691150000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.xcl	462fbd08698e5d0a
+1569	1905	8118691150000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.xcl	225a7c527c41018b
+1635	1964	8118691150000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.xcl	2e020ef221e643bd
+1785	2068	8118691150000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.xcl	d7ccd997ae078624
+1752	2086	8118691150000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.xcl	39efd199859fb202
+1822	2115	8118691150000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.xcl	2881548554ee7c2f
+1803	2148	8118691150000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.xcl	f04e42508af41d1a
+1911	2203	8118691155757330	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_sin_f32.pbi	831d353cf6622aa9
+2074	2745	8118691161250664	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/system_stm32f7xx.pbi	174147965de2f900
+2207	2829	8118691162009400	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.pbi	df31f6148d9acd2
+1675	2864	8118691162278978	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_hal_msp.pbi	4ad4565ee6948558
+39	664	8118691254934817	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.pbi	6bb2e9c5b02d9161
+52	680	8118691255081325	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.pbi	70855b7e519c17e2
+46	708	8118691255335164	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.pbi	6914d09419ce42c1
+10	1022	8118691258484546	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/spi_driver.pbi	57138eeed61f97a1
+32	1038	8118691258616200	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_common_tables.pbi	fc21a466effd120b
+17	1052	8118691258781513	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_it.pbi	e445ecbdf815cc76
+23	1141	8118691259678250	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/standardflash.pbi	3d9be5d239ea1093
+668	1322	8118691261485627	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.pbi	8656bed9d8b28800
+683	1374	8118691261963364	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.pbi	156c89a84cad8f42
+712	1416	8118691262438831	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.pbi	b85242e6085913d
+2	1618	8118691264332861	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+1057	1668	8118691264966600	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.pbi	fdea49b3ece47f96
+1043	1711	8118691265364546	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.pbi	7c701f5c63e39799
+1028	1748	8118691265758076	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.pbi	6ba6e82b836ec087
+1145	1779	8118691266075755	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.pbi	482aa4ab0eadb0fb
+1419	1991	8118691268151451	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.pbi	f7a228f76b87f21c
+1326	2106	8118691269295926	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.pbi	89f172f3ff92807d
+1379	2141	8118691269586328	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.pbi	5e1bcc2d6168b6b3
+1620	2362	8118691271908451	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.pbi	3fc70668116adbb3
+1716	2383	8118691271969559	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.pbi	1d852dd2a5868bc0
+1671	2398	8118691272129693	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.pbi	f9e40176b0524f76
+1753	2441	8118691272606708	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.pbi	3ab16c38cf79994c
+1783	2460	8118691272767896	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.pbi	2dacd480fcbf12d5
+1995	2662	8118691274845632	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.pbi	675d440495ba39
+2109	2797	8118691276266622	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.pbi	1b8670f0074ae3b1
+2145	2902	8118691277314503	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.pbi	44cdff1b51cae509
+2386	3064	8118691278822972	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.pbi	581f5453ceb0898c
+2367	3078	8118691278822972	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.pbi	ffba5a0ca6334277
+2402	3094	8118691278975134	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.pbi	810038f80f482cda
+2447	3160	8118691279765898	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.pbi	ea32a56cf3b8134e
+2464	3212	8118691280406770	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.pbi	7cf3030c4fd57555
+2801	3457	8118691282802073	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.pbi	3f8a2c1928f14dc6
+2905	3634	8118691284560295	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.pbi	57c2d553432a859d
+3068	3699	8118691285192125	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.pbi	d40800e08e793b28
+2666	3742	8118691285669592	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part2.pbi	f45f028803c2c0ce
+3637	4138	8118691289641813	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part6.pbi	e0b9ddb568da5ec
+3164	4206	8118691290345168	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part3.pbi	25d8383b55b0bd38
+3084	4247	8118691290753399	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part1.pbi	9aa49393a32f134d
+3217	4258	8118691290913828	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part4.pbi	b6d104a4672bc3
+3099	4384	8118691292030286	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+3703	4637	8118691294564664	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part5.pbi	1e68c58b040aab6d
+4640	6204	8118691310296765	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+6205	11489	8118691361595119	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+20	980	8123678711375796	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_hal_msp.pbi	4ad4565ee6948558
+102	983	8123678711375796	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/spi_driver.pbi	57138eeed61f97a1
+109	995	8123678711584887	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/standardflash.pbi	3d9be5d239ea1093
+117	1038	8123678711831031	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_it.pbi	e445ecbdf815cc76
+93	1337	8123678714854650	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+997	2158	8123678723140702	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part1.pbi	9aa49393a32f134d
+1340	2538	8123678727023377	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+2541	4361	8123678745110069	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+4362	9641	8123678796289071	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+1	757	8123678961591214	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+760	1389	8123678967925863	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+1391	2345	8123678977403861	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+2347	9776	8123679048980588	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+2	651	8123698035614466	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+653	1319	8123698042364680	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+1322	2305	8123698052210041	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+2307	6242	8123698089885774	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+57	1755	8123702223866476	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_hal_msp.pbi	4ad4565ee6948558
+79	1764	8123702223926690	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/spi_driver.pbi	57138eeed61f97a1
+73	1774	8123702224083238	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_it.pbi	e445ecbdf815cc76
+65	1790	8123702224221547	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/standardflash.pbi	3d9be5d239ea1093
+2	2064	8123702226929312	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+1793	2571	8123702232073474	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part1.pbi	9aa49393a32f134d
+2066	2808	8123702234438121	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+2809	3856	8123702244881735	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+3858	7338	8123702278534467	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+2	676	8123702339369687	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+2	280	8123702390000000	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_usart.xcl	5be2e128252eb9b5
+283	761	8123702400842810	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_usart.pbi	eb30af4d8c85fe6c
+10	966	8123702402910420	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+764	1144	8123702404711768	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part6.pbi	fe98070b64af0e54
+1145	2178	8123702414986809	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+2181	5641	8123702448697437	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+1	698	8123709087183299	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+700	1375	8123709093976167	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+2	1044	8123709161921756	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+1046	4977	8123709200218793	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+35	831	8123710677470801	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/system_stm32f7xx.pbi	174147965de2f900
+23	840	8123710677470801	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.pbi	6914d09419ce42c1
+45	850	8123710677561308	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.pbi	b85242e6085913d
+834	1551	8123710684650217	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.pbi	70855b7e519c17e2
+844	1563	8123710684703758	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.pbi	df31f6148d9acd2
+855	1581	8123710684942293	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.pbi	675d440495ba39
+29	1735	8123710686488262	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/spi_driver.pbi	57138eeed61f97a1
+2	1786	8123710686985247	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_it.pbi	e445ecbdf815cc76
+10	1813	8123710687219479	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_hal_msp.pbi	4ad4565ee6948558
+42	1861	8123710687719923	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/standardflash.pbi	3d9be5d239ea1093
+1555	2353	8123710692654933	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.pbi	3ab16c38cf79994c
+1585	2368	8123710692705335	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.pbi	156c89a84cad8f42
+1567	2383	8123710692745654	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.pbi	8656bed9d8b28800
+17	2402	8123710693147329	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+1740	2560	8123710694730258	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.pbi	6bb2e9c5b02d9161
+1789	2799	8123710697106922	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.pbi	482aa4ab0eadb0fb
+1866	2813	8123710697207457	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.pbi	7c701f5c63e39799
+1818	2855	8123710697682915	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.pbi	6ba6e82b836ec087
+2405	3167	8123710700817222	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.pbi	5e1bcc2d6168b6b3
+2373	3182	8123710700817222	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.pbi	f7a228f76b87f21c
+2388	3231	8123710701445161	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.pbi	3fc70668116adbb3
+2357	3269	8123710701821354	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.pbi	44cdff1b51cae509
+2566	3294	8123710702077364	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.pbi	f9e40176b0524f76
+2818	3552	8123710704637670	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.pbi	1d852dd2a5868bc0
+2860	3648	8123710705616130	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.pbi	1b8670f0074ae3b1
+2804	3713	8123710706265976	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.pbi	89f172f3ff92807d
+3187	3911	8123710708247056	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.pbi	2dacd480fcbf12d5
+3172	3935	8123710708247056	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.pbi	fdea49b3ece47f96
+3235	3992	8123710709053438	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.pbi	d40800e08e793b28
+3299	4101	8123710710136840	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.pbi	3f8a2c1928f14dc6
+3274	4119	8123710710234345	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.pbi	581f5453ceb0898c
+3558	4441	8123710713535269	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.pbi	7cf3030c4fd57555
+3652	4526	8123710714383800	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.pbi	ea32a56cf3b8134e
+3718	4565	8123710714765660	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.pbi	810038f80f482cda
+4126	4903	8123710718166052	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.pbi	ffba5a0ca6334277
+4107	4928	8123710718419420	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_usart.pbi	eb30af4d8c85fe6c
+4530	5263	8123710721733848	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.pbi	57c2d553432a859d
+3918	5287	8123710722032359	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part3.pbi	25d8383b55b0bd38
+3997	5504	8123710724194445	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part1.pbi	9aa49393a32f134d
+4446	5554	8123710724688192	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part2.pbi	f45f028803c2c0ce
+3942	5579	8123710724945450	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+4570	5694	8123710726117923	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part4.pbi	b6d104a4672bc3
+5268	5823	8123710727401523	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part6.pbi	fe98070b64af0e54
+4908	5852	8123710727683985	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part5.pbi	1e68c58b040aab6d
+5855	7199	8123710741136384	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+7200	12638	8123710793673889	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+1	583	8123711663655539	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+584	1331	8123711671094790	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+1332	2643	8123711684252828	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+1	4149	8123711823666515	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+19	753	8123713198337137	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/spi_driver.pbi	57138eeed61f97a1
+14	759	8123713198412380	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_it.pbi	e445ecbdf815cc76
+2	763	8123713198432471	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_hal_msp.pbi	4ad4565ee6948558
+24	783	8123713198583309	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/standardflash.pbi	3d9be5d239ea1093
+9	988	8123713200691676	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+785	1546	8123713206278766	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part1.pbi	9aa49393a32f134d
+990	1829	8123713209130995	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+1830	3032	8123713221148384	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+3033	7070	8123713260374891	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+2	677	8123717835192819	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+678	1461	8123717843107739	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+1464	2861	8123717857057433	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+2	4513	8123718013668453	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+1	895	8123722096160850	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+896	2254	8123722109674711	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+40	1157	8124473340672670	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_it.pbi	e445ecbdf815cc76
+3	1434	8124473343522839	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+1438	2770	8124473356902097	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+2774	5112	8124473380252359	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+5115	12565	8124473452478306	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+2	757	8124473517418855	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_it.pbi	e445ecbdf815cc76
+12	1153	8124473521396270	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+1158	2285	8124473532760017	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+2289	4250	8124473552342697	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+4252	10874	8124473616889449	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+3	1196	8124477905186037	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+1199	2567	8124477918776945	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+2571	4596	8124477939139552	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbd	bd4b06657f084fbd
+4598	12972	8124478020867421	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos.pbw	fdf3c2e33462366d
+3	1055	8124479528372090	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	5c9e808f49060048
+1059	2382	8124479541666065	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/BrowseInfo/taos_part0.pbi	43988a620a2beb3b
+63	709	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.xcl	81b56bc0c5208c05
+54	730	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.xcl	50ebbe86a622f28e
+23	751	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/system_stm32f7xx.xcl	919fc683aac20f6e
+13	772	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/standardflash.xcl	d64c2a6aa952ce80
+78	790	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_sin_f32.xcl	71e300492b7b53c4
+2	808	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.xcl	f7d350beff92fca2
+43	826	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/spi_driver.xcl	16364d966407d4c6
+32	847	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.xcl	14a0b7dbadf3e039
+716	1144	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.xcl	1dc2428104784819
+758	1229	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.xcl	2219b165d89583d7
+738	1247	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.xcl	46513b9fda2948a6
+778	1283	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.xcl	913917f06c5f6245
+832	1301	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.xcl	6482863df6fef23d
+796	1319	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.xcl	d3bc4730ce964af7
+814	1336	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.xcl	a4c31ebe1b2de3e1
+853	1354	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.xcl	50a18ccee96319b6
+1150	1458	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.xcl	a0525eac0dd03c56
+1235	1613	8124729560000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.xcl	2c79ee5ffbc13614
+1253	1688	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_it.xcl	b6d0baa57322a90e
+1289	1727	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_common_tables.xcl	ed0614b673b592dd
+1306	1782	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_hal_msp.xcl	32bdf1e1a1fcc719
+1325	1799	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.xcl	ec2960e572e4d944
+1342	1813	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.xcl	c454dccd31a4d6ed
+1359	1827	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.xcl	6966d213f1e7363e
+1464	1842	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.xcl	647e6fe283a40770
+1621	1973	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.xcl	e2074fa2a3c42f0b
+1692	2080	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.xcl	b80f5ce6778d2c15
+1787	2175	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.xcl	709d10c3d81653de
+1832	2209	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.xcl	e95e3c533c99377f
+1731	2266	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.xcl	42bd4d1fa13ce00e
+1803	2281	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.xcl	d0be0f9511a56ceb
+1817	2298	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.xcl	d342451657542c58
+1847	2351	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.xcl	f9fb7036649ff234
+1977	2364	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.xcl	67b5d255988b3e32
+2084	2393	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.xcl	1878a2f5e5db6c4a
+2179	2497	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_usart.xcl	12d8390733e53c96
+2271	2595	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.xcl	ed59cb363cef7789
+2212	2608	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.xcl	4ceb30b518d1d6eb
+2287	2620	8124729570000000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.xcl	88326e5113966974
+2624	2908	8124729582778898	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_sin_f32.pbi	5a4ace3601cbd23a
+2501	3424	8124729587930001	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/system_stm32f7xx.pbi	ac863364b208e3ed
+2599	3667	8124729590307453	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.pbi	b632c5bc8b180875
+2303	3917	8124729592812299	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_it.pbi	b62fb67b7c811ee0
+2368	3944	8124729593092839	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/stm32f7xx_hal_msp.pbi	8db2d863d38f2a0c
+2914	3976	8124729593386081	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.pbi	f1625c849b365d85
+2612	4007	8124729593743759	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/CMSIS_6603591812247902717.dir/arm_common_tables.pbi	d5712e3829910b4c
+2355	4183	8124729595477864	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/spi_driver.pbi	4cf4681744df12ba
+3672	4675	8124729600430976	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.pbi	d2823b6b9f25fbc3
+2397	4758	8124729601262664	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/User_8454777428142420917.dir/main.pbi	af9fe6bc1787950e
+3947	4824	8124729601935204	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.pbi	ed14f17c300b1e64
+3921	4920	8124729602887561	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.pbi	5c8db8b6d09cc7e7
+3980	5013	8124729603803264	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.pbi	f5ef921a2cb7a45f
+4011	5115	8124729604785664	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.pbi	fc53629cf62d2071
+3437	5172	8124729605379151	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/FLASH_8855453216840458194.dir/standardflash.pbi	d75b9050f98de0f2
+4186	5186	8124729605494045	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.pbi	9da5fcf3bdbf5b74
+4679	5592	8124729609597758	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.pbi	fecae0fa3aa6d034
+4828	5779	8124729611488499	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.pbi	742401a29e6e8433
+4761	5796	8124729611637782	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.pbi	80f4e76483793a14
+4925	5931	8124729612982959	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.pbi	64d68443e7bfa7c4
+5017	5986	8124729613557277	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.pbi	e6e0183dd0e0c5c2
+5176	6040	8124729614069222	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.pbi	9b51d50f43d0b0ec
+5190	6180	8124729615463528	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.pbi	f90df3a2a631c8f2
+5120	6271	8124729616336000	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.pbi	e79bfa0648d7535
+5596	6419	8124729617850394	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.pbi	ef0b744302a1aa29
+5799	6621	8124729619902584	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.pbi	e7f39813849f4da9
+5782	6634	8124729619918428	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.pbi	4c672a1a3d94d720
+5990	6895	8124729622631828	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.pbi	718c78ee1ec94f74
+5933	6942	8124729623077532	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.pbi	77a23fe0619faf00
+6043	7107	8124729624764860	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.pbi	1400ca33f35df2e5
+6183	7180	8124729625496606	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.pbi	bd7030853be92b10
+6274	7263	8124729626319521	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.pbi	258f5ffe02c2fdbe
+6423	7373	8124729627410577	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.pbi	db8eb93a6121083c
+6638	7524	8124729628923995	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.pbi	f776e28557622ee7
+6625	7692	8124729630576905	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.pbi	5994498327e2bbf1
+6947	7837	8124729632047753	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.pbi	49f47a9f2b72ee91
+6900	7884	8124729632524634	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.pbi	a0199624cdd6f0d
+7184	7915	8124729632851933	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.pbi	410d7d1142ccfdb3
+7110	8188	8124729635555848	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_usart.pbi	962ef2bc0bb38ec5
+7376	8667	8124729640355490	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/taos_part1.pbi	ac6257cd869bda56
+7527	8671	8124729640375595	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/taos_part2.pbi	6fe5151f431d6852
+7266	8701	8124729640729764	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/taos_part0.pbi	36e89cd0691dcfee
+7695	8832	8124729642028989	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/taos_part3.pbi	8dabca9fc890583a
+8193	8867	8124729642387493	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/taos_part6.pbi	33b04edca92c2da4
+7888	8960	8124729643258701	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/taos_part4.pbi	4195eeef9876ed4c
+7918	8962	8124729643350030	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/taos_part5.pbi	756fc57593a494d2
+8964	10019	8124729653838412	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/taos.pbd	483be042fb95eae8
+10022	12762	8124729680273452	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/BrowseInfo/taos.pbw	412bf8285424a6fd
