@@ -90,6 +90,21 @@ typedef  void (*pFunction)(void);
 #define RS485_TX_PIN    LL_GPIO_PIN_6
 #define RS485_RX_PIN    LL_GPIO_PIN_7
 #define RS485_USART     USART1
+#define RS485_USART_IRQn USART1_IRQn
+
+/*
+ * Адрес датчика на шине RS-485 (Modbus-подобный протокол SNAP/STATUS/READ).
+ * На каждый физический датчик прошивка собирается со своим значением ID
+ * (1..254, 0 и 255 зарезервированы). Проще всего задать через define
+ * проекта (-DRS485_DEVICE_ID=2 в настройках сборки для второго датчика),
+ * чтобы не поддерживать несколько веток кода. В дальнейшем адрес можно
+ * читать во время выполнения (DIP-переключатель/резисторные делители на
+ * свободных GPIO, либо значение, хранимое в EEPROM), тогда это define
+ * станет только значением по умолчанию.
+ */
+#ifndef RS485_DEVICE_ID
+#define RS485_DEVICE_ID   1U
+#endif
 
 /*
   * @brief I2C devices settings
@@ -268,6 +283,46 @@ volatile uint32_t adc_frame_rate = 0U;
 volatile uint32_t angle_update_count = 0U;
 volatile uint32_t angle_update_rate = 0U;
 volatile uint32_t rate_t0 = 0U;
+
+/*
+ * ---------------------------------------------------------------------
+ * Конвейер измерений для протокола SNAP/STATUS/READ по RS-485.
+ * ---------------------------------------------------------------------
+ * АЦП -> расчёт -> calculating -> published -> (SNAP) -> frozen
+ *
+ *  - calculating: рабочие (промежуточные) поля текущего кадра, пишутся
+ *    только в главном цикле, во время самого расчёта угла.
+ *  - published:   последний ПОЛНОСТЬЮ посчитанный кадр. Обновляется одним
+ *    присваиванием структуры сразу после того, как calculating собран
+ *    целиком, поэтому нет промежуточного состояния "наполовину новый кадр".
+ *  - frozen + frozen_seq/frozen_ok: неизменный снимок published,
+ *    сделанный в момент прихода широковещательной команды SNAP,seq.
+ *    Именно frozen отдаётся в ответ на READ,id,seq, поэтому пока идёт
+ *    выдача данных за кадр seq, АЦП и алгоритм совершенно свободно
+ *    продолжают считать следующие кадры в calculating/published — они
+ *    друг другу не мешают.
+ *
+ * Все эти структуры трогает только main() (сама обработка АЦП и разбор
+ * команд RS-485 выполняются в общем bare-metal цикле без ОС), поэтому
+ * присваивание структуры целиком атомарно с точки зрения гонок: копия
+ * никогда не попадёт в разрыв между чтением ADC ISR и обработкой команды -
+ * ISR USART1 только складывает байты в кольцевой буфер, но не трогает
+ * calculating/published/frozen.
+ */
+typedef struct {
+    int32_t  angle_mdeg;   /* угол в миллиградусах, [0..359999], -1 если сектор не определён */
+    int16_t  sector;       /* номер сектора или -1, если невалидно */
+    uint8_t  valid;        /* 1 - измерение достоверно (errorflag==0 и сектора в диапазоне) */
+    uint8_t  state;        /* последнее значение encoder_state (диагностика) */
+    uint32_t frame_no;     /* локальный, никогда не обнуляемый счётчик кадров этой головки */
+} Measurement;
+
+static Measurement calculating;      /* собирается для текущего кадра */
+static Measurement published;        /* последний полностью готовый кадр */
+static Measurement frozen;           /* неизменный снимок для READ */
+static uint32_t    frozen_seq;       /* какому seq соответствует frozen */
+static uint8_t     frozen_ok;        /* 1, если SNAP с frozen_seq уже обработан */
+static uint32_t    measurement_frame_no; /* свободно бегущий счётчик кадров головки */
 
 //FLASH
 
@@ -869,8 +924,8 @@ const unsigned char crc_table[256] = {
 /**
   * @brief  Calculate CRC8
   */
-//byte - очередной байт, для которого считаем контрольныю сумму
-//crc8 - байт самой контрольной суммы
+//byte - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+//crc8 - пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 void crc_8_step(unsigned char byte, unsigned char *crc8){
 *crc8=crc_table[(*crc8^byte)];
 }
@@ -1386,6 +1441,11 @@ static void MX_I2C3_Init(void);
 static void MX_RS485_USART1_Init(void);
 static void RS485_Write(const uint8_t *data, size_t len);
 static void RS485_SendMeasurement(void);
+static void RS485_PollCommands(void);
+static void RS485_HandleLine(const char *line);
+static void RS485_OnSnap(uint32_t seq);
+static void RS485_OnStatus(uint8_t id, uint32_t seq);
+static void RS485_OnRead(uint8_t id, uint32_t seq);
 
 void copy_data(void);                                                           //copy TAOS data
 void find_startpixel(void);                                                     //search for 1-st startpixel
@@ -3890,7 +3950,14 @@ static void MX_RS485_USART1_Init(void)
 
     LL_USART_StructInit(&usart);
 
-    usart.BaudRate = 9600;
+    /*
+     * ВАЖНО: скорость должна совпадать со скоростью мастера ESP32
+     * (RS_BAUD в скетче). 9600 было наследием старого "теста", для
+     * протокола SNAP/STATUS/READ с таймаутом 30 мс на слово нужен
+     * запас по времени, поэтому переведено на 115200, как в скетче
+     * мастера. Меняйте оба конца одновременно.
+     */
+    usart.BaudRate = 115200;
     usart.DataWidth = LL_USART_DATAWIDTH_8B;
     usart.StopBits = LL_USART_STOPBITS_1;
     usart.Parity = LL_USART_PARITY_NONE;
@@ -3902,6 +3969,12 @@ static void MX_RS485_USART1_Init(void)
     LL_USART_Init(RS485_USART, &usart);
     LL_USART_ConfigAsyncMode(RS485_USART);
     LL_USART_Enable(RS485_USART);
+
+    /* Приём команд мастера ведётся по прерыванию, чтобы не терять байты,
+     * пока main() занят расчётом угла по кадру АЦП. */
+    LL_USART_EnableIT_RXNE(RS485_USART);
+    NVIC_SetPriority(RS485_USART_IRQn, 5);
+    NVIC_EnableIRQ(RS485_USART_IRQn);
 }
 
 
@@ -3953,6 +4026,192 @@ static void RS485_SendMeasurement(void)
     }
 }
 
+/*
+ * ---------------------------------------------------------------------
+ * Приём и разбор команд SNAP/STATUS/READ по RS-485.
+ * ---------------------------------------------------------------------
+ * Формат строк ASCII, разделитель полей ',', конец строки '\n' (перед
+ * ним допускается необязательный '\r', как и в текущем формате DATA):
+ *
+ *   S,<seq>                       SNAP:  широковещательная команда всем
+ *                                        датчикам. Ответа НЕ предполагает.
+ *   T,<id>,<seq>                  STATUS: адресный запрос готовности.
+ *                                        Ответ ACK,<id>,<seq>,frame=<N>
+ *                                        либо NAK,<id>,<seq>.
+ *   R,<id>,<seq>                  READ:  адресный запрос данных.
+ *                                        Ответ D,<id>,<seq>,angle,sector,
+ *                                        valid,state,frame (см. формат,
+ *                                        который уже понимает parseData()
+ *                                        в скетче мастера).
+ *
+ * <id> сравнивается с RS485_DEVICE_ID; команды с чужим id молча
+ * игнорируются (в шину при этом ничего не передаётся - иначе на
+ * многоточечной линии возникнет коллизия с ответом адресованного
+ * датчика).
+ */
+
+#define RS485_RXBUF_SIZE 128U /* степень двойки! */
+
+static volatile uint8_t  rs485_rxbuf[RS485_RXBUF_SIZE];
+static volatile uint16_t rs485_rx_head = 0U;
+static volatile uint16_t rs485_rx_tail = 0U;
+static volatile uint8_t  rs485_rx_overflow = 0U;
+
+/* Вызывается из USART1_IRQHandler(). Делает минимум работы -
+ * только складывает байт в кольцевой буфер. */
+static void RS485_RxByteFromISR(uint8_t byte)
+{
+    uint16_t next = (uint16_t)((rs485_rx_head + 1U) & (RS485_RXBUF_SIZE - 1U));
+
+    if (next != rs485_rx_tail) {
+        rs485_rxbuf[rs485_rx_head] = byte;
+        rs485_rx_head = next;
+    } else {
+        rs485_rx_overflow = 1U; /* буфер переполнен, байт потерян */
+    }
+}
+
+/* SNAP,seq: сделать снимок published -> frozen. Broadcast, без ответа. */
+static void RS485_OnSnap(uint32_t seq)
+{
+    frozen = published;   /* копия структуры одним присваиванием (атомарно
+                            * в рамках bare-metal main loop) */
+    frozen_seq = seq;
+    frozen_ok = 1U;        /* именно "снимок сделан", а не "угол валиден" -
+                            * достоверность самого измерения отражена в
+                            * frozen.valid и уходит в DATA отдельно */
+}
+
+/* STATUS,id,seq: сообщить, готов ли снимок с меткой seq. */
+static void RS485_OnStatus(uint8_t id, uint32_t seq)
+{
+    char line[48];
+    int n;
+
+    if (id != (uint8_t)RS485_DEVICE_ID) {
+        return; /* команда не к нам - в шину не отвечаем */
+    }
+
+    if (frozen_ok && (frozen_seq == seq)) {
+        n = snprintf(line, sizeof(line), "ACK,%u,%lu,frame=%lu\r\n",
+                     (unsigned)RS485_DEVICE_ID,
+                     (unsigned long)seq,
+                     (unsigned long)frozen.frame_no);
+    } else {
+        /* Явный отрицательный ответ быстрее таймаута на мастере:
+         * например, SNAP ещё не был обработан этим датчиком. */
+        n = snprintf(line, sizeof(line), "NAK,%u,%lu\r\n",
+                     (unsigned)RS485_DEVICE_ID,
+                     (unsigned long)seq);
+    }
+
+    if ((n > 0) && ((size_t)n < sizeof(line))) {
+        RS485_Write((const uint8_t *)line, (size_t)n);
+    }
+}
+
+/* READ,id,seq: отдать данные зафиксированного кадра seq. */
+static void RS485_OnRead(uint8_t id, uint32_t seq)
+{
+    char line[80];
+    int n;
+
+    if (id != (uint8_t)RS485_DEVICE_ID) {
+        return;
+    }
+
+    if (!(frozen_ok && (frozen_seq == seq))) {
+        /* Нет данных под этим seq (READ раньше STATUS/SNAP, или мастер
+         * ошибся) - молчим, мастер получит таймаут и повторит цикл. */
+        return;
+    }
+
+    n = snprintf(line, sizeof(line), "D,%u,%lu,%ld,%d,%u,%02X,%lu\r\n",
+                 (unsigned)RS485_DEVICE_ID,
+                 (unsigned long)seq,
+                 (long)frozen.angle_mdeg,
+                 (int)frozen.sector,
+                 (unsigned)frozen.valid,
+                 (unsigned)frozen.state,
+                 (unsigned long)frozen.frame_no);
+
+    if ((n > 0) && ((size_t)n < sizeof(line))) {
+        RS485_Write((const uint8_t *)line, (size_t)n);
+    }
+}
+
+/* Разбор одной собранной строки команды и вызов соответствующего
+ * обработчика. */
+static void RS485_HandleLine(const char *line)
+{
+    unsigned id = 0U;
+    unsigned long seq = 0UL;
+
+    if ((line[0] == 'S') && (line[1] == ',')) {
+        if (sscanf(line, "S,%lu", &seq) == 1) {
+            RS485_OnSnap((uint32_t)seq);
+        }
+        return;
+    }
+
+    if ((line[0] == 'T') && (line[1] == ',')) {
+        if (sscanf(line, "T,%u,%lu", &id, &seq) == 2) {
+            RS485_OnStatus((uint8_t)id, (uint32_t)seq);
+        }
+        return;
+    }
+
+    if ((line[0] == 'R') && (line[1] == ',')) {
+        if (sscanf(line, "R,%u,%lu", &id, &seq) == 2) {
+            RS485_OnRead((uint8_t)id, (uint32_t)seq);
+        }
+        return;
+    }
+
+    /* неизвестная команда - молча игнорируем */
+}
+
+/* Выбирает готовые байты из кольцевого буфера, собирает строки по '\n'
+ * (с необязательным ведущим '\r') и передаёт их в RS485_HandleLine().
+ * Вызывается из главного цикла на КАЖДОЙ итерации (не только когда
+ * adc_rdy==1), чтобы задержка ответа не зависела от текущей фазы
+ * обработки кадра АЦП. */
+static void RS485_PollCommands(void)
+{
+    static char   line[64];
+    static size_t line_len = 0U;
+
+    if (rs485_rx_overflow) {
+        rs485_rx_overflow = 0U; /* сюда можно добавить счётчик диагностики */
+    }
+
+    while (rs485_rx_tail != rs485_rx_head) {
+        uint8_t byte = rs485_rxbuf[rs485_rx_tail];
+        rs485_rx_tail = (uint16_t)((rs485_rx_tail + 1U) & (RS485_RXBUF_SIZE - 1U));
+
+        if (byte == (uint8_t)'\r') {
+            continue;
+        }
+
+        if (byte == (uint8_t)'\n') {
+            line[line_len] = '\0';
+            if (line_len > 0U) {
+                RS485_HandleLine(line);
+            }
+            line_len = 0U;
+            continue;
+        }
+
+        if ((line_len + 1U) < sizeof(line)) {
+            line[line_len++] = (char)byte;
+        } else {
+            /* строка длиннее ожидаемого - явно мусор, отбрасываем её
+             * целиком, ждём следующий '\n' */
+            line_len = 0U;
+        }
+    }
+}
+
 
 /**
   * @brief  The application entry point.
@@ -3961,8 +4220,6 @@ static void RS485_SendMeasurement(void)
 
 int main(void)
 {
-  static uint32_t rs485_last_tx = 0U;
-
   // MCU Configuration--------------------------------------------------------
 
   HAL_Init();
@@ -3998,6 +4255,14 @@ int main(void)
   
   while (1)
   {
+    /*
+     * Разбор команд RS-485 (SNAP/STATUS/READ) выполняется на КАЖДОЙ
+     * итерации главного цикла, а не только внутри блока adc_rdy==1.
+     * Иначе ответ на STATUS/READ будет задержан на длительность
+     * обработки кадра АЦП, и мастер будет чаще упираться в таймаут.
+     */
+    RS485_PollCommands();
+
     if (adc_rdy == 1)
     {
       adc_frame_count++;
@@ -4030,11 +4295,45 @@ int main(void)
         angle_update_count++;
       }
 
-      if ((HAL_GetTick() - rs485_last_tx) >= 100U)
-      {
-        rs485_last_tx = HAL_GetTick();
-        RS485_SendMeasurement();
-      }
+      /*
+       * Публикация кадра для протокола SNAP/STATUS/READ.
+       * calculating заполняется целиком и только потом одним
+       * присваиванием фиксируется в published, поэтому published
+       * всегда содержит консистентный набор полей одного и того же
+       * кадра (не бывает "угол от нового кадра + sector от старого").
+       */
+      measurement_frame_no++;
+
+      calculating.valid = (errorflag == 0) &&
+                           (sector >= 0) && (sector < BIT_TAB_SIZE) &&
+                           (rsector >= 0) && (rsector < BIT_TAB_SIZE);
+      calculating.sector = calculating.valid ? (int16_t)sector : (int16_t)-1;
+      /*
+       * ВНИМАНИЕ: пример парсера DATA на мастере (parseData()) жёстко
+       * требует 0 <= angle < 360000 и отбрасывает всю строку при
+       * нарушении, даже если valid=0. Поэтому при невалидном измерении
+       * сюда пишется ПОСЛЕДНИЙ известный угол (из published), а не -1 -
+       * иначе мастер будет считать саму строку DATA битой, а не просто
+       * получит valid=0. Разбор valid/sector остаётся источником истины
+       * о достоверности данных.
+       */
+      calculating.angle_mdeg = calculating.valid
+                                    ? (int32_t)lroundf(cur_ang_E * 1000.0f)
+                                    : published.angle_mdeg;
+      calculating.state = encoder_state;
+      calculating.frame_no = measurement_frame_no;
+
+      published = calculating;
+
+      /* Периодическая безадресная рассылка RS485_SendMeasurement()
+       * отключена: на шине с несколькими датчиками несколько
+       * передатчиков RS-485, включающихся одновременно каждые 100 мс,
+       * гарантированно приводят к коллизиям. Ответы теперь отдаются
+       * только адресно, из RS485_OnStatus()/RS485_OnRead(), которые
+       * вызываются из RS485_PollCommands() выше. Для одиночной отладки
+       * на столе можно временно раскомментировать следующий вызов, но
+       * только пока на линии физически один датчик. */
+      /* RS485_SendMeasurement(); */
 
       spi_SendExec();
 
@@ -5313,6 +5612,35 @@ void TIM4_IRQHandler(void)
       LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_15);
       backlight_timer_state = BACKLIGHT_STATE_IDLE;
     }
+  }
+}
+
+/**
+  * @brief  This function handles USART1 (RS-485) global interrupt.
+  *         Делает минимум работы: перекладывает принятый байт в кольцевой
+  *         буфер, а сама разборка команд идёт из главного цикла
+  *         (RS485_PollCommands()). Так интервал занятости прерывания не
+  *         зависит от длины/содержимого команды.
+  * @retval None
+  */
+void USART1_IRQHandler(void)
+{
+  if (LL_USART_IsActiveFlag_RXNE(RS485_USART) && LL_USART_IsEnabledIT_RXNE(RS485_USART)) {
+    uint8_t byte = LL_USART_ReceiveData8(RS485_USART);
+    RS485_RxByteFromISR(byte);
+  }
+
+  /* Ошибки линии (обрыв/помеха/переполнение) не должны "подвешивать"
+   * приём - сбрасываем флаги и продолжаем, поврежденная строка будет
+   * просто отброшена в RS485_PollCommands() при получении '\n'. */
+  if (LL_USART_IsActiveFlag_ORE(RS485_USART)) {
+    LL_USART_ClearFlag_ORE(RS485_USART);
+  }
+  if (LL_USART_IsActiveFlag_NE(RS485_USART)) {
+    LL_USART_ClearFlag_NE(RS485_USART);
+  }
+  if (LL_USART_IsActiveFlag_FE(RS485_USART)) {
+    LL_USART_ClearFlag_FE(RS485_USART);
   }
 }
 /**
