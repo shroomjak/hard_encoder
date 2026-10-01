@@ -1,70 +1,114 @@
 // ============================================================================
-// ESP32 master для протокола SNAP / STATUS / READ по RS-485.
+// ESP32 master для протокола SNAP / STATUS / READ по RS-485, версия 2.
 //
 // Сценарий на цикл опроса (N датчиков, ID = SENSOR_IDS[]):
 //
-//   ESP32 -> всем:      S,<seq>                (SNAP, широковещательно, без ответа)
-//   ESP32 -> датчик i:  T,<id_i>,<seq>         (STATUS)
-//   датчик i -> ESP32:  ACK,<id_i>,<seq>,frame=<F>   либо   NAK,<id_i>,<seq>
+//   ESP32 -> всем:      S,<seq>*CRC              (SNAP, broadcast, без ответа)
+//   ESP32 -> датчик i:  T,<id_i>,<seq>*CRC       (STATUS)
+//   датчик i -> ESP32:  ACK,<id_i>,<seq>,frame=<F>*CRC
+//                       либо NAK,<id_i>,<seq>,<ПРИЧИНА>*CRC
 //                       ... для каждого датчика, по очереди ...
 //
 //   // Только если ВСЕ датчики подтвердили готовность (ACK) для этого seq:
-//   ESP32 -> датчик i:  R,<id_i>,<seq>         (READ)
-//   датчик i -> ESP32:  D,<id_i>,<seq>,angle_mdeg,sector,valid,state,frame
+//   ESP32 -> датчик i:  R,<id_i>,<seq>*CRC       (READ)
+//   датчик i -> ESP32:  D,<id_i>,<seq>,angle_udeg,sector,valid,state,frame*CRC
 //
 // Если хотя бы один датчик не прислал ACK (таймаут или NAK), фаза READ для
-// этого seq целиком пропускается - таково требование сценария ("Только если
-// получены оба корректных ACK"). Следующий цикл начнётся с нового SNAP,seq+1.
+// этого seq целиком пропускается: набор показаний за кадр всё равно неполный.
 //
-// Протокол текстовый, ASCII, разделитель ',', конец строки '\n'
-// (опциональный '\r' перед ним допускается и игнорируется).
+// ЧТО ИЗМЕНИЛОСЬ В ВЕРСИИ 2 (см. master_esp32/REPORT_v2.md):
+//   * формат строк и их разбор вынесены в общий с прошивкой rs485_proto.h;
+//   * каждая строка закрыта CRC-8, битые строки отбрасываются;
+//   * угол передаётся в МИКРОградусах (6 знаков после запятой);
+//   * DE/RE управляет сама периферия UART (режим RS-485 half duplex),
+//     а не digitalWrite() вокруг flush();
+//   * NAK от датчика разбирается с причиной и не ждёт полного таймаута;
+//   * нумерация seq стартует со случайного значения - датчик не может
+//     принять за свежий снимок остаток предыдущей сессии мастера.
 // ============================================================================
 
 #include <Arduino.h>
 #include <string.h>
 
+#include "driver/uart.h"
+#include "rs485_proto.h"
+
+// --- железо -----------------------------------------------------------------
+// ВНИМАНИЕ: на модулях ESP32-WROVER (с PSRAM) GPIO16/17 заняты под SPI RAM -
+// там UART2 нужно перевесить на другие пины, иначе шина работать не будет.
 constexpr int RS_RX = 16;
 constexpr int RS_TX = 17;
 constexpr int RS_DE = 4;
 
+constexpr uart_port_t RS_UART = UART_NUM_2;   // Serial2
+
 // ВАЖНО: должно совпадать с usart.BaudRate в MX_RS485_USART1_Init() на STM32.
 constexpr uint32_t RS_BAUD = 115200;
 
-// Таймаут ожидания ОДНОЙ строки ответа (ACK/NAK/DATA) от адресованного датчика.
-constexpr uint32_t RESPONSE_TIMEOUT_MS = 30;
+// Аппаратный полудуплекс RS-485: DE/RE дёргает сам контроллер UART по линии
+// RTS, строго по границам кадра. Выключите (0), только если ваша версия
+// arduino-esp32/IDF не поддерживает uart_set_mode() - тогда включится
+// программный путь с uart_wait_tx_done() (тоже корректный, но медленнее).
+#ifndef RS485_HW_DE
+#define RS485_HW_DE 1
+#endif
+
+// --- тайминги ---------------------------------------------------------------
+// Таймаут берётся из общего заголовка: он связан с guard time слейва.
+// Слейв перестаёт отвечать раньше, чем мастер перестаёт слушать, поэтому
+// запоздавший ответ физически не может наложиться на следующую команду.
+constexpr uint32_t RESPONSE_TIMEOUT_MS = RS485_MASTER_TIMEOUT_MS;
+static_assert(RS485_RESPONSE_GUARD_MS < RS485_MASTER_TIMEOUT_MS,
+              "guard time слейва должен быть меньше таймаута мастера");
 
 // Сколько раз подряд можно переспросить STATUS у одного датчика в рамках
-// одного seq, пока он не пришлёт ACK/NAK (например, если SNAP ещё не был
-// обработан датчиком в момент первого опроса). Общий бюджет времени на
-// один STATUS = STATUS_RETRY_COUNT * (RESPONSE_TIMEOUT_MS + STATUS_RETRY_DELAY_MS).
+// одного seq (например, если SNAP ещё не был обработан в момент опроса).
 constexpr uint8_t  STATUS_RETRY_COUNT = 3;
 constexpr uint32_t STATUS_RETRY_DELAY_MS = 3;
+
+// Повтор READ при ПОТЕРЕ ответа (таймаут/мусор), но не при NAK: NAK означает,
+// что данных действительно нет, и повторять бессмысленно.
+// Зачем вообще повтор: на головке есть окна с глобально запрещёнными
+// прерываниями (обработчик DMA2_Stream3 ждёт кадр TSL1401 с __disable_irq()),
+// и команда, пришедшая внутрь такого окна, теряется целиком. Повтор дешевле,
+// чем потерянный цикл измерений: снимок под этот seq у датчика ещё жив
+// (RS485_FROZEN_TTL_MS), поэтому запрос идемпотентен.
+constexpr uint8_t  READ_RETRY_COUNT = 2;
+
+// Пауза после широковещательного SNAP: запас на дообработку последнего байта
+// всеми STM32 на линии. Сам момент "замри" формируется на головке в
+// прерывании USART1, поэтому пауза влияет только на порядок команд.
+constexpr uint32_t SNAP_SETTLE_MS = 2;
 
 // Период полного цикла опроса.
 constexpr uint32_t CYCLE_PERIOD_MS = 100;
 
-constexpr size_t LINE_CAP = 96;
+// Печать диагностики раз в N циклов.
+constexpr uint32_t STATS_EVERY_CYCLES = 50;
+
+constexpr size_t LINE_CAP = RS485_LINE_MAX;
 
 // Список ID датчиков на шине. Для другого N просто меняйте этот массив -
-// весь остальной код уже общий (см. requestStatus()/requestReading() в
-// циклах ниже).
+// весь остальной код написан циклами по нему.
 constexpr uint8_t SENSOR_IDS[] = {1, 2};
 constexpr size_t  SENSOR_COUNT = sizeof(SENSOR_IDS) / sizeof(SENSOR_IDS[0]);
 
-struct Reading {
-    uint8_t  id;
-    uint32_t seq;
-    int32_t  angle_mdeg;
-    int      sector;
-    unsigned valid;
-    unsigned state;
-    uint32_t frame_no;
+uint32_t nextSeq = 0;
+uint32_t cycleCount = 0;
+
+struct Stats {
+    uint32_t cycles;
+    uint32_t cyclesComplete;   // циклы, где все датчики дали и ACK, и данные
+    uint32_t timeouts;
+    uint32_t crcErrors;
+    uint32_t naks;
+    uint32_t badReplies;
 };
 
-uint32_t nextSeq = 0;
+Stats stats = {0, 0, 0, 0, 0, 0};
 
 // ---------------------------------------------------------------------------
-// Низкоуровневый обмен по RS-485 (общий для SNAP/STATUS/READ)
+// Низкоуровневый обмен по RS-485
 // ---------------------------------------------------------------------------
 
 void clearRx() {
@@ -74,15 +118,25 @@ void clearRx() {
 }
 
 void sendLine(const char *text) {
+    const size_t len = strlen(text);
+
+#if RS485_HW_DE
+    // DE поднимает и опускает сама периферия: гонки "снял DE раньше, чем
+    // ушёл последний бит" не существует в принципе.
+    Serial2.write(reinterpret_cast<const uint8_t *>(text), len);
+#else
     digitalWrite(RS_DE, HIGH);
-    delayMicroseconds(10); // запас на включение передатчика модуля RS-485
-    Serial2.write(reinterpret_cast<const uint8_t *>(text), strlen(text));
-    Serial2.flush(true);   // дождаться завершения TX; RX не очищать
+    delayMicroseconds(10);                 // запас на включение драйвера
+    Serial2.write(reinterpret_cast<const uint8_t *>(text), len);
+    // uart_wait_tx_done() ждёт опустошения И сдвигового регистра, в отличие
+    // от Serial2.flush(), на котором легко обрезать последний символ.
+    uart_wait_tx_done(RS_UART, pdMS_TO_TICKS(50));
     digitalWrite(RS_DE, LOW);
+#endif
 }
 
-// Считывает одну строку до '\n' (символ '\r' пропускается). Возвращает
-// false по таймауту или ошибке переполнения буфера.
+// Считывает одну строку до '\n' ('\r' пропускается).
+// false - таймаут или строка длиннее буфера.
 bool readLine(char *dst, size_t cap, uint32_t timeoutMs) {
     size_t len = 0;
     const uint32_t start = millis();
@@ -110,59 +164,84 @@ bool readLine(char *dst, size_t cap, uint32_t timeoutMs) {
     return false;
 }
 
-// ---------------------------------------------------------------------------
-// SNAP,seq — широковещательная команда "зафиксировать кадр seq".
-// Ответа не предполагает (RS-485 полудуплекс: если бы слейвы отвечали
-// одновременно, шина бы просто "смешалась").
-// ---------------------------------------------------------------------------
-void sendSnap(uint32_t seq) {
-    char command[32];
-    snprintf(command, sizeof(command), "S,%lu\n", static_cast<unsigned long>(seq));
+// Читает строки до истечения общего таймаута и возвращает первую, прошедшую
+// проверку CRC (уже без "*XX"). Строки с битой CRC просто считаются и
+// отбрасываются: на шине это помеха, а не ответ.
+bool readChecked(char *dst, size_t cap, uint32_t timeoutMs) {
+    const uint32_t start = millis();
 
-    clearRx();
-    sendLine(command);
-
-    // Небольшая пауза - запас на обработку последнего байта команды всеми
-    // STM32 на линии (не точная метка момента фиксации, она формируется на
-    // самой головке в RS485_OnSnap()).
-    delay(2);
+    for (;;) {
+        const uint32_t elapsed = static_cast<uint32_t>(millis() - start);
+        if (elapsed >= timeoutMs) {
+            return false;
+        }
+        if (!readLine(dst, cap, timeoutMs - elapsed)) {
+            return false;
+        }
+        if (rs485_strip_crc(dst)) {
+            return true;
+        }
+        stats.crcErrors++;
+        Serial.printf("  CRC mismatch: %s\n", dst);
+    }
 }
 
 // ---------------------------------------------------------------------------
-// STATUS,id,seq — адресный опрос готовности. true, если пришёл ACK именно
-// с этим id и seq; при этом наружу отдаётся frame_no из ответа.
+// SNAP,seq - широковещательная команда "зафиксировать кадр seq".
+// Ответа не предполагает: RS-485 полудуплексный, N одновременных ответов
+// превратились бы в кашу на линии.
+// ---------------------------------------------------------------------------
+void sendSnap(uint32_t seq) {
+    char command[LINE_CAP];
+
+    if (rs485_build_snap(command, sizeof(command), seq) == 0) {
+        return;
+    }
+    clearRx();
+    sendLine(command);
+    delay(SNAP_SETTLE_MS);
+}
+
+// ---------------------------------------------------------------------------
+// STATUS,id,seq - адресный опрос готовности.
 // ---------------------------------------------------------------------------
 bool requestStatus(uint8_t id, uint32_t seq, uint32_t &outFrame) {
-    char command[32];
-    snprintf(command, sizeof(command), "T,%u,%lu\n", id,
-              static_cast<unsigned long>(seq));
+    char command[LINE_CAP];
+
+    if (rs485_build_status_req(command, sizeof(command), id, seq) == 0) {
+        return false;
+    }
 
     for (uint8_t attempt = 0; attempt < STATUS_RETRY_COUNT; attempt++) {
         clearRx();
         sendLine(command);
 
         char reply[LINE_CAP];
-        if (readLine(reply, sizeof(reply), RESPONSE_TIMEOUT_MS)) {
-            unsigned respId = 0;
-            unsigned long respSeq = 0;
-            unsigned long frame = 0;
-            char tail = '\0';
+        if (readChecked(reply, sizeof(reply), RESPONSE_TIMEOUT_MS)) {
+            uint8_t  respId = 0;
+            uint32_t respSeq = 0;
+            uint32_t frame = 0;
 
-            int fields = sscanf(reply, "ACK,%u,%lu,frame=%lu%c",
-                                 &respId, &respSeq, &frame, &tail);
-            if (fields == 3 && respId == id && respSeq == seq) {
-                outFrame = static_cast<uint32_t>(frame);
+            if (rs485_parse_ack(reply, &respId, &respSeq, &frame) &&
+                (respId == id) && (respSeq == seq)) {
+                outFrame = frame;
                 return true;
             }
 
-            // Явный NAK или ответ от другого датчика/на другой seq -
-            // переспрашивать смысла нет только если это NAK именно нам;
-            // в остальных случаях (эхо/помеха) тоже просто повторяем.
-            fields = sscanf(reply, "NAK,%u,%lu%c", &respId, &respSeq, &tail);
-            if (fields == 2 && respId == id && respSeq == seq) {
-                // Датчик явно сказал "снимок с этим seq ещё не готов".
-                // Даём ему ещё немного времени и пробуем снова.
+            char reason[RS485_REASON_MAX];
+            if (rs485_parse_nak(reply, &respId, &respSeq, reason, sizeof(reason)) &&
+                (respId == id) && (respSeq == seq)) {
+                // Датчик явно сказал, почему снимка нет. Это быстрее таймаута:
+                // даём ему немного времени и переспрашиваем.
+                stats.naks++;
+                Serial.printf("  ID%u NAK(%s) seq=%lu\n", id, reason,
+                              static_cast<unsigned long>(seq));
+            } else {
+                stats.badReplies++;
+                Serial.printf("  ID%u unexpected reply: %s\n", id, reply);
             }
+        } else {
+            stats.timeouts++;
         }
 
         if (attempt + 1 < STATUS_RETRY_COUNT) {
@@ -174,76 +253,89 @@ bool requestStatus(uint8_t id, uint32_t seq, uint32_t &outFrame) {
 }
 
 // ---------------------------------------------------------------------------
-// READ,id,seq — адресный запрос данных зафиксированного кадра.
+// READ,id,seq - адресный запрос зафиксированного кадра.
 // ---------------------------------------------------------------------------
-bool parseData(const char *line, uint8_t expectedId,
-               uint32_t expectedSeq, Reading &out) {
-    unsigned id = 0;
-    unsigned long seq = 0;
-    long angle = 0;
-    int sector = 0;
-    unsigned valid = 0;
-    unsigned state = 0;
-    unsigned long frame = 0;
-    char tail = '\0';
+bool requestReading(uint8_t id, uint32_t seq, rs485_data_t &out) {
+    char command[LINE_CAP];
 
-    // Конечный %c отвергает лишние поля; формат state — две hex-цифры.
-    const int fields = sscanf(line, "D,%u,%lu,%ld,%d,%u,%2x,%lu%c",
-                               &id, &seq, &angle, &sector,
-                               &valid, &state, &frame, &tail);
-    if (fields != 7 || id != expectedId || seq != expectedSeq ||
-        id > 255 || valid > 1 || state > 255 ||
-        angle < 0 || angle >= 360000) {
+    if (rs485_build_read_req(command, sizeof(command), id, seq) == 0) {
         return false;
     }
 
-    out.id = static_cast<uint8_t>(id);
-    out.seq = static_cast<uint32_t>(seq);
-    out.angle_mdeg = static_cast<int32_t>(angle);
-    out.sector = sector;
-    out.valid = valid;
-    out.state = state;
-    out.frame_no = static_cast<uint32_t>(frame);
-    return true;
-}
+    for (uint8_t attempt = 0; attempt < READ_RETRY_COUNT; attempt++) {
+        clearRx();             // только перед запросом, не после его отправки
+        sendLine(command);
 
-bool requestReading(uint8_t id, uint32_t seq, Reading &out) {
-    char command[32];
-    snprintf(command, sizeof(command), "R,%u,%lu\n",
-              id, static_cast<unsigned long>(seq));
+        char reply[LINE_CAP];
+        if (!readChecked(reply, sizeof(reply), RESPONSE_TIMEOUT_MS)) {
+            stats.timeouts++;
+            Serial.printf("  ID%u seq=%lu: timeout (READ, попытка %u)\n", id,
+                          static_cast<unsigned long>(seq),
+                          static_cast<unsigned>(attempt + 1));
+            continue;
+        }
 
-    clearRx(); // только перед новым запросом, не после его отправки
-    sendLine(command);
+        if (rs485_parse_data(reply, &out) && (out.id == id) && (out.seq == seq)) {
+            return true;
+        }
 
-    char reply[LINE_CAP];
-    if (!readLine(reply, sizeof(reply), RESPONSE_TIMEOUT_MS)) {
-        Serial.printf("ID=%u seq=%lu: timeout/line error (READ)\n",
-                      id, static_cast<unsigned long>(seq));
-        return false;
+        // Явный отказ вместо данных: повторять бессмысленно, выходим сразу
+        // и не ждём таймаут (п.9 - раньше датчик на это просто молчал).
+        uint8_t  nakId = 0;
+        uint32_t nakSeq = 0;
+        char     reason[RS485_REASON_MAX];
+        if (rs485_parse_nak(reply, &nakId, &nakSeq, reason, sizeof(reason)) &&
+            (nakId == id) && (nakSeq == seq)) {
+            stats.naks++;
+            Serial.printf("  ID%u seq=%lu: NAK(%s) на READ\n", id,
+                          static_cast<unsigned long>(seq), reason);
+            return false;
+        }
+
+        stats.badReplies++;
+        Serial.printf("  ID%u seq=%lu: unexpected reply: %s\n", id,
+                      static_cast<unsigned long>(seq), reply);
     }
 
-    if (!parseData(reply, id, seq, out)) {
-        Serial.printf("ID=%u seq=%lu: unexpected reply: %s\n",
-                      id, static_cast<unsigned long>(seq), reply);
-        return false;
-    }
-    return true;
+    return false;
 }
 
 // ---------------------------------------------------------------------------
 void setup() {
     Serial.begin(115200);
 
-    digitalWrite(RS_DE, LOW);
-    pinMode(RS_DE, OUTPUT);
     Serial2.begin(RS_BAUD, SERIAL_8N1, RS_RX, RS_TX);
 
-    Serial.println("RS-485 SNAP/STATUS/READ master started");
+#if RS485_HW_DE
+    // RTS = DE: периферия сама поднимает линию перед кадром и снимает после
+    // ухода последнего бита.
+    uart_set_pin(RS_UART, RS_TX, RS_RX, RS_DE, UART_PIN_NO_CHANGE);
+    uart_set_mode(RS_UART, UART_MODE_RS485_HALF_DUPLEX);
+#else
+    digitalWrite(RS_DE, LOW);
+    pinMode(RS_DE, OUTPUT);
+#endif
+
+    // Старт нумерации со случайного значения: если мастер перезагрузится,
+    // датчик не сможет перепутать новый seq с остатком прошлой сессии.
+    nextSeq = esp_random() & 0x7FFFFFFFU;
+
+    Serial.println();
+    Serial.printf("RS-485 SNAP/STATUS/READ master v%u, %lu бод, DE=%s\n",
+                  RS485_PROTO_VERSION, static_cast<unsigned long>(RS_BAUD),
+                  RS485_HW_DE ? "аппаратный (RTS)" : "программный");
+    Serial.printf("датчиков: %u, стартовый seq=%lu, таймаут ответа %lu мс\n",
+                  static_cast<unsigned>(SENSOR_COUNT),
+                  static_cast<unsigned long>(nextSeq),
+                  static_cast<unsigned long>(RESPONSE_TIMEOUT_MS));
 }
 
 void loop() {
     const uint32_t cycleStart = millis();
     const uint32_t seq = ++nextSeq;
+
+    stats.cycles++;
+    cycleCount++;
 
     // --- Фаза 1: SNAP всем -----------------------------------------------
     sendSnap(seq);
@@ -270,31 +362,53 @@ void loop() {
         }
     }
 
-    // --- Фаза 3: READ — только если ВСЕ датчики подтвердили готовность ----
+    // --- Фаза 3: READ - только если ВСЕ датчики подтвердили готовность ----
     if (allAcked) {
-        Reading readings[SENSOR_COUNT];
-        bool    readOk[SENSOR_COUNT];
+        rs485_data_t readings[SENSOR_COUNT];
+        bool         readOk[SENSOR_COUNT];
+        bool         allRead = true;
 
         for (size_t i = 0; i < SENSOR_COUNT; i++) {
             readOk[i] = requestReading(SENSOR_IDS[i], seq, readings[i]);
+            if (!readOk[i]) {
+                allRead = false;
+            }
         }
 
         Serial.print(" |");
         for (size_t i = 0; i < SENSOR_COUNT; i++) {
-            if (readOk[i]) {
-                Serial.printf(" ID%u A=%.3f S=%d V=%u ST=%02X F=%lu",
-                              readings[i].id,
-                              readings[i].angle_mdeg / 1000.0,
-                              readings[i].sector, readings[i].valid,
-                              readings[i].state,
-                              static_cast<unsigned long>(readings[i].frame_no));
-            } else {
+            if (!readOk[i]) {
                 Serial.printf(" ID%u READ-ERROR", SENSOR_IDS[i]);
+                continue;
             }
+            // Угол печатаем с шестью знаками после запятой: на линии он
+            // приходит целым числом микроградусов.
+            Serial.printf(" ID%u A=%.6f S=%d V=%u ST=%02X F=%lu",
+                          readings[i].id,
+                          static_cast<double>(readings[i].angle_udeg) /
+                              static_cast<double>(RS485_ANGLE_SCALE),
+                          readings[i].sector, readings[i].valid,
+                          readings[i].state,
+                          static_cast<unsigned long>(readings[i].frame_no));
         }
         Serial.println();
+
+        if (allRead) {
+            stats.cyclesComplete++;
+        }
     } else {
         Serial.println(" | READ пропущен: не все датчики подтвердили seq");
+    }
+
+    if ((cycleCount % STATS_EVERY_CYCLES) == 0) {
+        Serial.printf("[стат] циклов %lu, полных %lu, таймаутов %lu, "
+                      "CRC-ошибок %lu, NAK %lu, мусорных ответов %lu\n",
+                      static_cast<unsigned long>(stats.cycles),
+                      static_cast<unsigned long>(stats.cyclesComplete),
+                      static_cast<unsigned long>(stats.timeouts),
+                      static_cast<unsigned long>(stats.crcErrors),
+                      static_cast<unsigned long>(stats.naks),
+                      static_cast<unsigned long>(stats.badReplies));
     }
 
     const uint32_t elapsed = static_cast<uint32_t>(millis() - cycleStart);

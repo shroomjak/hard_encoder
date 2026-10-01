@@ -5,3 +5,9 @@
 # UTF-8 for tooling / docs
 *.md text eol=lf
 *.json text eol=lf
+
+# Скетч ESP32 собирается Arduino IDE / arduino-cli - там мир UTF-8,
+# поэтому копия заголовка в master_esp32/ хранится в UTF-8, а не в CP1251.
+# Эквивалентность копий (с точностью до кодировки) проверяет tools/run_tests.sh.
+master_esp32/*.h text eol=lf working-tree-encoding=UTF-8
+master_esp32/*.ino text eol=lf
