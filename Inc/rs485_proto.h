@@ -111,10 +111,11 @@ extern "C" {
 /*  такой таблицы нет вовсе. Эквивалентность проверяется тестом.              */
 /* ========================================================================== */
 
-RS485_FN uint8_t rs485_crc8_update(uint8_t crc, uint8_t byte)
+/* Имя параметра намеренно не 'byte': в Arduino это глобальный typedef. */
+RS485_FN uint8_t rs485_crc8_update(uint8_t crc, uint8_t value)
 {
     uint8_t i;
-    crc ^= byte;
+    crc ^= value;
     for (i = 0U; i < 8U; i++) {
         crc = (uint8_t)((crc & 1U) ? ((crc >> 1) ^ 0x8CU) : (crc >> 1));
     }
