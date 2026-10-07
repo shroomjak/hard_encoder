@@ -357,6 +357,7 @@
                 <option>
                     <name>CCIncludePath2</name>
                     <state>$PROJ_DIR$/../Inc</state>
+                    <state>$PROJ_DIR$/../Middlewares/Third_Party/FreeModbus/modbus/include</state>
                     <state>$PROJ_DIR$/../Drivers/STM32F7xx_HAL_Driver/Inc</state>
                     <state>$PROJ_DIR$/../Drivers/CMSIS/Device/ST/STM32F7xx/Include</state>
                     <state>$PROJ_DIR$/../Drivers/CMSIS/Include</state>
@@ -1119,7 +1120,43 @@
             <file>
                 <name>$PROJ_DIR$\..\Src\stm32f7xx_it.c</name>
             </file>
+            <file>
+                <name>$PROJ_DIR$\..\Src\modbus_port.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Src\modbus_slave.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Inc\modbus_port.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Inc\modbus_slave.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Inc\port.h</name>
+            </file>
         </group>
+    </group>
+    <group>
+        <name>FreeModbus (BSD-3-Clause)</name>
+        <file>
+            <name>$PROJ_DIR$\..\Middlewares\Third_Party\FreeModbus\modbus\mb.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Middlewares\Third_Party\FreeModbus\modbus\rtu\mbcrc.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Middlewares\Third_Party\FreeModbus\modbus\rtu\mbrtu.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Middlewares\Third_Party\FreeModbus\modbus\functions\mbfuncholding.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Middlewares\Third_Party\FreeModbus\modbus\functions\mbfuncinput.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Middlewares\Third_Party\FreeModbus\modbus\functions\mbutils.c</name>
+        </file>
     </group>
     <group>
         <name>Drivers</name>

@@ -12,6 +12,7 @@
 |---|---|
 | [`docs/main_c_overview.md`](docs/main_c_overview.md) | Поблочный технический разбор `Src/main.c`: периферия, прерывания, конечные автоматы. |
 | [`docs/angle_math_and_calibration.md`](docs/angle_math_and_calibration.md) | Математика и программная реализация: поиск **репера** и **сектора**, обнаружение и коррекция ошибок, вычисление **угла**, функции **самокалибровки** и порядок их запуска. |
+| [`docs/modbus_rs485.md`](docs/modbus_rs485.md) | Реализация Modbus RTU/RS-485: FreeModbus slave на STM32, официальный ESP-Modbus master на ESP32, карта регистров и сценарий SNAP → STATUS → READ. |
 
 Сам `Src/main.c` снабжён комментариями у ключевых функций, инициализаций и объявлений.
 
@@ -19,7 +20,12 @@
 
 ```bash
 python3 tests/sector_decode_test.py
+python3 tests/modbus_snapshot_test.py
 ```
+
+`tests/modbus_snapshot_test.py` собирает на хосте с заглушками `Src/modbus_slave.c`
+и проверяет контракт FC06 SNAP → FC04 STATUS/DATA: номер последовательности,
+метаданные и границу массива `buf_x0`.
 
 Регрессионный тест декодера сектора: извлекает из `Src/main.c` реальные `calc_sector()`,
 `bit_err_corr()` и таблицу `bit_tab[]`, собирает их хостовым `gcc` и проверяет полным
@@ -38,6 +44,10 @@ python3 tests/sector_decode_test.py
 **Программная часть**: работа с USART, инициализация, настройка, подключение и тест на компьютере через serial monitor через обратное преобразование RS485 -> USART
 
 ### 3. Реализация ModBus RTU (RS485)
+
+Текущая реализация и инструкция по сборке находятся в [`docs/modbus_rs485.md`](docs/modbus_rs485.md).
+STM32 использует vendored **FreeModbus** (BSD-3-Clause), ESP32 master — официальный
+компонент **espressif/esp-modbus** через ESP-IDF Component Manager.
 **Электрическая часть**: печатная плата, параллельная шина портов счтывающих головок (4 шт.), преобразователь RS485 -> USART при подключении к ESP32
 
 Здесь роль Master у ESP32, роли Slave у считывающих головок на STM32.

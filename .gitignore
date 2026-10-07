@@ -53,3 +53,8 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# ESP-IDF generated build and downloaded component output
+esp32_master/build/
+esp32_master/managed_components/
+esp32_master/sdkconfig
