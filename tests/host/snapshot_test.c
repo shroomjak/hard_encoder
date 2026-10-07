@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdint.h>
+#include <math.h>
 #include "mb.h"
 #include "snapshot_registers.h"
 
@@ -22,14 +23,16 @@ int main(void)
     snapshot_publish(123.456f, 19, 0, 0x40, 12345);
     snap(42);
     assert(reg(SNAP_SEQ) == 42 && reg(SNAP_READY) == 1);
-    assert(((uint32_t)reg(SNAP_ANGLE_HI) << 16 | reg(SNAP_ANGLE_LO)) == 123456);
+    assert(((uint32_t)reg(SNAP_ANGLE_HI) << 16 | reg(SNAP_ANGLE_LO)) == 123456001U); /* Rounded float input, not decimal literal. */
     assert(reg(SNAP_SECTOR) == 19 && reg(SNAP_ENCODER_STATE) == 0x40);
     assert(reg(SNAP_SAMPLE_LO) == 1 && reg(SNAP_TIME_LO) == 12345);
     snapshot_publish(255.000f, 100, 0, 0, 12350);
     snap(42); /* Retry must not change an already committed frame. */
     assert(reg(SNAP_SECTOR) == 19 && reg(SNAP_SAMPLE_LO) == 1);
+    assert(((uint32_t)reg(SNAP_ANGLE_HI) << 16 | reg(SNAP_ANGLE_LO)) == 123456001U);
     snap(43);
     assert(reg(SNAP_SECTOR) == 100 && reg(SNAP_SAMPLE_LO) == 2);
+    assert(((uint32_t)reg(SNAP_ANGLE_HI) << 16 | reg(SNAP_ANGLE_LO)) == 255000000U);
     snapshot_publish(180.0f, 20, 1, 0, 12360);
     snap(44);
     assert(reg(SNAP_SEQ) == 44 && reg(SNAP_READY) == 0);
@@ -42,6 +45,30 @@ int main(void)
     assert(eMBRegHoldingCB(out, 1, 1, MB_REG_READ) == MB_ENOREG);
     snapshot_publish(0.0f / 0.0f, 20, 0, 0, 12370);
     snap(45);
+    assert(reg(SNAP_READY) == 0);
+    /* Microdegree scaling, rounding, endpoints and invalid inputs. */
+    const struct { float deg; uint32_t udeg; } cases[] = {
+        {0.0f, 0U}, {90.5f, 90500000U},
+        {12.345678f, 12345678U},
+        {0.0000014f, 1U}, {0.0000016f, 2U},
+        {0.0078125f, 7813U}, /* Exact half: round up. */
+        {359.999969482421875f, 359999969U} /* Largest float below 360. */
+    };
+    for (unsigned i = 0; i < sizeof cases / sizeof cases[0]; ++i) {
+        snapshot_publish(cases[i].deg, 20, 0, 0, 12380 + i);
+        snap((uint16_t)(46 + i));
+        assert(reg(SNAP_READY) == 1);
+        uint32_t angle = (uint32_t)reg(SNAP_ANGLE_HI) << 16 | reg(SNAP_ANGLE_LO);
+        assert(angle == cases[i].udeg);
+    }
+    const float invalid[] = {-1.0f, 360.0f, INFINITY, -INFINITY, NAN};
+    for (unsigned i = 0; i < sizeof invalid / sizeof invalid[0]; ++i) {
+        snapshot_publish(invalid[i], 20, 0, 0, 12400 + i);
+        snap((uint16_t)(60 + i));
+        assert(reg(SNAP_READY) == 0);
+    }
+    snapshot_publish(90.5f, 144, 0, 0, 12410);
+    snap(70);
     assert(reg(SNAP_READY) == 0);
     return 0;
 }
