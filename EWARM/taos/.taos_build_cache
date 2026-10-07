@@ -12,51 +12,9 @@
     <Tool>
         <Name>compiler</Name>
         <Parent>
-            <Path>C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Drivers\CMSIS\DSP\Source\CommonTables\arm_common_tables.c</Path>
-            <Output>
-                <Path>C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\taos\List\CMSIS_6603591812247902717.dir\arm_common_tables.i</Path>
-            </Output>
-        </Parent>
-        <Parent>
-            <Path>C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Drivers\FLASH\standardflash.c</Path>
-            <Output>
-                <Path>C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\taos\List\FLASH_8855453216840458194.dir\standardflash.i</Path>
-            </Output>
-        </Parent>
-        <Parent>
-            <Path>C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Src\system_stm32f7xx.c</Path>
-            <Output>
-                <Path>C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\taos\List\CMSIS_6603591812247902717.dir\system_stm32f7xx.i</Path>
-            </Output>
-        </Parent>
-        <Parent>
             <Path>C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Src\main.c</Path>
             <Output>
                 <Path>C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\taos\List\User_8454777428142420917.dir\main.i</Path>
-            </Output>
-        </Parent>
-        <Parent>
-            <Path>C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Drivers\CMSIS\DSP\Source\FastMathFunctions\arm_sin_f32.c</Path>
-            <Output>
-                <Path>C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\taos\List\CMSIS_6603591812247902717.dir\arm_sin_f32.i</Path>
-            </Output>
-        </Parent>
-        <Parent>
-            <Path>C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Src\stm32f7xx_it.c</Path>
-            <Output>
-                <Path>C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\taos\List\User_8454777428142420917.dir\stm32f7xx_it.i</Path>
-            </Output>
-        </Parent>
-        <Parent>
-            <Path>C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Drivers\FLASH\spi_driver.c</Path>
-            <Output>
-                <Path>C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\taos\List\FLASH_8855453216840458194.dir\spi_driver.i</Path>
-            </Output>
-        </Parent>
-        <Parent>
-            <Path>C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Src\stm32f7xx_hal_msp.c</Path>
-            <Output>
-                <Path>C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\taos\List\User_8454777428142420917.dir\stm32f7xx_hal_msp.i</Path>
             </Output>
         </Parent>
     </Tool>

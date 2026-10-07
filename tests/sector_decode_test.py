@@ -178,7 +178,19 @@ def main():
         print("ОБНАРУЖЕН ВЫХОД ЗА ГРАНИЦУ МАССИВА (undefined behavior)")
         return 1
 
-    return subprocess.run([exe]).returncode
+    result = subprocess.run(
+        [exe],
+        capture_output=True,
+        encoding="utf-8",
+    )
+
+    if result.stdout:
+        print(result.stdout, end="")
+
+    if result.stderr:
+        print(result.stderr, end="", file=sys.stderr)
+
+    return result.returncode
 
 
 if __name__ == "__main__":

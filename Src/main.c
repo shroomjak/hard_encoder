@@ -109,10 +109,10 @@ typedef  void (*pFunction)(void);
 /* ---- Окно корреляционного поиска репера --------------------------------- */
 
 /* find_startpixel() перебирает i от STARTPIXEL_MIN до STARTPIXEL_MAX-1.
-   Верхняя граница выбрана так, чтобы шаблон, который читает buf_x1[i+69],
-   не вышел за массив из 128 пикселей (57+69 = 126 < 128).                    */
+   Верхняя граница выбрана так, чтобы шаблон, который читает buf_x1[i+SECTOR_SIZE+18],
+   не вышел за массив из 128 пикселей.                    */
 #define STARTPIXEL_MIN          6
-#define STARTPIXEL_MAX          57
+#define STARTPIXEL_MAX          STARTPIXEL_MIN + SECTOR_SIZE
 
 /* Пиксель-"водораздел": если найденный репер правее CENTER_PIXEL, он считается
    ПРАВЫМ репером пары, иначе - ЛЕВЫМ. Нужно, чтобы однозначно достроить
@@ -1711,7 +1711,7 @@ void copy_data(void) {
   *     scor[i] = SUM(max_data - buf_x1[i+k]) по "тёмным" позициям шаблона
   *             + SUM(buf_x1[i+k] - min_data) по "светлым" позициям шаблона.
   * Шаблон = 10 тёмных пикселей, 3 светлых (сам репер), пропуск, 5 тёмных;
-  * тот же шаблон продублирован со сдвигом +SECTOR_SIZE (+51), то есть ищется
+  * тот же шаблон продублирован со сдвигом +SECTOR_SIZE, то есть ищется
   * сразу ПАРА реперов - это резко снижает вероятность ложного срабатывания на
   * случайном сочетании битов кода. Максимум scor[] и есть положение репера.
   *
@@ -1726,6 +1726,17 @@ void copy_data(void) {
   * @retval none
   */
 /*-----------------------------------------------------------------------------------*/
+
+// help fucntion
+uint16_t calc_corr(uint8_t i, uint8_t shift){
+  return (max_data-buf_x1[i+shift])+(max_data-buf_x1[i+shift+1])+(max_data-buf_x1[i+shift+2])+(max_data-buf_x1[i+shift+3])
+      +(max_data-buf_x1[i+shift+4])+(max_data-buf_x1[i+shift+5])+(max_data-buf_x1[i+shift+6])+(max_data-buf_x1[i+shift+7])
+        +(max_data-buf_x1[i+shift+8])+(max_data-buf_x1[i+shift+9])
+          +(buf_x1[i+shift+10]-min_data)+(buf_x1[i+shift+11]-min_data)+(buf_x1[i+shift+12]-min_data)
+            +(max_data-buf_x1[i+shift+14])+(max_data-buf_x1[i+shift+15])
+              +(max_data-buf_x1[i+shift+16])+(max_data-buf_x1[i+shift+17])+(max_data-buf_x1[i+shift+18]);
+}
+
 void find_startpixel(void) {
         
   //find main startpixel
@@ -1733,19 +1744,7 @@ void find_startpixel(void) {
   max2_cor=0;
   for (unsigned char i=STARTPIXEL_MIN;i<STARTPIXEL_MAX;i++) {               //build correlation table for startpixel
 
-    scor[i]=(max_data-buf_x1[i+0])+(max_data-buf_x1[i+1])+(max_data-buf_x1[i+2])+(max_data-buf_x1[i+3])
-      +(max_data-buf_x1[i+4])+(max_data-buf_x1[i+5])+(max_data-buf_x1[i+6])+(max_data-buf_x1[i+7])
-        +(max_data-buf_x1[i+8])+(max_data-buf_x1[i+9])
-          +(buf_x1[i+10]-min_data)+(buf_x1[i+11]-min_data)+(buf_x1[i+12]-min_data)
-            +(max_data-buf_x1[i+14])+(max_data-buf_x1[i+15])
-              +(max_data-buf_x1[i+16])+(max_data-buf_x1[i+17])+(max_data-buf_x1[i+18])
-
-    +(max_data-buf_x1[i+51])+(max_data-buf_x1[i+52])+(max_data-buf_x1[i+53])+(max_data-buf_x1[i+54])
-      +(max_data-buf_x1[i+55])+(max_data-buf_x1[i+56])+(max_data-buf_x1[i+57])+(max_data-buf_x1[i+58])
-        +(max_data-buf_x1[i+59])+(max_data-buf_x1[i+60])
-          +(buf_x1[i+61]-min_data)+(buf_x1[i+62]-min_data)+(buf_x1[i+63]-min_data)
-            +(max_data-buf_x1[i+65])+(max_data-buf_x1[i+66])
-              +(max_data-buf_x1[i+67])+(max_data-buf_x1[i+68])+(max_data-buf_x1[i+69]); 
+    scor[i]=calc_corr(i, 0) + calc_corr(i, SECTOR_SIZE);
 
     if(scor[i]>max1_cor) {                                                      //find maximum correlation for startpixel
       max1_cor=scor[i];
@@ -1787,7 +1786,7 @@ void find_startpixel(void) {
 /**
   * @brief  Шаг 3 конвейера: СУБПИКСЕЛЬНАЯ координата репера.
   *
-  * Целочисленного номера пикселя мало: 1 пиксель = 2.5/51 = 0.049 град = 176 угл.сек.
+  * Целочисленного номера пикселя мало: 1 пиксель = 2.5/SECTOR_SIZE
   * Поэтому положение светлого пятна репера уточняется до сотых долей пикселя.
   *
   * Порядок действий:
@@ -2015,7 +2014,7 @@ void calc_sector(void) {
 /**
   * @brief  Фиксация принятого номера сектора и его соседей.
   *
-  * cursec = rem_sec, lsec = cursec-1, rsec = cursec+1 (с заворотом по модулю 144).
+  * cursec = rem_sec, lsec = cursec-1, rsec = cursec+1 (по модулю 144).
   * Тройка {lsec, cursec, rsec} - это "окно доверия" для СЛЕДУЮЩЕГО кадра:
   * за один кадр (около 80 мкс) вал физически не может уйти более чем на сектор,
   * поэтому любой номер вне этого окна трактуется как ошибка чтения.
@@ -2276,7 +2275,7 @@ void err_corr(void) {
   *     t_l      = 360 - t_l1               разворот направления отсчёта
   *     cur_ang  = t_l, приведённое к [0, 360)
   *
-  * Ключевой момент: k_pix берётся НЕ из номинала 2.5/51, а из реальной ширины
+  * Ключевой момент: k_pix берётся НЕ из номинала 2.5/SECTOR_SIZE, а из реальной ширины
   * конкретного сектора и реальных углов его границ. Поэтому ошибки нанесения
   * шкалы (до +-90 угл.сек) уходят в ang_tab и компенсируются.
   *
@@ -2960,7 +2959,7 @@ void find_avg() {
 void angtab_cal(){
 
   uint16_t crc16;
-
+  uint16_t shift = floor(SECTOR_SIZE / 2);
   if (start_calibrate>0) {
     auto_cal=start_calibrate;
     start_calibrate=0;
@@ -3002,7 +3001,7 @@ void angtab_cal(){
        полусекторе (51/2 = 25.5 пикс) от точки съёма offset - то есть сектор
        расположен симметрично в поле зрения. Всегда одинаковая геометрия
        измерения => систематика оптики не попадает в результат.               */
-    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-25) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+25)))) )  ) {
+    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-shift) )&&(s_l1<=(offset-shift+1))||(((s_l2>=(offset+shift-1))&&(s_l2<=(offset+shift)))) )  )) {
 
       old_sector=rsector;                                                       //защёлка направления обхода (проход 1)
       cal_sector=cur_sector;
@@ -3066,7 +3065,7 @@ void angtab_cal(){
 
   else if (auto_cal==2) {
 
-    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-25) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+25)))) )  ) {
+    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-shift) )&&(s_l1<=(offset-shift+1)))||(((s_l2>=(offset+shift-1))&&(s_l2<=(offset+shift)))) )  ) {
 
       old_sector=lsector;  
       cal_sector=cur_sector;
@@ -4484,6 +4483,7 @@ int main(void)
 
   // Configure the system clock
   SystemClock_Config();
+  HAL_ResumeTick();
 
   // Enable I-Cache
   SCB_EnableICache();

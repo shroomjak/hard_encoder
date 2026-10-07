@@ -1,5 +1,5 @@
-C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\taos\BrowseInfo\User_8454777428142420917.dir\main.pbi: \
-  C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Src\main.c \
+C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\taos\BrowseInfo\User_8454777428142420917.dir\stm32f7xx_it.pbi: \
+  C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Src\stm32f7xx_it.c \
   C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\..\Inc\main.h \
   C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\..\Drivers\STM32F7xx_HAL_Driver\Inc\stm32f7xx_hal.h \
   C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\..\Inc\stm32f7xx_hal_conf.h \
@@ -62,15 +62,8 @@ C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\taos\BrowseInfo\User
   C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\..\Drivers\STM32F7xx_HAL_Driver\Inc\stm32f7xx_ll_wwdg.h \
   C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\..\Drivers\STM32F7xx_HAL_Driver\Inc\stm32f7xx_ll_gpio.h \
   C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\..\Drivers\STM32F7xx_HAL_Driver\Inc\stm32f7xx_ll_usart.h \
-  C:\Program\ Files\IAR\ Systems\Embedded\ Workbench\ 9.2\arm\inc\c\math.h \
-  C:\Program\ Files\IAR\ Systems\Embedded\ Workbench\ 9.2\arm\inc\c\DLib_float_setup.h \
-  C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\..\Drivers\CMSIS\DSP\Include\arm_math.h \
-  C:\Program\ Files\IAR\ Systems\Embedded\ Workbench\ 9.2\arm\inc\c\string.h \
-  C:\Program\ Files\IAR\ Systems\Embedded\ Workbench\ 9.2\arm\inc\c\DLib_Product_string.h \
   C:\Program\ Files\IAR\ Systems\Embedded\ Workbench\ 9.2\arm\inc\c\stdio.h \
   C:\Program\ Files\IAR\ Systems\Embedded\ Workbench\ 9.2\arm\inc\c\stdarg.h \
-  C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\..\Drivers\FLASH\cmd_defs.h \
-  C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\..\Drivers\FLASH\standardflash.h \
-  C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\..\Drivers\FLASH\cmd_defs.h \
-  C:\Program\ Files\IAR\ Systems\Embedded\ Workbench\ 9.2\arm\inc\c\stdlib.h \
-  C:\Program\ Files\IAR\ Systems\Embedded\ Workbench\ 9.2\arm\inc\c\DLib_Product_stdlib.h
+  C:\Program\ Files\IAR\ Systems\Embedded\ Workbench\ 9.2\arm\inc\c\string.h \
+  C:\Program\ Files\IAR\ Systems\Embedded\ Workbench\ 9.2\arm\inc\c\DLib_Product_string.h \
+  C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM\..\Inc\stm32f7xx_it.h

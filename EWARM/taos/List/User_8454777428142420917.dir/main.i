@@ -15,6 +15,32 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
  
 
@@ -54368,6 +54394,45 @@ typedef  void (*pFunction)(void);
 
 
 
+ 
+
+
+ 
+
+ 
+
+
+ 
+
+ 
+
+ 
+
+ 
+
+
+
+ 
+
+ 
+
+ 
+
+
+
+ 
+
+
+
+ 
+
+
+
+
+
+
+
+ 
 
 
 
@@ -54376,12 +54441,7 @@ typedef  void (*pFunction)(void);
 
 
 
-
-
-
-
-
-
+ 
 
 
 
@@ -54409,10 +54469,25 @@ typedef  void (*pFunction)(void);
 
 
 
+ 
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
  
  
  
@@ -54471,6 +54546,9 @@ uint8_t i2c3_err;
 
 
 
+
+
+ 
 uint8_t eeprom_buf[2048];                                                 
 
 uint16_t eeprom_crc16;                                                          
@@ -54488,6 +54566,12 @@ uint8_t lasdac_rdy=0;
 
 
 
+
+
+
+
+ 
+
 __attribute__((aligned(32))) uint16_t aADCxConvertedData[1];
 __attribute__((aligned(4))) float Vsense;
 __attribute__((aligned(4))) float V25 = 0.76f;
@@ -54497,11 +54581,27 @@ __attribute__((aligned(4))) float Temperature;
 
 
 
+
+
+
+
+
+
+
+ 
+
 __attribute__((aligned(32))) uint16_t ADC_VAL[132] = {0};
 __attribute__((aligned(32))) uint16_t ADC_VAL2[132] = {0};
 uint16_t *adc_addr;
 unsigned char adc_rdy;                                                          
 
+
+
+
+
+
+
+ 
 
 uint8_t backlight_width_en=1;
 int max_level = 3700;
@@ -54569,6 +54669,12 @@ uint16_t update_version=11;
 
 
 
+
+
+
+
+
+ 
 uint16_t buf_x0[128]={0};	                                                
 uint16_t max_data=0;
 uint16_t min_data=0;
@@ -54612,6 +54718,14 @@ uint32_t config_state;
 
 
 
+
+
+
+
+
+
+
+ 
 const uint16_t  bit_tab[144] = {                                      
 197	,
 314	,
@@ -54798,6 +54912,10 @@ uint8_t max2_pos;
 
 uint16_t data_byte;
 
+
+
+
+ 
 uint16_t startpixel=0;
 uint16_t startpixel1;
 uint16_t startpixel2;
@@ -54806,6 +54924,15 @@ uint16_t test1pixel;
 uint16_t test2pixel;
 uint16_t bck_pixel;
 
+
+
+
+
+
+
+
+
+ 
 int16_t pix[9][2];
 
 
@@ -54828,6 +54955,12 @@ float pix_size;
 
 
 
+
+
+
+
+
+ 
 
 unsigned sec_cnt=0;
 unsigned serrcnt=0;
@@ -54864,6 +54997,9 @@ int delta;
 float delta_cor[200];
 float delBR4;
 
+
+
+ 
 float phase=0;
 float k_comp=0.01;
 
@@ -54965,10 +55101,27 @@ float cur_ang_E;
 
 
 
+
+
+
+
+
+
+
+
+
+ 
+
+
 int pix_dif_num_avg=5;
 int start_calibrate=0;
 int auto_cal=0;
 
+
+
+
+
+ 
 float pix_dif_tab1[144];
 float pix_dif_sum1[144];
 int pix_dif_num1[144];
@@ -54976,6 +55129,7 @@ int pix_rdy_tab1[144];
 int pix_rdy_num1;
 float sum_Ai1;
 
+ 
 float pix_dif_tab2[144];
 float pix_dif_sum2[144];
 int pix_dif_num2[144];
@@ -54994,6 +55148,13 @@ float new_ang_tab[144];
 
 
 
+
+
+
+
+
+
+ 
 float avg_buf[30];
 float sum_avg_buf=0;
 float avg_ang_X;
@@ -55021,6 +55182,14 @@ int rev_right_cnt=0;
 int rev_en=0;
 
 
+
+
+
+
+
+
+
+ 
 int offset_avg_num=3;
 int start_offset_cal=0;
 int offset_phase=0;
@@ -55037,6 +55206,11 @@ int offset_snum=7;
 
 
 
+
+
+
+
+ 
 int start_angk_cal=0;
 int anglek_phase=0;
 int anglek_cur=0;
@@ -55062,6 +55236,14 @@ long s_l2_tab[128];
 
 
 
+
+
+
+
+
+
+ 
+
 __attribute__((aligned(32))) unsigned short aTxBuffer[10];
 __attribute__((aligned(32))) unsigned short aRxBuffer[10];
 __attribute__((aligned(32))) unsigned char TxBuffer[10*2];
@@ -55084,6 +55266,19 @@ static REM_BUF spi_buf2;
 uint8_t s_buf[16];                                                              
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+ 
 unsigned char command=0; 
 unsigned char encoder_state=0;
 
@@ -55314,6 +55509,9 @@ int buf_x5_num;
 
 
 
+
+
+ 
 float buf_k[128] ={
 
 
@@ -55453,10 +55651,19 @@ float buf_k[128] ={
 
 
 
+
+
+ 
 float  offset=68;
 
 
 
+
+
+
+
+
+ 
 float ang_tab[144] = {
 
 0.0	,
@@ -55691,6 +55898,23 @@ static void DelayTim4Ticks(uint16_t ticks);
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
  
 void copy_data(void) {
@@ -55744,28 +55968,44 @@ void copy_data(void) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
  
+
+
+uint16_t calc_corr(uint8_t i, uint8_t shift){
+  return (max_data-buf_x1[i+shift])+(max_data-buf_x1[i+shift+1])+(max_data-buf_x1[i+shift+2])+(max_data-buf_x1[i+shift+3])
+      +(max_data-buf_x1[i+shift+4])+(max_data-buf_x1[i+shift+5])+(max_data-buf_x1[i+shift+6])+(max_data-buf_x1[i+shift+7])
+        +(max_data-buf_x1[i+shift+8])+(max_data-buf_x1[i+shift+9])
+          +(buf_x1[i+shift+10]-min_data)+(buf_x1[i+shift+11]-min_data)+(buf_x1[i+shift+12]-min_data)
+            +(max_data-buf_x1[i+shift+14])+(max_data-buf_x1[i+shift+15])
+              +(max_data-buf_x1[i+shift+16])+(max_data-buf_x1[i+shift+17])+(max_data-buf_x1[i+shift+18]);
+}
+
 void find_startpixel(void) {
         
   
   max1_cor=0;
   max2_cor=0;
-  for (unsigned char i=6;i<57;i++) {               
+  for (unsigned char i=6;i<6 + 51;i++) {               
 
-    scor[i]=(max_data-buf_x1[i+0])+(max_data-buf_x1[i+1])+(max_data-buf_x1[i+2])+(max_data-buf_x1[i+3])
-      +(max_data-buf_x1[i+4])+(max_data-buf_x1[i+5])+(max_data-buf_x1[i+6])+(max_data-buf_x1[i+7])
-        +(max_data-buf_x1[i+8])+(max_data-buf_x1[i+9])
-          +(buf_x1[i+10]-min_data)+(buf_x1[i+11]-min_data)+(buf_x1[i+12]-min_data)
-            +(max_data-buf_x1[i+14])+(max_data-buf_x1[i+15])
-              +(max_data-buf_x1[i+16])+(max_data-buf_x1[i+17])+(max_data-buf_x1[i+18])
-
-    +(max_data-buf_x1[i+51])+(max_data-buf_x1[i+52])+(max_data-buf_x1[i+53])+(max_data-buf_x1[i+54])
-      +(max_data-buf_x1[i+55])+(max_data-buf_x1[i+56])+(max_data-buf_x1[i+57])+(max_data-buf_x1[i+58])
-        +(max_data-buf_x1[i+59])+(max_data-buf_x1[i+60])
-          +(buf_x1[i+61]-min_data)+(buf_x1[i+62]-min_data)+(buf_x1[i+63]-min_data)
-            +(max_data-buf_x1[i+65])+(max_data-buf_x1[i+66])
-              +(max_data-buf_x1[i+67])+(max_data-buf_x1[i+68])+(max_data-buf_x1[i+69]); 
+    scor[i]=calc_corr(i, 0) + calc_corr(i, 51);
 
     if(scor[i]>max1_cor) {                                                      
       max1_cor=scor[i];
@@ -55798,6 +56038,18 @@ void find_startpixel(void) {
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -55844,6 +56096,11 @@ void find_startpixel(void) {
 
 
 
+
+
+
+
+
  
  
 unsigned short get_pix(float pos) {
@@ -55855,6 +56112,21 @@ unsigned short get_pix(float pos) {
   return (dif+buf_x1[left]);
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -55919,16 +56191,38 @@ void find_datablock(void) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
  
 void calc_sector(void) {
 
 
         
+        
+
+
+
+
+ 
         int tmp1;
         int tmin=1000000;                                                       
         int min=0;
-        for (int i=0;i<11;i++) {
+        for (int i=0;i<9;i++) {
           tmp1=pix[i][1]-pix[i][0];
           if (tmp1<0) tmp1=-tmp1;
           if(tmp1<tmin) {
@@ -55982,6 +56276,12 @@ void calc_sector(void) {
 
 
 
+
+
+
+
+
+
  
  
 void save_sector(void) {
@@ -56012,6 +56312,14 @@ void save_sector(void) {
 
 
 
+
+
+
+
+
+
+
+
  
  
 void startpixel_err_corr(void) {
@@ -56021,7 +56329,7 @@ void startpixel_err_corr(void) {
   scor[startpixel+1]=0;
 
   max1_cor=0;                                                                   
-  for (unsigned char i=6;i<57;i++) {
+  for (unsigned char i=6;i<6 + 51;i++) {
     cur_cor=scor[i];
     if(max1_cor<cur_cor) {
       max1_cor=cur_cor;
@@ -56058,47 +56366,36 @@ void startpixel_err_corr(void) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
  
  
 void bit_err_corr(void) {
 
             if(badbit_value<1000) {                                             
-              switch (badbit_pos) {
-                case 0:
-                  data_byte=data_byte^0x400;
-                  break;
-                case 1:
-                  data_byte=data_byte^0x200;
-                  break;
-                case 2:
-                  data_byte=data_byte^0x100;
-                  break;
-                case 3:
-                  data_byte=data_byte^0x80;
-                  break;
-                case 4:
-                  data_byte=data_byte^0x40;
-                  break;
-                case 5:
-                  data_byte=data_byte^0x20;
-                  break;
-                case 6:
-                  data_byte=data_byte^0x10;
-                  break;
-                case 7:
-                  data_byte=data_byte^0x08;
-                  break;
-                case 8:
-                  data_byte=data_byte^0x04;
-                  break;
-                case 9:
-                  data_byte=data_byte^0x02;
-                  break;
-                default:
-                  data_byte=data_byte^0x01;
-                  break;
-              }
 
+              
+
+
+
+
+
+
+
+
+ 
+              if ( (badbit_pos>=0) && (badbit_pos<9) ) {
+                data_byte = data_byte ^ (uint16_t)(0x100 >> badbit_pos);
+              }
 
               uint8_t tmp_pos=255;
               for (unsigned char j=0;j<144;j++) {
@@ -56114,6 +56411,23 @@ void bit_err_corr(void) {
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -56210,6 +56524,27 @@ void err_corr(void) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
  
 void calc_ang() {
@@ -56271,6 +56606,22 @@ void calc_ang() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
  
 float BR4 (float *mas, int centor_int)
@@ -56295,6 +56646,23 @@ float BR4 (float *mas, int centor_int)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
  
 float BR4_C (float *mas, int centor_int)
 {
@@ -56338,6 +56706,15 @@ float BR4_C (float *mas, int centor_int)
  
 
 
+
+
+
+
+
+
+
+
+ 
 float calc (float *mas, int centor_int)
 {
   leftx[centor_int-4]=mas[centor_int-4];
@@ -56616,6 +56993,25 @@ float BR8 (float *mas, int centor_int)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
  
 void find_avg() {        
@@ -56778,12 +57174,53 @@ void find_avg() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
  
 void angtab_cal(){
 
   uint16_t crc16;
-
+  uint16_t shift = floor(51 / 2);
   if (start_calibrate>0) {
     auto_cal=start_calibrate;
     start_calibrate=0;
@@ -56821,9 +57258,13 @@ void angtab_cal(){
   
   if (auto_cal==1) {
 
-    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-25) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+25)))) )  ) {
+    
 
-      old_sector=rsector;  
+
+ 
+    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-shift) )&&(s_l1<=(offset-shift+1))||(((s_l2>=(offset+shift-1))&&(s_l2<=(offset+shift)))) )  )) {
+
+      old_sector=rsector;                                                       
       cal_sector=cur_sector;
 
 
@@ -56841,15 +57282,18 @@ void angtab_cal(){
               for (unsigned char j=0;j<144;j++) {
                 tmp_sum+=pix_dif_tab1[j];
               }
+              
+
+ 
               sum_Ai1=tmp_sum;
               new_ang_tab1[0]=0;
               for (unsigned char j=1;j<144;j++) {
                 new_ang_tab1[j]=new_ang_tab1[j-1]+pix_dif_tab1[j-1]/sum_Ai1*360;
 
               }
-              auto_cal=0;
+              auto_cal=0;                                                       
                 
-              encoder_state=0x20;
+              encoder_state=0x20;                                               
               
             }
             
@@ -56882,7 +57326,7 @@ void angtab_cal(){
 
   else if (auto_cal==2) {
 
-    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-25) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+25)))) )  ) {
+    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-shift) )&&(s_l1<=(offset-shift+1)))||(((s_l2>=(offset+shift-1))&&(s_l2<=(offset+shift)))) )  ) {
 
       old_sector=lsector;  
       cal_sector=cur_sector;
@@ -56907,6 +57351,9 @@ void angtab_cal(){
                 new_ang_tab2[j]=new_ang_tab2[j-1]+pix_dif_tab2[j-1]/sum_Ai2*360;
               }
                 
+              
+
+ 
               for (unsigned char j=0;j<144;j++) {
                 new_ang_tab[j]=(new_ang_tab1[j]+new_ang_tab2[j])/2;
               }
@@ -56964,6 +57411,30 @@ void angtab_cal(){
 }  
   
   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -57216,6 +57687,32 @@ void offset_cal() {
 }    
     
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -57623,6 +58120,12 @@ void angk_cal() {
 
 
 
+
+
+
+
+
+
  
 void Configure_WWDG(void)
 {
@@ -57656,6 +58159,18 @@ void Check_WWDG_Reset(void)
     LL_RCC_ClearResetFlags();
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -57709,6 +58224,19 @@ void dac_ctrl() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+ 
 void SloComProcess() {
 
     if(SloCom>0)
@@ -57774,6 +58302,14 @@ void SloComProcess() {
 
 
 
+
+
+
+
+
+
+
+ 
 uint8_t ProgBlock() {
 
   uint8_t errcode;                                                              
@@ -57825,6 +58361,10 @@ uint8_t ProgBlock() {
 
 
 
+
+
+
+ 
 uint8_t CalcUpdateChecksum() {
 
   uint8_t errcode;                                                              
@@ -57908,6 +58448,14 @@ void ReadFlashHeader() {
 
 
 
+
+
+
+
+
+
+
+ 
 uint8_t ProgCheckStm32() {
 
   uint8_t errcode;                                                              
@@ -57972,6 +58520,12 @@ uint8_t ProgCheckStm32() {
 
 
 
+
+
+
+
+
+ 
 void Flash_Read_Data (uint32_t StartPageAddress, void *Data, uint16_t numberofwords)
 {
   uint32_t *RxBuf = Data;
@@ -57982,6 +58536,13 @@ void Flash_Read_Data (uint32_t StartPageAddress, void *Data, uint16_t numberofwo
     RxBuf++;
   }
 }
+
+
+
+
+
+
+
 
 
 
@@ -58023,6 +58584,15 @@ static void Backlight_StartTimer(uint16_t ticks)
   LL_TIM_EnableCounter(((TIM_TypeDef *) (0x40000000UL + 0x0800UL)));
 }
 
+
+
+
+
+
+
+
+
+ 
 static void Backlight_StartFromSI(void)
 {
   LL_TIM_DisableCounter(((TIM_TypeDef *) (0x40000000UL + 0x0800UL)));
@@ -58042,6 +58612,26 @@ static void Backlight_StartFromSI(void)
     Backlight_StartTimer(backlight_delay_ticks);
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
 void init_vars() {
 
   
@@ -58125,6 +58715,24 @@ void init_vars() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
 int main(void)
 {
@@ -58136,6 +58744,7 @@ int main(void)
 
   
   SystemClock_Config();
+  HAL_ResumeTick();
 
   
   SCB_EnableICache();
@@ -58166,6 +58775,9 @@ int main(void)
   while (1)
   {
 
+    
+
+ 
     if (adc_rdy == 1) {                                                         
 
       copy_data();                                                              
@@ -58182,6 +58794,8 @@ int main(void)
 
       err_corr();                                                               
 
+      
+ 
       if (errorflag==0) {
 
         calc_ang();                                                             
@@ -58219,6 +58833,12 @@ int main(void)
   }
 
 }
+
+
+
+
+
+
 
 
 
@@ -58263,6 +58883,13 @@ void SystemClock_Config(void)
   LL_SYSTICK_SetClkSource((1UL << 2U));
   LL_SetSystemCoreClock(216000000);
 }
+
+
+
+
+
+
+
 
 
 
@@ -58360,6 +58987,15 @@ static void MX_ADC1_Init(void)
 
 
 
+
+
+
+
+
+
+
+
+
  
 static void MX_ADC2_Init(void)
 {
@@ -58447,6 +59083,14 @@ static void MX_ADC2_Init(void)
 
 
 
+
+
+
+
+
+
+
+
  
 static void MX_TIM3_Init(void)
 {
@@ -58523,6 +59167,11 @@ static void MX_TIM3_Init(void)
 
 
 
+
+
+
+
+
  
 static void MX_TIM4_Init(void)
 {
@@ -58539,6 +59188,10 @@ static void MX_TIM4_Init(void)
   __NVIC_SetPriority(TIM4_IRQn, 1);
   __NVIC_EnableIRQ(TIM4_IRQn);
 }
+
+
+
+
 
 
 
@@ -58579,6 +59232,12 @@ static void MX_DAC_Init(void)
 
 
 
+
+
+
+
+
+
  
 static void MX_CRC_Init(void)
 {
@@ -58606,6 +59265,10 @@ static void MX_CRC_Init(void)
 
 
 
+
+
+
+
  
 static void MX_RNG_Init(void)
 {
@@ -58617,6 +59280,15 @@ static void MX_RNG_Init(void)
   HAL_RNG_Init(&RNG_Handle);
 
 }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -58644,6 +59316,13 @@ static void MX_I2C3_Init(void)
   HAL_I2CEx_EnableFastModePlus((0x1UL << (2U)));
 
 }
+
+
+
+
+
+
+
 
 
 
@@ -58732,6 +59411,15 @@ static void MX_SPI1_Init(void)
   LL_SPI_Enable(((SPI_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x3000UL)));                                                          
 
 };
+
+
+
+
+
+
+
+
+
 
 
 
@@ -58925,6 +59613,19 @@ void TIM5_IRQHandler(void)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+ 
 void Recv_SPI() {
   recv_num_prev++;                                                              
   recv_num=(aRxBuffer[1]&0xff);                                                 
@@ -58954,6 +59655,16 @@ void Recv_SPI() {
   recv_num_prev=recv_num;                                                       
   memset(&aRxBuffer[0],0,10*2);                                      
 }
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -59008,6 +59719,20 @@ void TIM2_IRQHandler(void)
     LL_DMA_EnableStream(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)),0x00000003U);                                  
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -59106,6 +59831,12 @@ void spi_recv_process (unsigned char *recv_buff) {
 
 
 
+
+      
+
+
+
+ 
 
       
       case 0x10:
@@ -59246,6 +59977,13 @@ int spi_SendBuf2(unsigned char *data, unsigned char len) {
 
 
 
+
+
+
+
+
+
+
  
 
 void spi_SendExec() {
@@ -59270,6 +60008,16 @@ void spi_SendExec() {
   }
   
 }
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -59342,6 +60090,22 @@ static void MX_GPIO_Init(void)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
 void DMA2_Stream3_IRQHandler(void)
 {
@@ -59404,6 +60168,13 @@ void DMA2_Stream3_IRQHandler(void)
 
 
 
+
+
+
+
+
+
+ 
 void TIM4_IRQHandler(void)
 {
   if(LL_TIM_IsActiveFlag_UPDATE(((TIM_TypeDef *) (0x40000000UL + 0x0800UL))) == 1) {
@@ -59506,6 +60277,13 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c)
 
 
 
+
+
+
+
+
+
+ 
 void HAL_I2C_MemTxCpltCallback(I2C_HandleTypeDef *I2cHandle)
 {
 
