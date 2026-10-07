@@ -357,6 +357,8 @@
                 <option>
                     <name>CCIncludePath2</name>
                     <state>$PROJ_DIR$/../Inc</state>
+                    <state>$PROJ_DIR$/../ThirdParty/FreeModbus/include</state>
+                    <state>$PROJ_DIR$/../ThirdParty/FreeModbus/rtu</state>
                     <state>$PROJ_DIR$/../Drivers/STM32F7xx_HAL_Driver/Inc</state>
                     <state>$PROJ_DIR$/../Drivers/CMSIS/Device/ST/STM32F7xx/Include</state>
                     <state>$PROJ_DIR$/../Drivers/CMSIS/Include</state>
@@ -1122,6 +1124,18 @@
         </group>
     </group>
     <group>
+        <name>Modbus RTU</name>
+        <file><name>$PROJ_DIR$\..\Src\modbus_port.c</name></file>
+        <file><name>$PROJ_DIR$\..\Src\modbus_registers.c</name></file>
+        <file><name>$PROJ_DIR$\..\Src\snapshot_registers.c</name></file>
+        <file><name>$PROJ_DIR$\..\ThirdParty\FreeModbus\mb.c</name></file>
+        <file><name>$PROJ_DIR$\..\ThirdParty\FreeModbus\rtu\mbrtu.c</name></file>
+        <file><name>$PROJ_DIR$\..\ThirdParty\FreeModbus\rtu\mbcrc.c</name></file>
+        <file><name>$PROJ_DIR$\..\ThirdParty\FreeModbus\functions\mbfuncholding.c</name></file>
+        <file><name>$PROJ_DIR$\..\ThirdParty\FreeModbus\functions\mbfuncinput.c</name></file>
+        <file><name>$PROJ_DIR$\..\ThirdParty\FreeModbus\functions\mbutils.c</name></file>
+    </group>
+    <group>
         <name>Drivers</name>
         <group>
             <name>CMSIS</name>
@@ -1225,7 +1239,7 @@
                 <name>$PROJ_DIR$\..\Drivers\STM32F7xx_HAL_Driver\Src\stm32f7xx_ll_tim.c</name>
             </file>
             <file>
-                <name>C:\Users\ilya2\Downloads\stm32f7xx_ll_usart.c</name>
+                <name>$PROJ_DIR$\..\Drivers\STM32F7xx_HAL_Driver\Src\stm32f7xx_ll_usart.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Drivers\STM32F7xx_HAL_Driver\Src\stm32f7xx_ll_utils.c</name>
@@ -1370,6 +1384,8 @@
                         <option>
                             <name>CCIncludePath2</name>
                             <state>$PROJ_DIR$/../Inc</state>
+                            <state>$PROJ_DIR$/../ThirdParty/FreeModbus/include</state>
+                            <state>$PROJ_DIR$/../ThirdParty/FreeModbus/rtu</state>
                             <state>$PROJ_DIR$/../Drivers/STM32F7xx_HAL_Driver/Inc</state>
                             <state>$PROJ_DIR$/../Drivers/CMSIS/Device/ST/STM32F7xx/Include</state>
                             <state>$PROJ_DIR$/../Drivers/CMSIS/Include</state>

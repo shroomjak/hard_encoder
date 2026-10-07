@@ -1,7 +1,18 @@
-# Keep C/H sources in CP1251 on disk (Russian comments). Git stores bytes as-is.
+# Исторические C/H-файлы STM32 на диске сохранены в CP1251.
+# Git перекодирует их в UTF-8 при добавлении в индекс.
 *.c text working-tree-encoding=CP1251
 *.h text working-tree-encoding=CP1251
 
-# UTF-8 for tooling / docs
+# Новые файлы протокола на диске и в индексе Git — UTF-8:
+# так комментарии читаются и в IAR/ESP-IDF, и в веб-просмотрщике.
+Src/modbus_port.c text working-tree-encoding=UTF-8 eol=lf
+Src/modbus_registers.c text working-tree-encoding=UTF-8 eol=lf
+Src/snapshot_registers.c text working-tree-encoding=UTF-8 eol=lf
+Inc/modbus_board.h text working-tree-encoding=UTF-8 eol=lf
+Inc/port.h text working-tree-encoding=UTF-8 eol=lf
+Inc/snapshot_registers.h text working-tree-encoding=UTF-8 eol=lf
+esp32_master/main/main.c text working-tree-encoding=UTF-8 eol=lf
+
+# Документация в UTF-8.
 *.md text eol=lf
 *.json text eol=lf

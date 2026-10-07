@@ -1,0 +1,5 @@
+# Использовать Modbus RTU и выдерживать паузу после вещательного SNAP.
+CONFIG_FMB_COMM_MODE_RTU_EN=y
+# Время ожидания адресного ответа (мс) и пауза после вещания (мс).
+CONFIG_FMB_MASTER_TIMEOUT_MS_RESPOND=400
+CONFIG_FMB_MASTER_DELAY_MS_CONVERT=200
