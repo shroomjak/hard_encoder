@@ -1121,6 +1121,21 @@
             <file>
                 <name>$PROJ_DIR$\..\Src\stm32f7xx_it.c</name>
             </file>
+            <file>
+                <name>$PROJ_DIR$\..\Src\modbus_port.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Src\modbus_slave.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Inc\modbus_port.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Inc\modbus_slave.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Inc\port.h</name>
+            </file>
         </group>
     </group>
     <group>

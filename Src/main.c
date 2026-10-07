@@ -3944,6 +3944,9 @@ int main(void)
   // Infinite loop
   while (1)
   {
+    /* Non-blocking FreeModbus foreground state machine. It handles FC04
+       STATUS/DATA and FC06 SNAP; UART and t3.5 interrupts only queue events. */
+    ModbusSlave_Poll();
 
     /* Флаг выставляется из DMA2_Stream3_IRQHandler: в buf_x0 лежит свежий
        кадр линейки. Весь расчёт ниже должен уложиться в период кадра (~80 мкс),
@@ -3994,6 +3997,11 @@ int main(void)
       SCB_InvalidateDCache_by_Addr((uint32_t *)aADCxConvertedData,((2+31)/32)*32);//force to let update caches again with memory content to see the changes
       Vsense=(aADCxConvertedData[0]*3.3f)/4095.0f;                              // calculate Temperature
       Temperature=((Vsense-V25)*1000/Avg_Slope)+25.0f;
+
+      /* Publish a coherent, fully calculated live frame. A later broadcast
+         SNAP copies this record (including buf_x0) to a frozen Modbus frame. */
+      ModbusSlave_Publish(cur_ang_E, sector, data_byte, startpixel1, startpixel2,
+                          errorflag, Temperature, buf_x0);
 
       cycles = KIN1_GetCycleCounter();                                          // get cycle counter
       KIN1_DisableCycleCounter();                                               // disable counting if not used any more
