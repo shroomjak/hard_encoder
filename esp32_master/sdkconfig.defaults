@@ -1,11 +1,5 @@
-# Use only Modbus RTU over UART/RS-485; TCP and ASCII are not part of this bus.
-CONFIG_FMB_COMM_MODE_TCP_EN=n
+# Использовать Modbus RTU и выдерживать паузу после вещательного SNAP.
 CONFIG_FMB_COMM_MODE_RTU_EN=y
-CONFIG_FMB_COMM_MODE_ASCII_EN=n
-
-# The ESP-Modbus broadcast conversion delay is intentionally not zero: address
-# 0 returns no reply, and every STM32 needs time to copy a coherent frame.
-CONFIG_FMB_MASTER_DELAY_MS_CONVERT=150
-CONFIG_FMB_MASTER_TIMEOUT_MS_RESPOND=250
-CONFIG_FMB_MASTER_TIMEOUT_COOLDOWN_MS=50
-CONFIG_FMB_MASTER_MAX_API_BLOCKING_TIME_MS=3000
+# Время ожидания адресного ответа (мс) и пауза после вещания (мс).
+CONFIG_FMB_MASTER_TIMEOUT_MS_RESPOND=400
+CONFIG_FMB_MASTER_DELAY_MS_CONVERT=200

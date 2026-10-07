@@ -46,7 +46,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "modbus_slave.h"
+#include "mb.h"
+#include "modbus_board.h"
+#include "snapshot_registers.h"
 #include "math.h"
 #include "arm_math.h"
 #include  <stdio.h>
@@ -3928,11 +3930,10 @@ int main(void)
 
   init_vars();                                                                  // init variables
 
-  /* FreeModbus RTU slave: USART3/RS-485 is initialized separately from the
-     encoder peripherals. See Inc/modbus_port.h before connecting the bus. */
-  if (ModbusSlave_Init() != 0U) {
-    Error_Handler();
-  }
+  /* Инициализировать Modbus RTU slave: индивидуальный адрес головки, USART1,
+     115200/8E1; библиотека подключит IRQ USART1 и таймер паузы TIM2. */
+  if (eMBInit(MB_RTU, MB_SLAVE_ADDRESS, 1, MB_BAUD, MB_PAR_EVEN, 1) != MB_ENOERR ||
+      eMBEnable() != MB_ENOERR) Error_Handler();
 
   KIN1_InitCycleCounter();                                                      // enable DWT hardware
   KIN1_EnableCycleCounter();
@@ -3985,6 +3986,11 @@ int main(void)
       }
 
 
+      /* Обновить текущий результат только после окончания расчёта кадра.
+         При errorflag!=0 сохранённый старый угол НЕ считается валидным SNAP. */
+      snapshot_publish(cur_ang_E, (uint16_t)sector, errorflag,
+                       encoder_state, HAL_GetTick());
+
       dac_ctrl();                                                               // DAC ctrl
 
 
@@ -4004,6 +4010,9 @@ int main(void)
       adc_rdy=0;                                                                // ADC frame ready flag
 
     }
+
+    /* Неблокирующий разбор событий Modbus; обработчик SNAP фиксирует последний кадр. */
+    if (eMBPoll() != MB_ENOERR) Error_Handler();
 
   }
 

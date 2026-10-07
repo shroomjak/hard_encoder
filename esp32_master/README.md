@@ -1,37 +1,22 @@
-# ESP32 Modbus RTU master
+# Прошивка ведущего контроллера ESP32
 
-This is an ESP-IDF project for the RS-485 master. It uses the official
-[`espressif/esp-modbus`](https://github.com/espressif/esp-modbus) component,
-not a locally implemented Modbus stack.
+Это **отдельный проект ESP-IDF**. Код в `main/main.c` не прошивается через IAR EWARM: IAR в этом репозитории относится к головке STM32.
 
-## Build
+Для отладочной платы классической ESP32 с USB-разъёмом (обычно USB↔UART0):
 
-```bash
-cd esp32_master
-idf.py set-target esp32
-idf.py build flash monitor
-```
+1. Установить ESP-IDF 5.x, открыть терминал с активированным окружением ESP-IDF.
+2. Сверить пины UART2/RS485 в `main/main.c` со схемой платы, адреса головок — с `Inc/modbus_board.h` проекта STM32.
+3. Подключить плату к компьютеру USB-кабелем **с передачей данных**, затем выполнить:
 
-`main/idf_component.yml` downloads `espressif/esp-modbus` version `^2.1.4`
-through the ESP-IDF Component Manager. Therefore there is no need to copy the
-whole ESP-Modbus repository into this project.
+   ```sh
+   cd esp32_master
+   idf.py set-target esp32
+   idf.py build
+   idf.py -p <ПОРТ_ПЛАТЫ> flash monitor
+   ```
 
-## Wiring to the ESP32 RS-485 converter
+   Например, вместо `<ПОРТ_ПЛАТЫ>` указать `COM5` (Windows) или `/dev/ttyUSB0` (Linux). Из монитора ESP-IDF выйти сочетанием `Ctrl+]`.
 
-Defaults in `main/encoder_master.c` are for a usual ESP32 DevKit:
+На USB идут **прошивка и журнал** `SNAP/ACK/DATA`. Modbus работает по **отдельным** проводам ESP32 UART2 → преобразователь RS485 → A/B → головки. USB-кабель не заменяет преобразователь RS485. При отсутствии встроенного USB нужен отдельный USB↔UART-адаптер уровня 3,3 В и предусмотренный платой вход в режим загрузчика. Для ESP32-S3/C3 и других моделей сначала проверить целевой чип, доступность UART и распиновку: пример рассчитан на классическую ESP32.
 
-| ESP32 signal | GPIO | RS-485 converter pin |
-|---|---:|---|
-| UART2 TX | 17 | DI / D |
-| UART2 RX | 16 | RO / R |
-| UART2 RTS | 4 | joined DE + `/RE` direction input |
-| GND | — | signal reference GND |
-
-`UART_MODE_RS485_HALF_DUPLEX` makes the ESP32 UART drive RTS only while it
-transmits. Change the three GPIO macros at the start of `encoder_master.c` to
-match the actual master PCB. The electrical direction input must be such that
-**RTS high selects transmit**; add/invert external logic if the selected
-transceiver wiring has the opposite polarity.
-
-The code targets 115200, 8N1. The baud rate, parity and stop bits must match
-all STM32 heads.
+Полная инструкция по установке, загрузке, подключению и таблице регистров: [документация Modbus](../docs/modbus_rtu.md#2-как-прошить-esp32-esp-idf-usb-а-не-iar).

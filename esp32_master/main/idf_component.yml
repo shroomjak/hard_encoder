@@ -1,4 +1,4 @@
+# Менеджер компонентов ESP-IDF скачает официальный стек Modbus Espressif.
 dependencies:
   idf: ">=5.0"
-  espressif/esp-modbus:
-    version: "^2.1.4"
+  espressif/esp-modbus: "2.1.4"

@@ -1,6 +1,6 @@
-# Sources use Windows-1251 (CP1251) for Russian comments.
-# Do not change charset to utf-8 without explicit conversion of all affected files.
-
+# Исторические исходники STM32 (в частности Src/main.c) используют CP1251.
+# Новые файлы протокола явно сохранены в UTF-8, чтобы кириллица отображалась
+# в GitHub и редакторах без ручного выбора кодировки.
 root = true
 
 [*]
@@ -10,3 +10,15 @@ insert_final_newline = true
 
 [*.{md,json,yml,yaml,xml}]
 charset = utf-8
+
+[Src/{modbus_port,modbus_registers,snapshot_registers}.c]
+charset = utf-8
+end_of_line = lf
+
+[Inc/{modbus_board,port,snapshot_registers}.h]
+charset = utf-8
+end_of_line = lf
+
+[esp32_master/**]
+charset = utf-8
+end_of_line = lf
