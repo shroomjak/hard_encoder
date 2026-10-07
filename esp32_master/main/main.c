@@ -37,8 +37,8 @@
  * Добавляя головки, изменить и массив, и HEAD_COUNT. */
 #define REG_COUNT 11       /* полная карта входных регистров 0..10 */
 #define STATUS_COUNT 2     /* только seq и ready */
-#define HEAD_COUNT 2
-static const uint8_t head_ids[HEAD_COUNT] = {1, 2};
+#define HEAD_COUNT 1
+static const uint8_t head_ids[HEAD_COUNT] = {1};
 static const char *TAG = "encoder";
 static void *master;
 
