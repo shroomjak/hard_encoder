@@ -45913,12 +45913,6 @@ void        LL_USART_ClockStructInit(LL_USART_ClockInitTypeDef *USART_ClockInitS
 
 
 
-typedef  struct  rem_buf {
-    unsigned char used;
-    unsigned char data[16];                          
-    unsigned char len;                                
-} REM_BUF;                                        
-
 
 
  

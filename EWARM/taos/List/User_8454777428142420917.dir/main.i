@@ -15,6 +15,31 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
  
 
@@ -45913,12 +45938,6 @@ void        LL_USART_ClockStructInit(LL_USART_ClockInitTypeDef *USART_ClockInitS
 
 
 
-typedef  struct  rem_buf {
-    unsigned char used;
-    unsigned char data[16];                          
-    unsigned char len;                                
-} REM_BUF;                                        
-
 
 
  
@@ -53488,820 +53507,53 @@ typedef __builtin_va_list   va_list;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
- 
-
-
-
- 
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
- 
-
-
-
- 
-
-	
-
-
-
-
-
-
- 
- 
-
-
-  #pragma system_include
-
- 
- 
-
- 
-
-  #pragma system_include
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
- 
-#pragma rtmodel="__dlib_full_locale_support",   "1"
-
-  
-    __intrinsic __nounwind size_t __iar_Mbcurmax(void);
-  
-
-
- 
-
-
-
- 
-
-typedef struct
-{  
-  int quot;
-  int rem;
-} div_t;
-
-typedef struct
-{  
-  long quot;
-  long rem;
-} ldiv_t;
-
-  typedef struct
-  {  
-    long long quot;
-    long long rem;
-  } lldiv_t;
-
-
- 
-  
-  __intrinsic __nounwind int             atexit(void (*)(void));
-    __intrinsic __nounwind          int  at_quick_exit(void (*)(void)) ;
-    __intrinsic __noreturn __nounwind void _Exit(int) ;
-    __intrinsic __noreturn __nounwind void quick_exit(int) ;
-  __intrinsic __noreturn __nounwind void   exit(int);
-   __intrinsic __nounwind        char * getenv(const char *);
-  __intrinsic __nounwind          int    system(const char *);
-
-
-
-               __intrinsic __nounwind void *    aligned_alloc(size_t, size_t);
-          __intrinsic __noreturn __nounwind void  abort(void) ;
-  _Pragma("function_effects = no_state, always_returns")     __intrinsic __nounwind int       abs(int);
-               __intrinsic __nounwind void *    calloc(size_t, size_t);
-  _Pragma("function_effects = no_state, always_returns")     __intrinsic __nounwind div_t     div(int, int);
-               __intrinsic __nounwind void      free(void *);
-  _Pragma("function_effects = no_state, always_returns")     __intrinsic __nounwind long      labs(long);
-  _Pragma("function_effects = no_state, always_returns")     __intrinsic __nounwind ldiv_t    ldiv(long, long);
-    _Pragma("function_effects = no_state, always_returns")   __intrinsic __nounwind long long llabs(long long);
-    _Pragma("function_effects = no_state, always_returns")   __intrinsic __nounwind lldiv_t   lldiv(long long, long long);
-  _Pragma("function_effects = no_state, always_returns")     __intrinsic __nounwind double    fabs(double);
-  _Pragma("function_effects = no_state, always_returns")     __intrinsic __nounwind float     fabsf(float);
-  _Pragma("function_effects = no_state, always_returns")     __intrinsic __nounwind long double fabsl(long double);
-               __intrinsic __nounwind void *    malloc(size_t);
-  _Pragma("function_effects = no_write(1), always_returns")    __intrinsic __nounwind int       mblen(const char *, size_t);
-    _Pragma("function_effects = no_read(1), no_write(2), always_returns")  __intrinsic __nounwind size_t mbstowcs(wchar_t *restrict,
-                                                const char *restrict, size_t);
-    _Pragma("function_effects = no_read(1), no_write(2), always_returns") __intrinsic __nounwind   int    mbtowc(wchar_t *restrict,
-                                              const char *restrict, size_t);
-               __intrinsic __nounwind int    rand(void);
-               __intrinsic __nounwind void   srand(unsigned int);
-               __intrinsic __nounwind void * realloc(void *, size_t);
-               __intrinsic __nounwind void * __iar_realloc_in_place(void *, size_t);
-  _Pragma("function_effects = no_write(1), no_read(2), always_returns") __intrinsic __nounwind long          strtol(const char *restrict,
-                                                 char **restrict, int);
-  _Pragma("function_effects = no_write(1), no_read(2), always_returns") __intrinsic __nounwind unsigned long strtoul(const char *, char **, int);
-    _Pragma("function_effects = no_read(1), no_write(2), always_returns")  __intrinsic __nounwind size_t wcstombs(char *restrict,
-                                               const wchar_t *restrict,
-                                               size_t);
-    _Pragma("function_effects = no_read(1), always_returns")     __intrinsic __nounwind int    wctomb(char *, wchar_t);
-    _Pragma("function_effects = no_write(1), no_read(2), always_returns") __intrinsic __nounwind long long strtoll(const char *, char **, int);
-    _Pragma("function_effects = no_write(1), no_read(2), always_returns") __intrinsic __nounwind unsigned long long strtoull(const char *,
-                                                          char **, int);
-
-
-
-  typedef int _Cmpfun(const void *, const void *);
-  _Pragma("function_effects = no_write(1,2), always_returns")  __intrinsic void * bsearch(const void *,
-                                                       const void *, size_t,
-                                                       size_t, _Cmpfun *);
-                __intrinsic void   qsort(void *, size_t, size_t,
-                                                     _Cmpfun *);
-               __intrinsic void     __qsortbbl(void *, size_t,
-                                                          size_t, _Cmpfun *);
-  _Pragma("function_effects = no_write(1), always_returns")    __intrinsic __nounwind double             atof(const char *);
-  _Pragma("function_effects = no_write(1), always_returns")    __intrinsic __nounwind int                atoi(const char *);
-  _Pragma("function_effects = no_write(1), always_returns")    __intrinsic __nounwind long               atol(const char *);
-     _Pragma("function_effects = no_write(1), always_returns") __intrinsic __nounwind long long        atoll(const char *);
-     _Pragma("function_effects = no_write(1), no_read(2), always_returns") __intrinsic __nounwind float         strtof(const char *restrict,
-                                                    char **restrict);
-     _Pragma("function_effects = no_write(1), no_read(2), always_returns") __intrinsic __nounwind long double   strtold(const char *, char **);
-  _Pragma("function_effects = no_write(1), no_read(2), always_returns") __intrinsic __nounwind double           strtod(const char *restrict,
-                                                    char **restrict);
-    _Pragma("function_effects = no_state, always_returns")   __intrinsic __nounwind int              __iar_DLib_library_version(void);
-
-
-  
-  #pragma inline=no_body
-  int abs(int i)
-  {       
-    return i < 0 ? -i : i;
-  }
-
-  #pragma inline=no_body
-  long labs(long i)
-  {  
-    return i < 0 ? -i : i;
-  }
-
-    #pragma inline=no_body
-    long long llabs(long long i)
-    {  
-      return i < 0 ? -i : i;
-    }
-  
-
-
-
-#pragma language=save
-#pragma language=extended
-
-  void __iar_table_init3(void __data const * table_start,
-                      void __data const * table_end);
-
-#pragma language=restore
-
-
-
-
-
-
-
- 
-
-
-  #pragma system_include
-
-
-
-
-#pragma inline=forced_no_body
-__intrinsic __nounwind
-div_t div(int a, int b)
-{
-  int q = a / b;
-  int r = a - (q*b);
-  div_t d;
-  d.quot = q;
-  d.rem = r;
-  return d;
-}
-
-#pragma inline=forced_no_body
-__intrinsic __nounwind
-ldiv_t ldiv(long a, long b)
-{
-  int q = a / b;
-  int r = a - (q*b);
-  ldiv_t ld;
-  ld.quot = q;
-  ld.rem = r;
-  return ld;
-}
-
-    #pragma type_attribute=__value_in_regs
-    lldiv_t __aeabi_ldivmod(long long n, long long d);
-
-    #pragma inline=forced_no_body
-    __intrinsic __nounwind
-    lldiv_t lldiv(long long a, long long b)
-    {
-      return __aeabi_ldivmod(a, b);
-    }
-
-
-
-
-
-
-
-
- 
-
-
-
-void load4BytesToTxBuffer(uint8_t *txBuffer, uint8_t opcode, uint32_t address);
-void fillArrayPattern(uint8_t * byteArray, uint32_t numBytes, int seedNumber);
-void fillArrayConst(uint8_t * byteArray, uint32_t numBytes, int constantNum);
-int compareByteArrays(uint8_t *arr1, uint8_t *arr2, uint32_t arrLength);
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
- 
-void standardflashWaitOnReady();
-
-
-
-
-
-
-
-
-
-
- 
-void standardflashSetQEBit();
-
-
-
-
-
-
-
-
-
-
- 
-void standardflashClearQEBit();
-
-
-
-
-
-
- 
-void standardflashWriteEnable();
-
-
-
-
-
-
- 
-void standardflashWriteDisable();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-void standardflashReadArrayLowFreq(uint32_t address, uint8_t *rxBuffer, uint32_t rxNumBytes);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-void standardflashReadArrayHighFreq(uint32_t address, uint8_t *rxBuffer, uint32_t rxNumBytes);
-
-
-
-
-
-
-
-
-
-
-
-
- 
-void standardflashBytePageProgram(uint32_t address, uint8_t *txBuffer, uint32_t txNumBytes);
-
-
-
-
-
-
-
-
- 
-void standardflashBlockErase4K(uint32_t address);
-
-
-
-
-
-
-
-
- 
-void standardflashBlockErase32K(uint32_t address);
-
-
-
-
-
-
-
-
- 
-void standardflashBlockErase64K(uint32_t address);
-
-
-
-
-
-
-
- 
-void standardflashChipErase1();
-
-
-
-
-
-
-
- 
-void standardflashChipErase2();
-
-
-
-
-
-
-
- 
-void standardflashDPD();
-
-
-
-
-
-
- 
-void standardflashResumeFromDPD();
-
-
-
-
-
-
-
-
-
- 
-void standardflashReadID(uint8_t *rxBuffer);
-
-
-
-
-
-
-
-
- 
-void standardflashReadMID(uint8_t *rxBuffer);
-
-
-
-
-
-
-
-
-
- 
-void standardflashWriteSR(uint8_t *txBuffer, uint8_t txNumBytes);
-
-void standardflashWriteSRB1(uint8_t regVal);
-void standardflashWriteSRB2(uint8_t regVal);
-
-
-
-
-
-
- 
-void standardflashWriteEnableVolatileSR();
-
-
-
-
-
-
- 
-uint8_t standardflashReadSRB1();
-
-
-
-
-
-
  
-uint8_t standardflashReadSRB2();
-
-
-
-
 
 
 
-
-
-
-
-
-
  
-void standardflashDualOutputRead(uint32_t address, uint8_t *rxBuffer, uint32_t rxNumBytes);
-
-
-
-
-
-
-
-
-
-
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
  
-void standardflashDualIORead(uint32_t address, uint8_t *rxBuffer, uint32_t rxNumBytes, uint8_t readMode, uint8_t modeByteValue);
-
-
-
-
 
 
 
 
 
-
-
-
-
  
-void standardflashQuadOutputRead(uint32_t address, uint8_t *rxBuffer, uint32_t rxNumBytes);
-
-
-
-
-
-
-
-
-
-
-
-
 
 
-
-
-
-
-
-
-
-
-
-
-
-
  
-void standardflashQuadIORead(uint32_t address, uint8_t *rxBuffer, uint32_t rxNumBytes, uint8_t readMode, uint8_t modeByteValue);
-
-
-
-
 
-
-
  
-void standardflashContinuousReadModeDualReset();
-
-
 
 
-
-
-
  
-void standardflashContinuousReadModeQuadReset();
-
 
-
-
-
-
  
-void standardflashEraseSecurityRegister(uint32_t address);
-
-
-
-
 
-
-
-
-
-
-
-
-
  
-void standardflashProgramSecurityRegisters(uint32_t address, uint8_t *txBuffer, uint32_t txNumBytes);
-
-
-
-
-
-
-
-
 
-
-
-
  
-void standardflashReadSecurityRegisters(uint32_t address, uint8_t *rxBuffer, uint32_t rxNumBytes);
-
-
-
-
-
 
 
 
  
-void standardflashResumeFromDPDReadID(uint8_t *rxBuffer);
-
-
-
-
-
-
-
-
 
-
-
-
-
-
  
-void standardflashQuadPageProgram(uint32_t address, uint8_t *txBuffer, uint32_t txNumBytes, uint8_t mode);
-
-
-
 
-
-
  
-void standardflashEraseProgramSuspend();
-
-
 
 
 
-
  
-void standardflashEraseProgramResume();
-
-
-
 
 
 
-
-
-
  
-void standardflashEnableQPI();
-
 
 
 
@@ -54310,17 +53562,10 @@ void standardflashEnableQPI();
 
 
  
-void standardflashDisableQPI();
-
-
-
-
 
 
 
 
- 
-void standardflashEnableReset();
 
 
 
@@ -54330,46 +53575,27 @@ void standardflashEnableReset();
 
 
  
-void standardflashReset();
-
 
 
 
 
-
  
-void standardflashEnterSecureOTP();
-
 
 
 
 
 
- 
-void standardflashExitSecuredOTP();
-
 
 
-
- 
 
 
 
- 
 
 
-typedef  void (*pFunction)(void);
 
 
 
  
-
-
-
-
-
-
-
 
 
 
@@ -54387,32 +53613,7 @@ typedef  void (*pFunction)(void);
 
 
 
-
- 
-
-
-
-
  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
  
  
  
@@ -54442,17 +53643,12 @@ TIM_HandleTypeDef htim3;
 DAC_HandleTypeDef hdac;
 
 
- 
-CRC_HandleTypeDef   CrcHandle;
 
 
 
 
 
 
-RNG_HandleTypeDef RNG_Handle;
-
-uint16_t rng_value;
 
 
 
@@ -54471,6 +53667,9 @@ uint8_t i2c3_err;
 
 
 
+
+
+ 
 uint8_t eeprom_buf[2048];                                                 
 
 uint16_t eeprom_crc16;                                                          
@@ -54488,6 +53687,12 @@ uint8_t lasdac_rdy=0;
 
 
 
+
+
+
+
+ 
+
 __attribute__((aligned(32))) uint16_t aADCxConvertedData[1];
 __attribute__((aligned(4))) float Vsense;
 __attribute__((aligned(4))) float V25 = 0.76f;
@@ -54497,11 +53702,27 @@ __attribute__((aligned(4))) float Temperature;
 
 
 
+
+
+
+
+
+
+
+ 
+
 __attribute__((aligned(32))) uint16_t ADC_VAL[132] = {0};
 __attribute__((aligned(32))) uint16_t ADC_VAL2[132] = {0};
 uint16_t *adc_addr;
 unsigned char adc_rdy;                                                          
 
+
+
+
+
+
+
+ 
 
 uint8_t backlight_width_en=1;
 int max_level = 3700;
@@ -54527,37 +53748,6 @@ volatile uint8_t backlight_timer_state = 0;
 
 
 
-static uint8_t dataWrite[4096+8] = {0};
-
-static uint8_t dataRead[4096+8] = {0};
-
-
-uint8_t boot_state;
-
-pFunction Jump_To_Application;
-uint32_t JumpAddress;
-
-
-
-
-
-
-static uint8_t sec_buffer[4096];
-uint16_t prog_crc;
-uint16_t prog_len;
-uint32_t prog_addr;
-uint32_t prog_data;
-uint32_t prog_header;
-uint32_t prog_len_cnt;
-uint32_t prog_cur;
-uint16_t prog_offset=0;
-uint16_t prog_crc_cur;
-uint8_t prog_errcode;
-uint32_t update_len;
-uint32_t update_crc;
-uint32_t update_time;
-uint32_t update_Checksum;
-uint16_t update_version=11;
 
 
 
@@ -54569,6 +53759,7 @@ uint16_t update_version=11;
 
 
 
+ 
 uint16_t buf_x0[128]={0};	                                                
 uint16_t max_data=0;
 uint16_t min_data=0;
@@ -54612,6 +53803,14 @@ uint32_t config_state;
 
 
 
+
+
+
+
+
+
+
+ 
 const uint16_t  bit_tab[144] = {                                      
 197	,
 314	,
@@ -54798,6 +53997,10 @@ uint8_t max2_pos;
 
 uint16_t data_byte;
 
+
+
+
+ 
 uint16_t startpixel=0;
 uint16_t startpixel1;
 uint16_t startpixel2;
@@ -54806,6 +54009,15 @@ uint16_t test1pixel;
 uint16_t test2pixel;
 uint16_t bck_pixel;
 
+
+
+
+
+
+
+
+
+ 
 int16_t pix[9][2];
 
 
@@ -54828,6 +54040,12 @@ float pix_size;
 
 
 
+
+
+
+
+
+ 
 
 unsigned sec_cnt=0;
 unsigned serrcnt=0;
@@ -54864,6 +54082,9 @@ int delta;
 float delta_cor[200];
 float delBR4;
 
+
+
+ 
 float phase=0;
 float k_comp=0.01;
 
@@ -54965,10 +54186,27 @@ float cur_ang_E;
 
 
 
+
+
+
+
+
+
+
+
+
+ 
+
+
 int pix_dif_num_avg=5;
 int start_calibrate=0;
 int auto_cal=0;
 
+
+
+
+
+ 
 float pix_dif_tab1[144];
 float pix_dif_sum1[144];
 int pix_dif_num1[144];
@@ -54976,6 +54214,7 @@ int pix_rdy_tab1[144];
 int pix_rdy_num1;
 float sum_Ai1;
 
+ 
 float pix_dif_tab2[144];
 float pix_dif_sum2[144];
 int pix_dif_num2[144];
@@ -54994,6 +54233,13 @@ float new_ang_tab[144];
 
 
 
+
+
+
+
+
+
+ 
 float avg_buf[30];
 float sum_avg_buf=0;
 float avg_ang_X;
@@ -55021,6 +54267,14 @@ int rev_right_cnt=0;
 int rev_en=0;
 
 
+
+
+
+
+
+
+
+ 
 int offset_avg_num=3;
 int start_offset_cal=0;
 int offset_phase=0;
@@ -55037,6 +54291,11 @@ int offset_snum=7;
 
 
 
+
+
+
+
+ 
 int start_angk_cal=0;
 int anglek_phase=0;
 int anglek_cur=0;
@@ -55062,33 +54321,10 @@ long s_l2_tab[128];
 
 
 
-__attribute__((aligned(32))) unsigned short aTxBuffer[10];
-__attribute__((aligned(32))) unsigned short aRxBuffer[10];
-__attribute__((aligned(32))) unsigned char TxBuffer[10*2];
-uint32_t spi_send_cnt=0;
-uint8_t recv_num;
-uint8_t recv_num_prev;
-uint32_t spi_badframes=0;
-uint32_t spi_goodframes=0;
-uint32_t spi_lostframes=0;
-
-uint32_t *spi_recv_p2;
-uint32_t spi_recv_crc32;
-volatile uint32_t spi_recv_CRCValue = 0;
-uint32_t *spi_send_p2;
-volatile uint32_t spi_send_CRCValue;
-
-static REM_BUF spi_buf1;
-static REM_BUF spi_buf2;
-
-uint8_t s_buf[16];                                                              
 
 
-unsigned char command=0; 
+ 
 unsigned char encoder_state=0;
-
-
-unsigned char SloCom=0; 
 
 
 
@@ -55167,107 +54403,6 @@ unsigned short crc_16_step( unsigned char data, unsigned short crc )
 
 
 
-const unsigned short Crc16Table[256] = {
-    0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7,
-    0x8108, 0x9129, 0xA14A, 0xB16B, 0xC18C, 0xD1AD, 0xE1CE, 0xF1EF,
-    0x1231, 0x0210, 0x3273, 0x2252, 0x52B5, 0x4294, 0x72F7, 0x62D6,
-    0x9339, 0x8318, 0xB37B, 0xA35A, 0xD3BD, 0xC39C, 0xF3FF, 0xE3DE,
-    0x2462, 0x3443, 0x0420, 0x1401, 0x64E6, 0x74C7, 0x44A4, 0x5485,
-    0xA56A, 0xB54B, 0x8528, 0x9509, 0xE5EE, 0xF5CF, 0xC5AC, 0xD58D,
-    0x3653, 0x2672, 0x1611, 0x0630, 0x76D7, 0x66F6, 0x5695, 0x46B4,
-    0xB75B, 0xA77A, 0x9719, 0x8738, 0xF7DF, 0xE7FE, 0xD79D, 0xC7BC,
-    0x48C4, 0x58E5, 0x6886, 0x78A7, 0x0840, 0x1861, 0x2802, 0x3823,
-    0xC9CC, 0xD9ED, 0xE98E, 0xF9AF, 0x8948, 0x9969, 0xA90A, 0xB92B,
-    0x5AF5, 0x4AD4, 0x7AB7, 0x6A96, 0x1A71, 0x0A50, 0x3A33, 0x2A12,
-    0xDBFD, 0xCBDC, 0xFBBF, 0xEB9E, 0x9B79, 0x8B58, 0xBB3B, 0xAB1A,
-    0x6CA6, 0x7C87, 0x4CE4, 0x5CC5, 0x2C22, 0x3C03, 0x0C60, 0x1C41,
-    0xEDAE, 0xFD8F, 0xCDEC, 0xDDCD, 0xAD2A, 0xBD0B, 0x8D68, 0x9D49,
-    0x7E97, 0x6EB6, 0x5ED5, 0x4EF4, 0x3E13, 0x2E32, 0x1E51, 0x0E70,
-    0xFF9F, 0xEFBE, 0xDFDD, 0xCFFC, 0xBF1B, 0xAF3A, 0x9F59, 0x8F78,
-    0x9188, 0x81A9, 0xB1CA, 0xA1EB, 0xD10C, 0xC12D, 0xF14E, 0xE16F,
-    0x1080, 0x00A1, 0x30C2, 0x20E3, 0x5004, 0x4025, 0x7046, 0x6067,
-    0x83B9, 0x9398, 0xA3FB, 0xB3DA, 0xC33D, 0xD31C, 0xE37F, 0xF35E,
-    0x02B1, 0x1290, 0x22F3, 0x32D2, 0x4235, 0x5214, 0x6277, 0x7256,
-    0xB5EA, 0xA5CB, 0x95A8, 0x8589, 0xF56E, 0xE54F, 0xD52C, 0xC50D,
-    0x34E2, 0x24C3, 0x14A0, 0x0481, 0x7466, 0x6447, 0x5424, 0x4405,
-    0xA7DB, 0xB7FA, 0x8799, 0x97B8, 0xE75F, 0xF77E, 0xC71D, 0xD73C,
-    0x26D3, 0x36F2, 0x0691, 0x16B0, 0x6657, 0x7676, 0x4615, 0x5634,
-    0xD94C, 0xC96D, 0xF90E, 0xE92F, 0x99C8, 0x89E9, 0xB98A, 0xA9AB,
-    0x5844, 0x4865, 0x7806, 0x6827, 0x18C0, 0x08E1, 0x3882, 0x28A3,
-    0xCB7D, 0xDB5C, 0xEB3F, 0xFB1E, 0x8BF9, 0x9BD8, 0xABBB, 0xBB9A,
-    0x4A75, 0x5A54, 0x6A37, 0x7A16, 0x0AF1, 0x1AD0, 0x2AB3, 0x3A92,
-    0xFD2E, 0xED0F, 0xDD6C, 0xCD4D, 0xBDAA, 0xAD8B, 0x9DE8, 0x8DC9,
-    0x7C26, 0x6C07, 0x5C64, 0x4C45, 0x3CA2, 0x2C83, 0x1CE0, 0x0CC1,
-    0xEF1F, 0xFF3E, 0xCF5D, 0xDF7C, 0xAF9B, 0xBFBA, 0x8FD9, 0x9FF8,
-    0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0
-};
-
-
-
-
-
-
-
-
-unsigned short Crc16_step( unsigned char data, unsigned short crc )
-{
-   crc = (crc << 8) ^ Crc16Table[(crc >> 8) ^ data];
-   return crc;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-static const uint32_t crc32_table[0x100] = {
-  0x00000000, 0x04C11DB7, 0x09823B6E, 0x0D4326D9, 0x130476DC, 0x17C56B6B, 0x1A864DB2, 0x1E475005, 0x2608EDB8, 0x22C9F00F, 0x2F8AD6D6, 0x2B4BCB61, 0x350C9B64, 0x31CD86D3, 0x3C8EA00A, 0x384FBDBD, 
-  0x4C11DB70, 0x48D0C6C7, 0x4593E01E, 0x4152FDA9, 0x5F15ADAC, 0x5BD4B01B, 0x569796C2, 0x52568B75, 0x6A1936C8, 0x6ED82B7F, 0x639B0DA6, 0x675A1011, 0x791D4014, 0x7DDC5DA3, 0x709F7B7A, 0x745E66CD, 
-  0x9823B6E0, 0x9CE2AB57, 0x91A18D8E, 0x95609039, 0x8B27C03C, 0x8FE6DD8B, 0x82A5FB52, 0x8664E6E5, 0xBE2B5B58, 0xBAEA46EF, 0xB7A96036, 0xB3687D81, 0xAD2F2D84, 0xA9EE3033, 0xA4AD16EA, 0xA06C0B5D, 
-  0xD4326D90, 0xD0F37027, 0xDDB056FE, 0xD9714B49, 0xC7361B4C, 0xC3F706FB, 0xCEB42022, 0xCA753D95, 0xF23A8028, 0xF6FB9D9F, 0xFBB8BB46, 0xFF79A6F1, 0xE13EF6F4, 0xE5FFEB43, 0xE8BCCD9A, 0xEC7DD02D, 
-  0x34867077, 0x30476DC0, 0x3D044B19, 0x39C556AE, 0x278206AB, 0x23431B1C, 0x2E003DC5, 0x2AC12072, 0x128E9DCF, 0x164F8078, 0x1B0CA6A1, 0x1FCDBB16, 0x018AEB13, 0x054BF6A4, 0x0808D07D, 0x0CC9CDCA, 
-  0x7897AB07, 0x7C56B6B0, 0x71159069, 0x75D48DDE, 0x6B93DDDB, 0x6F52C06C, 0x6211E6B5, 0x66D0FB02, 0x5E9F46BF, 0x5A5E5B08, 0x571D7DD1, 0x53DC6066, 0x4D9B3063, 0x495A2DD4, 0x44190B0D, 0x40D816BA, 
-  0xACA5C697, 0xA864DB20, 0xA527FDF9, 0xA1E6E04E, 0xBFA1B04B, 0xBB60ADFC, 0xB6238B25, 0xB2E29692, 0x8AAD2B2F, 0x8E6C3698, 0x832F1041, 0x87EE0DF6, 0x99A95DF3, 0x9D684044, 0x902B669D, 0x94EA7B2A, 
-  0xE0B41DE7, 0xE4750050, 0xE9362689, 0xEDF73B3E, 0xF3B06B3B, 0xF771768C, 0xFA325055, 0xFEF34DE2, 0xC6BCF05F, 0xC27DEDE8, 0xCF3ECB31, 0xCBFFD686, 0xD5B88683, 0xD1799B34, 0xDC3ABDED, 0xD8FBA05A, 
-  0x690CE0EE, 0x6DCDFD59, 0x608EDB80, 0x644FC637, 0x7A089632, 0x7EC98B85, 0x738AAD5C, 0x774BB0EB, 0x4F040D56, 0x4BC510E1, 0x46863638, 0x42472B8F, 0x5C007B8A, 0x58C1663D, 0x558240E4, 0x51435D53, 
-  0x251D3B9E, 0x21DC2629, 0x2C9F00F0, 0x285E1D47, 0x36194D42, 0x32D850F5, 0x3F9B762C, 0x3B5A6B9B, 0x0315D626, 0x07D4CB91, 0x0A97ED48, 0x0E56F0FF, 0x1011A0FA, 0x14D0BD4D, 0x19939B94, 0x1D528623, 
-  0xF12F560E, 0xF5EE4BB9, 0xF8AD6D60, 0xFC6C70D7, 0xE22B20D2, 0xE6EA3D65, 0xEBA91BBC, 0xEF68060B, 0xD727BBB6, 0xD3E6A601, 0xDEA580D8, 0xDA649D6F, 0xC423CD6A, 0xC0E2D0DD, 0xCDA1F604, 0xC960EBB3, 
-  0xBD3E8D7E, 0xB9FF90C9, 0xB4BCB610, 0xB07DABA7, 0xAE3AFBA2, 0xAAFBE615, 0xA7B8C0CC, 0xA379DD7B, 0x9B3660C6, 0x9FF77D71, 0x92B45BA8, 0x9675461F, 0x8832161A, 0x8CF30BAD, 0x81B02D74, 0x857130C3, 
-  0x5D8A9099, 0x594B8D2E, 0x5408ABF7, 0x50C9B640, 0x4E8EE645, 0x4A4FFBF2, 0x470CDD2B, 0x43CDC09C, 0x7B827D21, 0x7F436096, 0x7200464F, 0x76C15BF8, 0x68860BFD, 0x6C47164A, 0x61043093, 0x65C52D24, 
-  0x119B4BE9, 0x155A565E, 0x18197087, 0x1CD86D30, 0x029F3D35, 0x065E2082, 0x0B1D065B, 0x0FDC1BEC, 0x3793A651, 0x3352BBE6, 0x3E119D3F, 0x3AD08088, 0x2497D08D, 0x2056CD3A, 0x2D15EBE3, 0x29D4F654, 
-  0xC5A92679, 0xC1683BCE, 0xCC2B1D17, 0xC8EA00A0, 0xD6AD50A5, 0xD26C4D12, 0xDF2F6BCB, 0xDBEE767C, 0xE3A1CBC1, 0xE760D676, 0xEA23F0AF, 0xEEE2ED18, 0xF0A5BD1D, 0xF464A0AA, 0xF9278673, 0xFDE69BC4, 
-  0x89B8FD09, 0x8D79E0BE, 0x803AC667, 0x84FBDBD0, 0x9ABC8BD5, 0x9E7D9662, 0x933EB0BB, 0x97FFAD0C, 0xAFB010B1, 0xAB710D06, 0xA6322BDF, 0xA2F33668, 0xBCB4666D, 0xB8757BDA, 0xB5365D03, 0xB1F740B4, 
-};
-
-
-uint32_t CalcCRC32(uint8_t * pData, uint32_t DataLength)
-{
-    uint32_t Checksum = 0xFFFFFFFF;
-    for(unsigned int i=0; i < DataLength; i++)
-    {
-        uint8_t top = (uint8_t)(Checksum >> 24);
-        top ^= pData[i];
-        Checksum = (Checksum << 8) ^ crc32_table[top];
-    }
-    return Checksum;
-}
-
-
-
-uint32_t CalcCRC32_step(uint8_t pData, uint32_t Checksum)
-{
-  uint8_t top = (uint8_t)(Checksum >> 24);
-  top ^= pData;
-  Checksum = (Checksum << 8) ^ crc32_table[top];
-  return Checksum;
-}
 
 
 
@@ -55314,6 +54449,8 @@ int buf_x5_num;
 
 
 
+
+ 
 float buf_k[128] ={
 
 
@@ -55453,10 +54590,19 @@ float buf_k[128] ={
 
 
 
+
+
+ 
 float  offset=68;
 
 
 
+
+
+
+
+
+ 
 float ang_tab[144] = {
 
 0.0	,
@@ -55628,12 +54774,8 @@ static void MX_GPIO_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_DAC_Init(void);
-static void MX_CRC_Init(void);
-static void MX_RNG_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_ADC2_Init(void);
-static void MX_SPI2_Init(void);
-static void MX_SPI1_Init(void);
 static void MX_I2C3_Init(void);
 
 
@@ -55656,23 +54798,8 @@ float BR6_F (float *mas, int centor_int);
 float BR4_C (float *mas, int centor_int);    
 float calc (float *mas, int centor_int);
 
-void Send_SPI(unsigned char *trm_buff);
-void Recv_SPI();
-void spi_recv_process (unsigned char *recv_buff);
-int spi_SendBuf1(unsigned char *data, unsigned char len);
-int spi_SendBuf2(unsigned char *data, unsigned char len);
-void spi_SendExec();
-void spi_FreeAll();
 
-uint8_t ProgCheckStm32();
-uint8_t ProgBlock();
-uint8_t CalcUpdateChecksum();
-uint8_t ProgFlashHeader();
-void ReadFlashHeader();
-void SloComProcess();
 
-void Flash_Read_Data (uint32_t StartPageAddress, void *Data, uint16_t numberofwords);
-uint32_t Flash_Write_Data (uint32_t StartPageAddress, void *Data, uint16_t numberofwords);
 
 void init_vars();
 static void Backlight_StartFromSI(void);
@@ -55683,6 +54810,23 @@ static void DelayTim4Ticks(uint16_t ticks);
 
 
  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -55734,6 +54878,23 @@ void copy_data(void) {
   }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -55808,6 +54969,18 @@ void find_startpixel(void) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
  
  
     float mes_piks(uint16_t star_pixel){                                                      
@@ -55844,6 +55017,11 @@ void find_startpixel(void) {
 
 
 
+
+
+
+
+
  
  
 unsigned short get_pix(float pos) {
@@ -55855,6 +55033,21 @@ unsigned short get_pix(float pos) {
   return (dif+buf_x1[left]);
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -55919,16 +55112,38 @@ void find_datablock(void) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
  
 void calc_sector(void) {
 
 
         
+        
+
+
+
+
+ 
         int tmp1;
         int tmin=1000000;                                                       
         int min=0;
-        for (int i=0;i<11;i++) {
+        for (int i=0;i<9;i++) {
           tmp1=pix[i][1]-pix[i][0];
           if (tmp1<0) tmp1=-tmp1;
           if(tmp1<tmin) {
@@ -55982,6 +55197,12 @@ void calc_sector(void) {
 
 
 
+
+
+
+
+
+
  
  
 void save_sector(void) {
@@ -56003,6 +55224,14 @@ void save_sector(void) {
   errorflag=0;                                                                  
 
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -56058,47 +55287,36 @@ void startpixel_err_corr(void) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
  
  
 void bit_err_corr(void) {
 
             if(badbit_value<1000) {                                             
-              switch (badbit_pos) {
-                case 0:
-                  data_byte=data_byte^0x400;
-                  break;
-                case 1:
-                  data_byte=data_byte^0x200;
-                  break;
-                case 2:
-                  data_byte=data_byte^0x100;
-                  break;
-                case 3:
-                  data_byte=data_byte^0x80;
-                  break;
-                case 4:
-                  data_byte=data_byte^0x40;
-                  break;
-                case 5:
-                  data_byte=data_byte^0x20;
-                  break;
-                case 6:
-                  data_byte=data_byte^0x10;
-                  break;
-                case 7:
-                  data_byte=data_byte^0x08;
-                  break;
-                case 8:
-                  data_byte=data_byte^0x04;
-                  break;
-                case 9:
-                  data_byte=data_byte^0x02;
-                  break;
-                default:
-                  data_byte=data_byte^0x01;
-                  break;
-              }
 
+              
+
+
+
+
+
+
+
+
+ 
+              if ( (badbit_pos>=0) && (badbit_pos<9) ) {
+                data_byte = data_byte ^ (uint16_t)(0x100 >> badbit_pos);
+              }
 
               uint8_t tmp_pos=255;
               for (unsigned char j=0;j<144;j++) {
@@ -56114,6 +55332,23 @@ void bit_err_corr(void) {
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -56210,6 +55445,27 @@ void err_corr(void) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
  
 void calc_ang() {
@@ -56271,6 +55527,22 @@ void calc_ang() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
  
 float BR4 (float *mas, int centor_int)
@@ -56295,6 +55567,23 @@ float BR4 (float *mas, int centor_int)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
  
 float BR4_C (float *mas, int centor_int)
 {
@@ -56338,6 +55627,15 @@ float BR4_C (float *mas, int centor_int)
  
 
 
+
+
+
+
+
+
+
+
+ 
 float calc (float *mas, int centor_int)
 {
   leftx[centor_int-4]=mas[centor_int-4];
@@ -56616,6 +55914,25 @@ float BR8 (float *mas, int centor_int)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
  
 void find_avg() {        
@@ -56778,6 +56095,48 @@ void find_avg() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
  
 void angtab_cal(){
@@ -56821,9 +56180,13 @@ void angtab_cal(){
   
   if (auto_cal==1) {
 
+    
+
+
+ 
     if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-25) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+25)))) )  ) {
 
-      old_sector=rsector;  
+      old_sector=rsector;                                                       
       cal_sector=cur_sector;
 
 
@@ -56841,15 +56204,18 @@ void angtab_cal(){
               for (unsigned char j=0;j<144;j++) {
                 tmp_sum+=pix_dif_tab1[j];
               }
+              
+
+ 
               sum_Ai1=tmp_sum;
               new_ang_tab1[0]=0;
               for (unsigned char j=1;j<144;j++) {
                 new_ang_tab1[j]=new_ang_tab1[j-1]+pix_dif_tab1[j-1]/sum_Ai1*360;
 
               }
-              auto_cal=0;
+              auto_cal=0;                                                       
                 
-              encoder_state=0x20;
+              encoder_state=0x20;                                               
               
             }
             
@@ -56907,6 +56273,9 @@ void angtab_cal(){
                 new_ang_tab2[j]=new_ang_tab2[j-1]+pix_dif_tab2[j-1]/sum_Ai2*360;
               }
                 
+              
+
+ 
               for (unsigned char j=0;j<144;j++) {
                 new_ang_tab[j]=(new_ang_tab1[j]+new_ang_tab2[j])/2;
               }
@@ -56964,6 +56333,31 @@ void angtab_cal(){
 }  
   
   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -57216,6 +56610,33 @@ void offset_cal() {
 }    
     
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -57623,39 +57044,14 @@ void angk_cal() {
 
 
 
- 
-void Configure_WWDG(void)
-{
-   
-   
-  
-   
-  LL_APB1_GRP1_EnableClock((0x1UL << (11U)));
-
-   
-   
-   
-   
-   
-  LL_WWDG_SetPrescaler(((WWDG_TypeDef *) (0x40000000UL + 0x2C00UL)), ((0x1UL << (7U)) | (0x2UL << (7U))));  
-  LL_WWDG_SetWindow(((WWDG_TypeDef *) (0x40000000UL + 0x2C00UL)),0x7E);                     
-  LL_WWDG_SetCounter(((WWDG_TypeDef *) (0x40000000UL + 0x2C00UL)), 0X7E);                   
-  LL_WWDG_Enable(((WWDG_TypeDef *) (0x40000000UL + 0x2C00UL)));                             
-}
 
 
 
 
 
- 
-void Check_WWDG_Reset(void)
-{
-  if (LL_RCC_IsActiveFlag_WWDGRST())
-  {
-     
-    LL_RCC_ClearResetFlags();
-  }
-}
+
+
+
 
 
 
@@ -57709,279 +57105,13 @@ void dac_ctrl() {
 
 
 
-void SloComProcess() {
 
-    if(SloCom>0)
-      switch (SloCom)  {
 
-        
-        case 0x73:
-          prog_errcode=ProgBlock();                                             
-          s_buf[0]=0x73;                                            
-          s_buf[6]=prog_errcode;                                                
-          spi_SendBuf2(&s_buf[0],14);                                           
-          SloCom=0;                                                             
-          break;
 
-        
-        case 0x74:
-          prog_errcode=CalcUpdateChecksum();                                    
-          if (prog_errcode==0) {                                                
-            prog_errcode=ProgFlashHeader();                                     
-          }
-          s_buf[0]=0x74;                                        
-          s_buf[6]=prog_errcode;                                                
-          spi_SendBuf2(&s_buf[0],14);                                           
-          SloCom=0;                                                             
-          break;
 
-        
-        case 0x75:
-          ReadFlashHeader();                                                    
-          prog_errcode=CalcUpdateChecksum();                                    
-          if (prog_errcode==0) {                                                
-            prog_errcode=ProgCheckStm32();                                      
-          }
-          s_buf[0]=0x75;                                         
-          memcpy(&s_buf[6],&update_len,4);                                      
-          s_buf[10]=prog_errcode;                                               
-          spi_SendBuf2(&s_buf[0],14);                                           
-          SloCom=0;                                                             
-          break;
 
-        
-        case 0x7a:
-          SloCom=0;                                                             
-          boot_state=0;
-          LL_GPIO_ResetOutputPin(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0000UL)), 0x00000200U);                         
-          HAL_I2C_Mem_Write(&I2c3Handle, 0xAE, 0xF0, (0x00000001U), &boot_state, 1, 1000); 
-          Check_WWDG_Reset();
-          Configure_WWDG();
-          break;
 
 
-        default:
-          break;
-
-    }
-
-
-
-}
-
-
-
-
-
-
-uint8_t ProgBlock() {
-
-  uint8_t errcode;                                                              
-
-  prog_crc_cur=0xffff;                                                          
-  for (int i=0;i<prog_len;i++) {                                                
-    prog_crc_cur=Crc16_step(sec_buffer[i], prog_crc_cur);                       
-  }
-  if(prog_crc==prog_crc_cur) {                                                  
-    prog_data=prog_addr+4096;                                                   
-    standardflashWriteEnable();                                                 
-    standardflashBlockErase4K(prog_data);                                       
-    standardflashWaitOnReady();                                                 
-    standardflashWriteEnable();                                                 
-
-    prog_cur=0;                                                                 
-    prog_len_cnt=prog_len;                                                      
-    while (prog_len_cnt>=256) {
-      standardflashWriteEnable();                                               
-      standardflashBytePageProgram(prog_data+prog_cur, sec_buffer+prog_cur, 256);
-      standardflashWaitOnReady();                                               
-      prog_cur+=256;                                                            
-      prog_len_cnt-=256;                                                        
-    }
-    if (prog_len_cnt>0) {
-      standardflashWriteEnable();                                               
-      standardflashBytePageProgram(prog_data+prog_cur, sec_buffer+prog_cur, prog_len_cnt);
-      standardflashWaitOnReady();                                               
-    }
-
-    standardflashReadArrayLowFreq(prog_data, dataRead, prog_len);               
-    if(compareByteArrays(sec_buffer, dataRead, prog_len)) {
-      errcode=0;                                                                
-    }
-    else {
-      errcode=2;                                                                
-    }
-
-  }
-  else {                                                                        
-    errcode=1;                                                                  
-  }
-
-  return (errcode);
-
-}
-
-
-
-
-
-uint8_t CalcUpdateChecksum() {
-
-  uint8_t errcode;                                                              
-
-  update_Checksum=0xFFFFFFFF;                                                   
-  prog_data=4096;                                                               
-  prog_cur=0;                                                                   
-  prog_len_cnt=update_len;                                                      
-  while (prog_len_cnt>=4096) {
-    standardflashReadArrayLowFreq(prog_data+prog_cur, dataRead, 4096);          
-    for (int i=0;i<4096;i++) {
-      update_Checksum=CalcCRC32_step(dataRead[i], update_Checksum);             
-    }
-    prog_cur+=4096;                                                             
-    prog_len_cnt-=4096;                                                         
-  }
-  if (prog_len_cnt>0) {
-    standardflashReadArrayLowFreq(prog_data+prog_cur, dataRead, prog_len_cnt);  
-    for (int i=0;i<prog_len_cnt;i++) {
-      update_Checksum=CalcCRC32_step(dataRead[i], update_Checksum);             
-    }
-  }
-
-  if (update_crc==update_Checksum) {                                            
-    errcode=0;                                                                  
-  }
-  else {                                                                        
-    errcode=3;                                                                  
-  }
-
-  return (errcode);
-
-}
-
-
-
-
-
-uint8_t ProgFlashHeader() {
-
-  uint8_t errcode;                                                              
-
-  prog_data=0;                                                                  
-  standardflashWriteEnable();                                                   
-  standardflashBlockErase4K(prog_data);                                         
-  standardflashWaitOnReady();                                                   
-  standardflashWriteEnable();                                                   
-  memcpy(&dataWrite[0],&update_len,4);                                          
-  memcpy(&dataWrite[4],&update_crc,4);                                          
-  memcpy(&dataWrite[8],&update_time,4);                                         
-  standardflashWriteEnable();                                                   
-  standardflashBytePageProgram(prog_data, dataWrite, 12);                       
-  standardflashWaitOnReady();                                                   
-  standardflashReadArrayLowFreq(prog_data, dataRead, 12);                       
-  if(compareByteArrays(dataWrite, dataRead, 12)) {
-    errcode=0;                                                                  
-  }
-  else {
-    errcode=4;                                                                  
-  }
-
-  return (errcode);
-
-}
-
-
-
-
-
-void ReadFlashHeader() {
-
-  prog_data=0;                                                                  
-  standardflashReadArrayLowFreq(prog_data, dataRead, 12);                       
-  memcpy(&update_len,&dataRead[0],4);                                           
-  memcpy(&update_crc,&dataRead[4],4);                                           
-  memcpy(&update_time,&dataRead[8],4);                                          
-
-}
-
-
-
-
-
-uint8_t ProgCheckStm32() {
-
-  uint8_t errcode;                                                              
-  uint32_t CurPageAddress;
-
-  prog_data=0;                                                                  
-  standardflashReadArrayLowFreq(prog_data, dataRead, 12);                       
-  memcpy(&update_len,&dataRead[0],4);                                           
-  memcpy(&update_crc,&dataRead[4],4);                                           
-  memcpy(&update_time,&dataRead[8],4);                                          
-
-  update_Checksum=0xFFFFFFFF;                                                   
-  prog_data=4096;                                                               
-  prog_cur=0;                                                                   
-  prog_len_cnt=update_len;                                                      
-  CurPageAddress=((uint32_t)0x08010000);                                           
-  if(prog_len_cnt>0x70000) prog_len_cnt=0x70000;                                
-
-  while (prog_len_cnt>=4096) {
-    standardflashReadArrayLowFreq(prog_data+prog_cur, dataRead, 4096);          
-
-    Flash_Read_Data (CurPageAddress, &dataWrite, 1024);                         
-    for (int i=0;i<4096;i++) {
-      update_Checksum=CalcCRC32_step(dataWrite[i], update_Checksum);            
-    }
-
-    if (memcmp(dataRead,dataWrite,4096)!=0) {
-      return 101;
-    }
-
-    CurPageAddress+=4096;                                                       
-    prog_cur+=4096;                                                             
-    prog_len_cnt-=4096;                                                         
-  }
-  if (prog_len_cnt>0) {
-    standardflashReadArrayLowFreq(prog_data+prog_cur, dataRead, prog_len_cnt);  
-
-    Flash_Read_Data (CurPageAddress, &dataWrite, 1024);                         
-
-    if (memcmp(dataRead,dataWrite,prog_len_cnt)!=0) {
-      return 101;
-    }
-
-    for (int i=0;i<prog_len_cnt;i++) {
-      update_Checksum=CalcCRC32_step(dataWrite[i], update_Checksum);            
-    }
-
-  }
-
-  if (update_crc==update_Checksum) {                                            
-    errcode=0;                                                                  
-  }
-  else {                                                                        
-    errcode=100;                                                                
-  }
-
-  return (errcode);
-
-}
-
-
-
-
-
-void Flash_Read_Data (uint32_t StartPageAddress, void *Data, uint16_t numberofwords)
-{
-  uint32_t *RxBuf = Data;
-  while (numberofwords--) {
-
-    *RxBuf = *(volatile uint32_t *)StartPageAddress;
-    StartPageAddress += 4;
-    RxBuf++;
-  }
-}
 
 
 
@@ -58023,6 +57153,15 @@ static void Backlight_StartTimer(uint16_t ticks)
   LL_TIM_EnableCounter(((TIM_TypeDef *) (0x40000000UL + 0x0800UL)));
 }
 
+
+
+
+
+
+
+
+
+ 
 static void Backlight_StartFromSI(void)
 {
   LL_TIM_DisableCounter(((TIM_TypeDef *) (0x40000000UL + 0x0800UL)));
@@ -58042,10 +57181,24 @@ static void Backlight_StartFromSI(void)
     Backlight_StartTimer(backlight_delay_ticks);
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
 void init_vars() {
 
-  
-  spi_FreeAll();
 
 
   
@@ -58103,7 +57256,6 @@ void init_vars() {
     config_state=0;
   }
 
-  prog_errcode=ProgCheckStm32();                                                
 
   
   phase=0;
@@ -58115,6 +57267,24 @@ void init_vars() {
 }
 
   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -58148,10 +57318,6 @@ int main(void)
   MX_ADC2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
-  MX_SPI2_Init();
-  MX_SPI1_Init();
-  MX_CRC_Init();
-  MX_RNG_Init();
   MX_I2C3_Init();
 
   init_vars();                                                                  
@@ -58166,6 +57332,9 @@ int main(void)
   while (1)
   {
 
+    
+
+ 
     if (adc_rdy == 1) {                                                         
 
       copy_data();                                                              
@@ -58182,6 +57351,8 @@ int main(void)
 
       err_corr();                                                               
 
+      
+ 
       if (errorflag==0) {
 
         calc_ang();                                                             
@@ -58198,11 +57369,9 @@ int main(void)
 
       }
 
-      spi_SendExec();                                                           
 
       dac_ctrl();                                                               
 
-      SloComProcess();                                                          
 
       SCB_InvalidateDCache_by_Addr((uint32_t *)aADCxConvertedData,((2+31)/32)*32);
       Vsense=(aADCxConvertedData[0]*3.3f)/4095.0f;                              
@@ -58219,6 +57388,12 @@ int main(void)
   }
 
 }
+
+
+
+
+
+
 
 
 
@@ -58263,6 +57438,14 @@ void SystemClock_Config(void)
   LL_SYSTICK_SetClkSource((1UL << 2U));
   LL_SetSystemCoreClock(216000000);
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -58360,6 +57543,15 @@ static void MX_ADC1_Init(void)
 
 
 
+
+
+
+
+
+
+
+
+
  
 static void MX_ADC2_Init(void)
 {
@@ -58447,6 +57639,14 @@ static void MX_ADC2_Init(void)
 
 
 
+
+
+
+
+
+
+
+
  
 static void MX_TIM3_Init(void)
 {
@@ -58523,6 +57723,11 @@ static void MX_TIM3_Init(void)
 
 
 
+
+
+
+
+
  
 static void MX_TIM4_Init(void)
 {
@@ -58539,6 +57744,10 @@ static void MX_TIM4_Init(void)
   __NVIC_SetPriority(TIM4_IRQn, 1);
   __NVIC_EnableIRQ(TIM4_IRQn);
 }
+
+
+
+
 
 
 
@@ -58579,44 +57788,11 @@ static void MX_DAC_Init(void)
 
 
 
- 
-static void MX_CRC_Init(void)
-{
-
- 
-  CrcHandle.Instance = ((CRC_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x3000UL));
-  
-  CrcHandle.Init.DefaultPolynomialUse    = ((uint8_t)0x00U);
-  
-  CrcHandle.Init.DefaultInitValueUse     = ((uint8_t)0x00U);
-  
-  CrcHandle.Init.InputDataInversionMode  = 0x00000000U;
-  
-  CrcHandle.Init.OutputDataInversionMode = 0x00000000U;
-  
-  CrcHandle.InputDataFormat              = 0x00000003U;
-  
-  HAL_CRC_Init(&CrcHandle);
-
-}
 
 
 
 
 
-
-
- 
-static void MX_RNG_Init(void)
-{
-
-  
-  do { volatile uint32_t tmpreg; ((((RCC_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x3800UL))->AHB2ENR) |= ((0x1UL << (6U)))); tmpreg = ((((RCC_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x3800UL))->AHB2ENR) & ((0x1UL << (6U)))); (void)tmpreg; } while(0);
-  
-  RNG_Handle.Instance = ((RNG_TypeDef *) ((0x40000000UL + 0x10000000UL) + 0x60800UL));
-  HAL_RNG_Init(&RNG_Handle);
-
-}
 
 
 
@@ -58653,623 +57829,12 @@ static void MX_I2C3_Init(void)
 
 
 
- 
 
 
-static void MX_SPI1_Init(void)
-{
 
-  LL_SPI_DeInit(((SPI_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x3000UL)));
 
-  
-  LL_SPI_InitTypeDef SPI_InitStruct = {0};
-  LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-   
-  LL_APB2_GRP1_EnableClock((0x1UL << (12U)));
-  
-  LL_AHB1_GRP1_EnableClock((0x1UL << (0U)));
-  LL_AHB1_GRP1_EnableClock((0x1UL << (2U)));
-  
 
-
-
-
- 
-
-  
-  GPIO_InitStruct.Pin = 0x00000010U;
-  GPIO_InitStruct.Mode = (0x1UL << (0U));
-  GPIO_InitStruct.Speed = (0x3UL << (0U));
-  GPIO_InitStruct.OutputType = (0x00000000U);
-  GPIO_InitStruct.Pull = (0x1UL << (0U));
-  LL_GPIO_Init(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0800UL)), &GPIO_InitStruct);
-  LL_GPIO_SetOutputPin(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0800UL)), 0x00000010U);
-
-  
-  GPIO_InitStruct.Pin = 0x00000020U;
-  GPIO_InitStruct.Mode = (0x2UL << (0U));
-  GPIO_InitStruct.Speed = (0x3UL << (0U));
-  GPIO_InitStruct.OutputType = (0x00000000U);
-  GPIO_InitStruct.Pull = (0x00000000U);
-  GPIO_InitStruct.Alternate = (0x0000005U);
-  LL_GPIO_Init(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0000UL)), &GPIO_InitStruct);
-
-  
-  GPIO_InitStruct.Pin = 0x00000040U;
-  GPIO_InitStruct.Mode = (0x2UL << (0U));
-  GPIO_InitStruct.Speed = (0x3UL << (0U));
-  GPIO_InitStruct.OutputType = (0x00000000U);
-  GPIO_InitStruct.Pull = (0x00000000U);
-  GPIO_InitStruct.Alternate = (0x0000005U);
-  LL_GPIO_Init(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0000UL)), &GPIO_InitStruct);
-
-  
-  GPIO_InitStruct.Pin = 0x00000080U;
-  GPIO_InitStruct.Mode = (0x2UL << (0U));
-  GPIO_InitStruct.Speed = (0x3UL << (0U));
-  GPIO_InitStruct.OutputType = (0x00000000U);
-  GPIO_InitStruct.Pull = (0x00000000U);
-  GPIO_InitStruct.Alternate = (0x0000005U);
-  LL_GPIO_Init(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0000UL)), &GPIO_InitStruct);
-
-  
-  SPI_InitStruct.TransferDirection = 0x00000000U;
-  SPI_InitStruct.Mode = ((0x1UL << (2U)) | (0x1UL << (8U)));
-  SPI_InitStruct.DataWidth = ((0x4UL << (8U)) | (0x2UL << (8U)) | (0x1UL << (8U)));
-  SPI_InitStruct.ClockPolarity = 0x00000000U;
-  SPI_InitStruct.ClockPhase = 0x00000000U;
-  SPI_InitStruct.NSS = ((0x1UL << (9U)));
-  SPI_InitStruct.BaudRate = ((0x2UL << (3U)) | (0x1UL << (3U)));
-  SPI_InitStruct.BitOrder = 0x00000000U;
-  SPI_InitStruct.CRCCalculation = 0x00000000U;
-  SPI_InitStruct.CRCPoly = 7;
-  LL_SPI_Init(((SPI_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x3000UL)), &SPI_InitStruct);
-
-  LL_SPI_SetRxFIFOThreshold(((SPI_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x3000UL)), ((0x1UL << (12U))));
-  LL_SPI_SetStandard(((SPI_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x3000UL)), 0x00000000U);
-
-  LL_SPI_Enable(((SPI_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x3000UL)));                                                          
-
-};
-
-
-
-
-
-
-
-
-
- 
-static void MX_SPI2_Init(void)
-{
-
-  
-  LL_APB1_GRP1_EnableClock((0x1UL << (14U)));
-  LL_AHB1_GRP1_EnableClock((0x1UL << (1U)));
-  LL_AHB1_GRP1_EnableClock((0x1UL << (21U)));
-  LL_APB1_GRP1_EnableClock((0x1UL << (3U))); 
-  LL_APB1_GRP1_EnableClock((0x1UL << (0U))); 
-
-  
-
-
-
-
- 
-  LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-  LL_GPIO_SetPinMode(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0400UL)), 0x00001000U, (0x1UL << (0U)));
-  LL_GPIO_SetPinOutputType(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0400UL)), 0x00001000U, (0x00000000U));
-  LL_GPIO_SetPinSpeed(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0400UL)), 0x00001000U, (0x3UL << (0U)));
-  LL_GPIO_SetPinPull(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0400UL)), 0x00001000U, (0x1UL << (0U)));
-  LL_GPIO_SetOutputPin(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0400UL)), 0x00001000U);
-
-  GPIO_InitStruct.Pin = 0x00002000U;
-  GPIO_InitStruct.Mode = (0x2UL << (0U));
-  GPIO_InitStruct.Speed = (0x3UL << (0U));
-  GPIO_InitStruct.OutputType = (0x00000000U);
-  GPIO_InitStruct.Pull = (0x00000000U);
-  GPIO_InitStruct.Alternate = (0x0000005U);
-  LL_GPIO_Init(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0400UL)), &GPIO_InitStruct);
-
-  GPIO_InitStruct.Pin = 0x00004000U;
-  GPIO_InitStruct.Mode = (0x2UL << (0U));
-  GPIO_InitStruct.Speed = (0x3UL << (0U));
-  GPIO_InitStruct.OutputType = (0x00000000U);
-  GPIO_InitStruct.Pull = (0x00000000U);
-  GPIO_InitStruct.Alternate = (0x0000005U);
-  LL_GPIO_Init(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0400UL)), &GPIO_InitStruct);
-
-  GPIO_InitStruct.Pin = 0x00008000U;
-  GPIO_InitStruct.Mode = (0x2UL << (0U));
-  GPIO_InitStruct.Speed = (0x3UL << (0U));
-  GPIO_InitStruct.OutputType = (0x00000000U);
-  GPIO_InitStruct.Pull = (0x00000000U);
-  GPIO_InitStruct.Alternate = (0x0000005U);
-  LL_GPIO_Init(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0400UL)), &GPIO_InitStruct);
-  
-  LL_TIM_DeInit(((TIM_TypeDef *) (0x40000000UL + 0x0C00UL)));                                                          
-  LL_TIM_SetCounterMode(((TIM_TypeDef *) (0x40000000UL + 0x0C00UL)), (0x1UL << (4U)));                         
-  LL_TIM_SetPrescaler(((TIM_TypeDef *) (0x40000000UL + 0x0C00UL)), 0);                                                 
-  __NVIC_SetPriority(TIM5_IRQn, 5);                                               
-  __NVIC_EnableIRQ(TIM5_IRQn);                                                    
-  LL_TIM_EnableIT_UPDATE(((TIM_TypeDef *) (0x40000000UL + 0x0C00UL)));                                                 
- 
-  LL_TIM_DeInit(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)));                                                          
-  LL_TIM_SetCounterMode(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)), (0x1UL << (4U)));                         
-  LL_TIM_SetPrescaler(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)), 0);                                                 
-  __NVIC_SetPriority(TIM2_IRQn, 5);                                               
-  __NVIC_EnableIRQ(TIM2_IRQn);                                                    
-  LL_TIM_EnableIT_UPDATE(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)));                                                 
-
-
-  LL_SPI_InitTypeDef SPI_InitStruct = {0};
-  LL_SPI_DeInit(((SPI_TypeDef *) (0x40000000UL + 0x3800UL)));
-  
-  SPI_InitStruct.TransferDirection = 0x00000000U;
-  SPI_InitStruct.Mode = ((0x1UL << (2U)) | (0x1UL << (8U)));
-  SPI_InitStruct.DataWidth = ((0x8UL << (8U)) | (0x4UL << (8U)) | (0x2UL << (8U)) | (0x1UL << (8U)));
-  SPI_InitStruct.ClockPolarity = 0x00000000U;
-  SPI_InitStruct.ClockPhase = ((0x1UL << (0U)));
-  SPI_InitStruct.NSS = ((0x1UL << (9U)));
-  SPI_InitStruct.BaudRate = ((0x2UL << (3U)));
-  SPI_InitStruct.BitOrder = 0x00000000U;
-  SPI_InitStruct.CRCCalculation = 0x00000000U;
-  SPI_InitStruct.CRCPoly = 7;
-  LL_SPI_Init(((SPI_TypeDef *) (0x40000000UL + 0x3800UL)), &SPI_InitStruct);
-  LL_SPI_SetStandard(((SPI_TypeDef *) (0x40000000UL + 0x3800UL)), 0x00000000U);
-  LL_SPI_EnableDMAReq_TX(((SPI_TypeDef *) (0x40000000UL + 0x3800UL)));                                                 
-  LL_SPI_EnableDMAReq_RX(((SPI_TypeDef *) (0x40000000UL + 0x3800UL)));                                                 
-
-
-  
-  LL_DMA_DeInit(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U);
-  LL_DMA_SetChannelSelection(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U, 0x00000000U);
-  LL_DMA_SetDataTransferDirection(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U, (0x1UL << (6U)));
-  LL_DMA_SetStreamPriorityLevel(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U, (0x1UL << (16U)));
-  LL_DMA_SetMode(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U, 0x00000000U);
-  LL_DMA_SetPeriphIncMode(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U, 0x00000000U);
-  LL_DMA_SetMemoryIncMode(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U, (0x1UL << (10U)));
-  LL_DMA_SetPeriphSize(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U, (0x1UL << (11U)));
-  LL_DMA_SetMemorySize(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U, (0x1UL << (13U)));
-  LL_DMA_SetDataLength(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U, 10);
-  LL_DMA_SetMemoryAddress(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U, (uint32_t) &aTxBuffer );
-  LL_DMA_SetPeriphAddress(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U, (uint32_t) &(((SPI_TypeDef *) (0x40000000UL + 0x3800UL))->DR) );
-  LL_DMA_DisableFifoMode(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U);
-  LL_DMA_SetMemoryBurstxfer(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U, 0x00000000U);
-  LL_DMA_SetPeriphBurstxfer(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U, 0x00000000U);
-  
-  LL_DMA_EnableIT_TC(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U);
-  __NVIC_SetPriority(DMA1_Stream4_IRQn, 7);
-  __NVIC_EnableIRQ(DMA1_Stream4_IRQn);
-
-  
-  LL_DMA_DeInit(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U);
-  LL_DMA_SetChannelSelection(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U, 0x00000000U);
-  LL_DMA_SetDataTransferDirection(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U, 0x00000000U);
-  LL_DMA_SetStreamPriorityLevel(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U, (0x1UL << (16U)));
-  LL_DMA_SetMode(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U, 0x00000000U);
-  LL_DMA_SetPeriphIncMode(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U, 0x00000000U);
-  LL_DMA_SetMemoryIncMode(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U, (0x1UL << (10U)));
-  LL_DMA_SetPeriphSize(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U, (0x1UL << (11U)));
-  LL_DMA_SetMemorySize(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U, (0x1UL << (13U)));
-  LL_DMA_SetMemoryAddress(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U, (uint32_t) &aRxBuffer );
-  LL_DMA_SetPeriphAddress(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U, (uint32_t) &(((SPI_TypeDef *) (0x40000000UL + 0x3800UL))->DR) );
-  LL_DMA_SetDataLength(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U, 10);
-  LL_DMA_DisableFifoMode(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U);
-  LL_DMA_SetMemoryBurstxfer(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U, 0x00000000U);
-  LL_DMA_SetPeriphBurstxfer(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U, 0x00000000U);
-  
-  LL_DMA_EnableIT_TC(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U);
-  __NVIC_SetPriority(DMA1_Stream3_IRQn, 6);
-  __NVIC_EnableIRQ(DMA1_Stream3_IRQn);
-
-}
-
-
-
-
-
-
-
-void DMA1_Stream4_IRQHandler(void)
-{
-  if(LL_DMA_IsActiveFlag_TC4(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL))) == 1) {                                      
-    LL_DMA_ClearFlag_TC4(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)));                                                 
-    LL_DMA_DisableStream(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)),0x00000004U);                                 
-    spi_send_cnt++;                                                             
-    LL_TIM_SetCounter(((TIM_TypeDef *) (0x40000000UL + 0x0C00UL)), 1000);                                              
-    LL_TIM_EnableCounter(((TIM_TypeDef *) (0x40000000UL + 0x0C00UL)));                                                 
-  }
-}
-
-
-
-
-
-
-
-void DMA1_Stream3_IRQHandler(void)
-{
-  if(LL_DMA_IsActiveFlag_TC3(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL))) == 1) {                                      
-    LL_DMA_ClearFlag_TC3(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)));                                                 
-    LL_DMA_DisableStream(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)),0x00000003U);                                 
-    SCB_InvalidateDCache_by_Addr((uint32_t *)aRxBuffer,((10*2+31)/32)*32);
-    Recv_SPI();                                                                 
-  }
-}
-
-
-
-
-
-
-
- 
-void TIM5_IRQHandler(void)
-{
-  if(LL_TIM_IsActiveFlag_UPDATE(((TIM_TypeDef *) (0x40000000UL + 0x0C00UL))) == 1) {                                   
-    LL_TIM_ClearFlag_UPDATE(((TIM_TypeDef *) (0x40000000UL + 0x0C00UL)));                                              
-    LL_TIM_DisableCounter(((TIM_TypeDef *) (0x40000000UL + 0x0C00UL)));                                                
-    LL_GPIO_SetOutputPin(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0400UL)), 0x00001000U);                                
-  }
-}
-
-
-
-
-
-
-
-
-
-void Recv_SPI() {
-  recv_num_prev++;                                                              
-  recv_num=(aRxBuffer[1]&0xff);                                                 
-  spi_recv_p2 = (uint32_t*)&aRxBuffer[2];                                       
-  __iar_builtin_disable_interrupt ();                                                             
-  LL_CRC_ResetCRCCalculationUnit(((CRC_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x3000UL)));                                          
-  LL_CRC_FeedData32(((CRC_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x3000UL)), aRxBuffer[1]);                                         
-  LL_CRC_FeedData32(((CRC_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x3000UL)), *spi_recv_p2++);                                       
-  LL_CRC_FeedData32(((CRC_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x3000UL)), *spi_recv_p2++);                                       
-  LL_CRC_FeedData32(((CRC_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x3000UL)), *spi_recv_p2++);                                       
-  spi_recv_CRCValue = ~LL_CRC_ReadData32(((CRC_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x3000UL)));                                  
-  __iar_builtin_enable_interrupt ();                                                              
-  spi_recv_crc32=*spi_recv_p2++;                                                
-  if(spi_recv_CRCValue == spi_recv_crc32) {                                     
-    if (recv_num_prev!=recv_num) {                                              
-      spi_lostframes++;                                                         
-    }
-    else {                                                                      
-      spi_recv_process ((void*)&aRxBuffer[1]);                                  
-      spi_goodframes++;                                                         
-    }
-  }
-  else {                                                                        
-    spi_badframes++;                                                            
-    MX_SPI2_Init();                                                             
-  }
-  recv_num_prev=recv_num;                                                       
-  memset(&aRxBuffer[0],0,10*2);                                      
-}
-
-
-
-
-
-
-
-
-
-
-
- 
-void Send_SPI(unsigned char *trm_buff) {
-  aTxBuffer[0]=(0x55<<8)|(spi_send_cnt&0xff);                                   
-  memcpy(&aTxBuffer[1],trm_buff,14);                                            
-  spi_send_p2 = (uint32_t*)&aTxBuffer[0];                                       
-  __iar_builtin_disable_interrupt ();                                                             
-  LL_CRC_ResetCRCCalculationUnit(((CRC_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x3000UL)));                                          
-  LL_CRC_FeedData32(((CRC_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x3000UL)), *spi_send_p2++);                                       
-  LL_CRC_FeedData32(((CRC_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x3000UL)), *spi_send_p2++);                                       
-  LL_CRC_FeedData32(((CRC_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x3000UL)), *spi_send_p2++);                                       
-  LL_CRC_FeedData32(((CRC_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x3000UL)), *spi_send_p2++);                                       
-  spi_send_CRCValue = ~LL_CRC_ReadData32(((CRC_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x3000UL)));                                  
-   __iar_builtin_enable_interrupt ();                                                             
-  *spi_send_p2++=spi_send_CRCValue;                                             
-  rng_value=HAL_RNG_GetRandomNumber(&RNG_Handle)&0x00000FFF;                    
-  LL_TIM_SetCounter(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)), 10+(1000+rng_value)*config_state);                    
-  LL_TIM_EnableCounter(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)));                                                   
-}
-
-
-
-
-
-
-
-
- 
-void TIM2_IRQHandler(void)
-{
-  if(LL_TIM_IsActiveFlag_UPDATE(((TIM_TypeDef *) (0x40000000UL + 0x0000UL))) == 1) {                                   
-    LL_TIM_ClearFlag_UPDATE(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)));                                              
-    LL_TIM_DisableCounter(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)));                                                
-    LL_GPIO_ResetOutputPin(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0400UL)), 0x00001000U);                              
-    LL_SPI_Enable(((SPI_TypeDef *) (0x40000000UL + 0x3800UL)));                                                        
-    LL_DMA_SetMemoryAddress(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U, (uint32_t) &aTxBuffer );     
-    LL_DMA_SetDataLength(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000004U, 10);                 
-    LL_DMA_SetMemoryAddress(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U, (uint32_t) &aRxBuffer );     
-    LL_DMA_SetDataLength(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)), 0x00000003U, 10);                 
-    SCB_CleanDCache_by_Addr((uint32_t *)aTxBuffer, ((10*2+31)/32)*32 );
-    LL_DMA_EnableStream(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)),0x00000004U);                                  
-    LL_DMA_EnableStream(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6000UL)),0x00000003U);                                  
-  }
-}
-
-
-
-
-
-
-
-
-
- 
- 
-void spi_recv_process (unsigned char *recv_buff) {
-
-  recv_buff++;
-  command = recv_buff[0];                                                       
-  
-  switch (command)  {
-
-
-      
-      case 0x61:
-        s_buf[0]=0x61;
-        memcpy(&s_buf[10],&spi_badframes,4);
-        spi_SendBuf2(&s_buf[0],14);
-        break;
-
-      
-      case 0x62:
-        s_buf[0]=0x62;                                           
-        memcpy(&s_buf[6],&Temperature,4);                                       
-        spi_SendBuf2(&s_buf[0],14);                                             
-        break;
-
-
-      
-      case 0x72:
-        memset(&sec_buffer[0],0xff,4096);                                       
-        s_buf[0]=0x72;                                            
-        spi_SendBuf1(&s_buf[0],14);                                             
-        break;
-
-      
-      case 0x71:
-        memcpy(&prog_offset,&recv_buff[1],2);                                   
-        if (prog_offset>4092) prog_offset=4092;                                 
-        memcpy(&sec_buffer[prog_offset],&recv_buff[3],4);                       
-        s_buf[0]=0x71;                                              
-        memcpy(&s_buf[6],&recv_buff[1],6);                                      
-        spi_SendBuf1(&s_buf[0],14);                                             
-        break;
-
-      
-      case 0x73:
-        memcpy(&prog_crc,&recv_buff[1],2);                                      
-        memcpy(&prog_len,&recv_buff[3],2);                                      
-        memcpy(&prog_addr,&recv_buff[5],4);                                     
-        SloCom=0x73;
-        break;
-
-      
-      case 0x74:
-        memcpy(&update_len,&recv_buff[1],4);                                    
-        memcpy(&update_crc,&recv_buff[5],4);                                    
-        memcpy(&update_time,&recv_buff[9],4);                                   
-        SloCom=0x74;
-        break;
-
-      
-      case 0x75:
-        SloCom=0x75;
-        break;
-
-      
-      case 0x76:
-        s_buf[0]=0x76;                                          
-        memcpy(&s_buf[6],&update_crc,4);                                        
-        memcpy(&s_buf[10],&update_time,4);                                      
-        spi_SendBuf1(&s_buf[0],14);                                             
-        break;
-
-      
-      case 0x7a:
-        s_buf[0]=0x7a;                                              
-        s_buf[6]=0;                                                             
-        spi_SendBuf1(&s_buf[0],14);                                             
-        SloCom=0x7a;
-        break;
-
-      
-      case 0x79:
-        s_buf[0]=0x79;                                            
-        memcpy(&s_buf[6],&update_version,2);                                    
-        memcpy(&s_buf[8],&prog_errcode,1);                                      
-        spi_SendBuf2(&s_buf[0],14);                                             
-        break;
-
-
-
-
-      
-      case 0x10:
-        start_calibrate=0;
-        auto_cal=0;
-        start_offset_cal=0;
-        cycles_max=0;
-        encoder_state=0x00;
-        break;
-          
-      
-      case 0x11:
-        start_calibrate=1;
-        encoder_state=0x10;
-        break;
-
-      
-      case 0x12:
-        start_calibrate=2;
-        encoder_state=0x30;
-        break;
-
-
-      
-      case 0x13:
-        start_offset_cal=1;
-        avg_minmax_num=0;
-        offset_phase=0;
-        for (int i=0;i<=127;i++) {
-          offset_minmax[i]=1;
-        }
-        offset_cur=offset_start;
-        encoder_state=0x50;
-        break;
-        
-      
-      case 0x14:
-        start_angk_cal=1;
-        avg_minmax_num=0;
-        for (int i=0;i<128;i++) buf_x3[i]=0;
-        anglek_phase=0;
-        backlight_width_en=0;
-        encoder_state=0x70;
-        break;
-     
-        
-      default:
-        break;
-
-    }
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-void spi_FreeAll() {
-  
-  spi_buf1.used=0;
-  spi_buf2.used=0;
-  
-} 
-
-
-
-
-
-
-
-
-
-
-
- 
-
-int spi_SendBuf1(unsigned char *data, unsigned char len) {
-
-  if ( (len>16) || (len<1)) {                            
-    return -2;
-  }
-  
-  if (spi_buf1.used==0) {
-    spi_buf1.used=1;
-    spi_buf1.len=len;
-    memcpy(&spi_buf1.data[0], data, len);
-    return 0;                                           
-  }
-
-  return -1;                                            
- 
-}
-
-
-
-
-
-
-
-
-
- 
-
-int spi_SendBuf2(unsigned char *data, unsigned char len) {
-
-  if ( (len>16) || (len<1)) {                            
-    return -2;
-  }
-  
-  if (spi_buf2.used==0) {
-    spi_buf2.used=1;
-    spi_buf2.len=len;
-    memcpy(&spi_buf2.data[0], data, len);
-    return 0;                                           
-  }
-
-  return -1;                                            
- 
-}
-
-
-
-
-
-
-
-
-
- 
-
-void spi_SendExec() {
-    
-  if (spi_buf1.used==1) {
-    spi_buf1.used=0;
-    spi_buf1.data[1]=encoder_state;                                             
-    memcpy(&spi_buf1.data[2],&cur_ang_E,4);                                     
-    Send_SPI(&spi_buf1.data[0]);
-  }
-  else if (spi_buf2.used==1) {
-    spi_buf2.used=0;
-    spi_buf2.data[1]=encoder_state;                                             
-    memcpy(&spi_buf2.data[2],&cur_ang_E,4);                                     
-    Send_SPI(&spi_buf2.data[0]);
-  }
-  else {
-    TxBuffer[0]=0x25;                                                 
-    TxBuffer[1]=encoder_state;                                                  
-    memcpy(&TxBuffer[2],&cur_ang_E,4);                                          
-    Send_SPI(TxBuffer);
-  }
-  
-}
 
 
 
@@ -59342,6 +57907,22 @@ static void MX_GPIO_Init(void)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
 void DMA2_Stream3_IRQHandler(void)
 {
@@ -59404,6 +57985,13 @@ void DMA2_Stream3_IRQHandler(void)
 
 
 
+
+
+
+
+
+
+ 
 void TIM4_IRQHandler(void)
 {
   if(LL_TIM_IsActiveFlag_UPDATE(((TIM_TypeDef *) (0x40000000UL + 0x0800UL))) == 1) {
@@ -59506,6 +58094,13 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c)
 
 
 
+
+
+
+
+
+
+ 
 void HAL_I2C_MemTxCpltCallback(I2C_HandleTypeDef *I2cHandle)
 {
 

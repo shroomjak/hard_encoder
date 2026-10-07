@@ -23,8 +23,6 @@ C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM/../Drivers/CMSIS/DSP
 -I
 C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM/../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy
 -I
-C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM/../Drivers/FLASH
--I
 C:\Program Files\IAR Systems\Embedded Workbench 9.2\arm\inc\c\aarch32
 -I
 C:\Program Files\IAR Systems\Embedded Workbench 9.2\arm\inc
@@ -42,8 +40,6 @@ C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Drivers\CMSIS\Include
 C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Drivers\CMSIS\DSP\Include
 -I
 C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Drivers\STM32F7xx_HAL_Driver\Inc\Legacy
--I
-C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Drivers\FLASH
 -D__CHAR_BITS__=8
 -D__CHAR_MAX__=0xff
 -D__CHAR_MIN__=0
