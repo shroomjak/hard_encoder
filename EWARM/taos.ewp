@@ -362,7 +362,6 @@
                     <state>$PROJ_DIR$/../Drivers/CMSIS/Include</state>
                     <state>$PROJ_DIR$/../Drivers/CMSIS/DSP/Include</state>
                     <state>$PROJ_DIR$/../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy</state>
-                    <state>$PROJ_DIR$/../Drivers/FLASH</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1137,24 +1136,6 @@
             </file>
         </group>
         <group>
-            <name>FLASH</name>
-            <file>
-                <name>$PROJ_DIR$\..\Drivers\FLASH\cmd_defs.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\Drivers\FLASH\spi_driver.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\Drivers\FLASH\spi_driver.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\Drivers\FLASH\standardflash.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\Drivers\FLASH\standardflash.h</name>
-            </file>
-        </group>
-        <group>
             <name>STM32F7xx_HAL_Driver</name>
             <file>
                 <name>$PROJ_DIR$\..\Drivers\STM32F7xx_HAL_Driver\Src\stm32f7xx_hal.c</name>
@@ -1394,7 +1375,6 @@
                             <state>$PROJ_DIR$/../Drivers/CMSIS/Include</state>
                             <state>$PROJ_DIR$/../Drivers/CMSIS/DSP/Include</state>
                             <state>$PROJ_DIR$/../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy</state>
-                            <state>$PROJ_DIR$/../Drivers/FLASH</state>
                         </option>
                         <option>
                             <name>CCStdIncCheck</name>

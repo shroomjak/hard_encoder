@@ -24,10 +24,9 @@
   *   err_corr()         -> sector, errorflag    (контроль и коррекция ошибок)
   *   calc_ang()         -> cur_ang_X            (итоговый угол в градусах)
   *   find_avg()/offset_cal()/angk_cal()/angtab_cal() - самокалибровки
-  *   spi_SendExec()     -> кадр SPI наружу (состояние + угол)
   *
   * ТЕРМИНЫ (подробно - в docs/main_c_overview.md и docs/angle_math_and_calibration.md):
-  *   ADC/АЦП, DMA, DAC/ЦАП, SPI, I2C, EEPROM, GPIO, EXTI, NVIC, CRC, WWDG, DWT,
+  *   ADC/АЦП, DMA, DAC/ЦАП, I2C, EEPROM, GPIO, EXTI, NVIC, DWT,
   *   HAL/LL - см. словарь терминов в docs/main_c_overview.md.
   ******************************************************************************
   * @attention
@@ -53,8 +52,6 @@
 #include  <stdarg.h>
 #include  <string.h>
 
-#include "cmd_defs.h"
-#include <standardflash.h>
 
 
 /* Private includes ----------------------------------------------------------*/
@@ -64,7 +61,6 @@
 /* Private typedef -----------------------------------------------------------*/
 
 
-typedef  void (*pFunction)(void);
 
 
 
@@ -138,10 +134,6 @@ typedef  void (*pFunction)(void);
 
 
 
-/* Адрес во ВНУТРЕННЕЙ Flash STM32, начиная с которого лежит прикладная
-   программа (первые 64 КБ 0x08000000..0x0800FFFF занимает загрузчик).
-   ProgCheckStm32() сверяет этот участок с образом во ВНЕШНЕЙ SPI-Flash.       */
-#define FLASH_START_ADDRESS  ((uint32_t)0x08010000)                             //FLASH start address
 
 
 
@@ -251,17 +243,12 @@ TIM_HandleTypeDef htim3;
 DAC_HandleTypeDef hdac;
 
 
-/* CRC handler declaration */
-CRC_HandleTypeDef   CrcHandle;
 
 
 
 
 
-// RNG
-RNG_HandleTypeDef RNG_Handle;
 
-uint16_t rng_value;
 
 
 
@@ -361,42 +348,6 @@ volatile uint8_t backlight_timer_state = BACKLIGHT_STATE_IDLE;
 
 
 
-//FLASH
-
-
-// Instantiate the arrays needed for testing purposes.
-// dataWrite is used when sending data that will be flashed to the device.
-static uint8_t dataWrite[MAXIMUM_BUFFER_SIZE+8] = {0};
-// dataRead is used as a buffer for received data. Read data will be stored here.
-static uint8_t dataRead[MAXIMUM_BUFFER_SIZE+8] = {0};
-
-
-uint8_t boot_state;
-
-pFunction Jump_To_Application;
-uint32_t JumpAddress;
-
-
-
-
-
-//software update
-static uint8_t sec_buffer[4096];
-uint16_t prog_crc;
-uint16_t prog_len;
-uint32_t prog_addr;
-uint32_t prog_data;
-uint32_t prog_header;
-uint32_t prog_len_cnt;
-uint32_t prog_cur;
-uint16_t prog_offset=0;
-uint16_t prog_crc_cur;
-uint8_t prog_errcode;
-uint32_t update_len;
-uint32_t update_crc;
-uint32_t update_time;
-uint32_t update_Checksum;
-uint16_t update_version=11;
 
 
 
@@ -694,7 +645,7 @@ float pix_size;
 
 
 
-/* ---- Счётчики контроля ошибок (только для диагностики по SPI/отладчику) --
+/* ---- Счётчики контроля ошибок (только для диагностики через отладчик) --
    sec_cnt  - сколько кадров уже обработано (первые 50 - "прогрев", проверка
               непрерывности сектора ещё не включена);
    serrcnt2 - сколько раз запускалась побитовая коррекция;
@@ -974,55 +925,11 @@ long s_l2_tab[128];
 
 
 
-/* ---- SPI2: канал связи с внешним контроллером (мастером системы) --------
-   SPI (Serial Peripheral Interface) - синхронная последовательная шина
-   (линии SCK/MOSI/MISO/NSS). Здесь STM32 работает SPI-МАСТЕРОМ, передача идёт
-   через DMA, кадр = 10 полуслов = 20 байт:
-      [0]  = 0x55<<8 | номер кадра (преамбула + счётчик)
-      [1..7] = 14 байт полезных данных (код команды, encoder_state, угол float ...)
-      [8..9] = CRC32, посчитанная аппаратным блоком CRC
-   Счётчики spi_goodframes / spi_badframes / spi_lostframes - диагностика линии.*/
-//SPI
-__attribute__((aligned(32))) unsigned short aTxBuffer[SPI_TxBufSize];
-__attribute__((aligned(32))) unsigned short aRxBuffer[SPI_RxBufSize];
-__attribute__((aligned(32))) unsigned char TxBuffer[SPI_TxBufSize*2];
-uint32_t spi_send_cnt=0;
-uint8_t recv_num;
-uint8_t recv_num_prev;
-uint32_t spi_badframes=0;
-uint32_t spi_goodframes=0;
-uint32_t spi_lostframes=0;
-
-uint32_t *spi_recv_p2;
-uint32_t spi_recv_crc32;
-__IO uint32_t spi_recv_CRCValue = 0;
-uint32_t *spi_send_p2;
-__IO uint32_t spi_send_CRCValue;
-
-static REM_BUF spi_buf1;
-static REM_BUF spi_buf2;
-
-uint8_t s_buf[16];                                                              //SPI command buffer
-
-
-/* command       - код последней принятой по SPI команды;
-   encoder_state - КОД СОСТОЯНИЯ головки, который уходит мастеру в каждом кадре
-                   (байт 1 полезной нагрузки). Именно по нему внешняя система
-                   следит за ходом калибровок:
-                     0x00 - штатная работа / калибровки остановлены (команда 0x10)
-                     0x10 - идёт проход 1 калибровки ang_tab   (команда 0x11)
-                     0x20 - проход 1 завершён, ждём команду 0x12
-                     0x30 - идёт проход 2 калибровки ang_tab   (команда 0x12)
-                     0x40 - ang_tab посчитана и записана в EEPROM
-                     0x50 - идёт калибровка offset             (команда 0x13)
-                     0x60 - offset найден и записан в EEPROM
-                     0x70 - идёт калибровка buf_k              (команда 0x14)
-                     0x80 - buf_k найден и записан в EEPROM                   */
-unsigned char command=0; 
+/* ---- Код состояния головки --------------------------------------------
+   Этапы калибровок (0x00..0x80). Раньше код уходил наружу в каждом кадре
+   SPI2; внешний SPI-канал удалён, переменная сохранена как внутренний
+   статус - пригодится для телеметрии по RS485/ModBus.                   */
 unsigned char encoder_state=0;
-
-
-unsigned char SloCom=0; 
 
 
 
@@ -1101,107 +1008,6 @@ unsigned short crc_16_step( unsigned char data, unsigned short crc )
 
 
 
-const unsigned short Crc16Table[256] = {
-    0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7,
-    0x8108, 0x9129, 0xA14A, 0xB16B, 0xC18C, 0xD1AD, 0xE1CE, 0xF1EF,
-    0x1231, 0x0210, 0x3273, 0x2252, 0x52B5, 0x4294, 0x72F7, 0x62D6,
-    0x9339, 0x8318, 0xB37B, 0xA35A, 0xD3BD, 0xC39C, 0xF3FF, 0xE3DE,
-    0x2462, 0x3443, 0x0420, 0x1401, 0x64E6, 0x74C7, 0x44A4, 0x5485,
-    0xA56A, 0xB54B, 0x8528, 0x9509, 0xE5EE, 0xF5CF, 0xC5AC, 0xD58D,
-    0x3653, 0x2672, 0x1611, 0x0630, 0x76D7, 0x66F6, 0x5695, 0x46B4,
-    0xB75B, 0xA77A, 0x9719, 0x8738, 0xF7DF, 0xE7FE, 0xD79D, 0xC7BC,
-    0x48C4, 0x58E5, 0x6886, 0x78A7, 0x0840, 0x1861, 0x2802, 0x3823,
-    0xC9CC, 0xD9ED, 0xE98E, 0xF9AF, 0x8948, 0x9969, 0xA90A, 0xB92B,
-    0x5AF5, 0x4AD4, 0x7AB7, 0x6A96, 0x1A71, 0x0A50, 0x3A33, 0x2A12,
-    0xDBFD, 0xCBDC, 0xFBBF, 0xEB9E, 0x9B79, 0x8B58, 0xBB3B, 0xAB1A,
-    0x6CA6, 0x7C87, 0x4CE4, 0x5CC5, 0x2C22, 0x3C03, 0x0C60, 0x1C41,
-    0xEDAE, 0xFD8F, 0xCDEC, 0xDDCD, 0xAD2A, 0xBD0B, 0x8D68, 0x9D49,
-    0x7E97, 0x6EB6, 0x5ED5, 0x4EF4, 0x3E13, 0x2E32, 0x1E51, 0x0E70,
-    0xFF9F, 0xEFBE, 0xDFDD, 0xCFFC, 0xBF1B, 0xAF3A, 0x9F59, 0x8F78,
-    0x9188, 0x81A9, 0xB1CA, 0xA1EB, 0xD10C, 0xC12D, 0xF14E, 0xE16F,
-    0x1080, 0x00A1, 0x30C2, 0x20E3, 0x5004, 0x4025, 0x7046, 0x6067,
-    0x83B9, 0x9398, 0xA3FB, 0xB3DA, 0xC33D, 0xD31C, 0xE37F, 0xF35E,
-    0x02B1, 0x1290, 0x22F3, 0x32D2, 0x4235, 0x5214, 0x6277, 0x7256,
-    0xB5EA, 0xA5CB, 0x95A8, 0x8589, 0xF56E, 0xE54F, 0xD52C, 0xC50D,
-    0x34E2, 0x24C3, 0x14A0, 0x0481, 0x7466, 0x6447, 0x5424, 0x4405,
-    0xA7DB, 0xB7FA, 0x8799, 0x97B8, 0xE75F, 0xF77E, 0xC71D, 0xD73C,
-    0x26D3, 0x36F2, 0x0691, 0x16B0, 0x6657, 0x7676, 0x4615, 0x5634,
-    0xD94C, 0xC96D, 0xF90E, 0xE92F, 0x99C8, 0x89E9, 0xB98A, 0xA9AB,
-    0x5844, 0x4865, 0x7806, 0x6827, 0x18C0, 0x08E1, 0x3882, 0x28A3,
-    0xCB7D, 0xDB5C, 0xEB3F, 0xFB1E, 0x8BF9, 0x9BD8, 0xABBB, 0xBB9A,
-    0x4A75, 0x5A54, 0x6A37, 0x7A16, 0x0AF1, 0x1AD0, 0x2AB3, 0x3A92,
-    0xFD2E, 0xED0F, 0xDD6C, 0xCD4D, 0xBDAA, 0xAD8B, 0x9DE8, 0x8DC9,
-    0x7C26, 0x6C07, 0x5C64, 0x4C45, 0x3CA2, 0x2C83, 0x1CE0, 0x0CC1,
-    0xEF1F, 0xFF3E, 0xCF5D, 0xDF7C, 0xAF9B, 0xBFBA, 0x8FD9, 0x9FF8,
-    0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0
-};
-
-
-//  Init  : 0xFFFF
-//  Revert: false
-//  XorOut: 0x0000
-//  Check : 0x29B1 ("123456789")
-//  MaxLen: 4095 
-//*----------------------------------------------------------------------------
-unsigned short Crc16_step( unsigned char data, unsigned short crc )
-{
-   crc = (crc << 8) ^ Crc16Table[(crc >> 8) ^ data];
-   return crc;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-static const uint32_t crc32_table[0x100] = {
-  0x00000000, 0x04C11DB7, 0x09823B6E, 0x0D4326D9, 0x130476DC, 0x17C56B6B, 0x1A864DB2, 0x1E475005, 0x2608EDB8, 0x22C9F00F, 0x2F8AD6D6, 0x2B4BCB61, 0x350C9B64, 0x31CD86D3, 0x3C8EA00A, 0x384FBDBD, 
-  0x4C11DB70, 0x48D0C6C7, 0x4593E01E, 0x4152FDA9, 0x5F15ADAC, 0x5BD4B01B, 0x569796C2, 0x52568B75, 0x6A1936C8, 0x6ED82B7F, 0x639B0DA6, 0x675A1011, 0x791D4014, 0x7DDC5DA3, 0x709F7B7A, 0x745E66CD, 
-  0x9823B6E0, 0x9CE2AB57, 0x91A18D8E, 0x95609039, 0x8B27C03C, 0x8FE6DD8B, 0x82A5FB52, 0x8664E6E5, 0xBE2B5B58, 0xBAEA46EF, 0xB7A96036, 0xB3687D81, 0xAD2F2D84, 0xA9EE3033, 0xA4AD16EA, 0xA06C0B5D, 
-  0xD4326D90, 0xD0F37027, 0xDDB056FE, 0xD9714B49, 0xC7361B4C, 0xC3F706FB, 0xCEB42022, 0xCA753D95, 0xF23A8028, 0xF6FB9D9F, 0xFBB8BB46, 0xFF79A6F1, 0xE13EF6F4, 0xE5FFEB43, 0xE8BCCD9A, 0xEC7DD02D, 
-  0x34867077, 0x30476DC0, 0x3D044B19, 0x39C556AE, 0x278206AB, 0x23431B1C, 0x2E003DC5, 0x2AC12072, 0x128E9DCF, 0x164F8078, 0x1B0CA6A1, 0x1FCDBB16, 0x018AEB13, 0x054BF6A4, 0x0808D07D, 0x0CC9CDCA, 
-  0x7897AB07, 0x7C56B6B0, 0x71159069, 0x75D48DDE, 0x6B93DDDB, 0x6F52C06C, 0x6211E6B5, 0x66D0FB02, 0x5E9F46BF, 0x5A5E5B08, 0x571D7DD1, 0x53DC6066, 0x4D9B3063, 0x495A2DD4, 0x44190B0D, 0x40D816BA, 
-  0xACA5C697, 0xA864DB20, 0xA527FDF9, 0xA1E6E04E, 0xBFA1B04B, 0xBB60ADFC, 0xB6238B25, 0xB2E29692, 0x8AAD2B2F, 0x8E6C3698, 0x832F1041, 0x87EE0DF6, 0x99A95DF3, 0x9D684044, 0x902B669D, 0x94EA7B2A, 
-  0xE0B41DE7, 0xE4750050, 0xE9362689, 0xEDF73B3E, 0xF3B06B3B, 0xF771768C, 0xFA325055, 0xFEF34DE2, 0xC6BCF05F, 0xC27DEDE8, 0xCF3ECB31, 0xCBFFD686, 0xD5B88683, 0xD1799B34, 0xDC3ABDED, 0xD8FBA05A, 
-  0x690CE0EE, 0x6DCDFD59, 0x608EDB80, 0x644FC637, 0x7A089632, 0x7EC98B85, 0x738AAD5C, 0x774BB0EB, 0x4F040D56, 0x4BC510E1, 0x46863638, 0x42472B8F, 0x5C007B8A, 0x58C1663D, 0x558240E4, 0x51435D53, 
-  0x251D3B9E, 0x21DC2629, 0x2C9F00F0, 0x285E1D47, 0x36194D42, 0x32D850F5, 0x3F9B762C, 0x3B5A6B9B, 0x0315D626, 0x07D4CB91, 0x0A97ED48, 0x0E56F0FF, 0x1011A0FA, 0x14D0BD4D, 0x19939B94, 0x1D528623, 
-  0xF12F560E, 0xF5EE4BB9, 0xF8AD6D60, 0xFC6C70D7, 0xE22B20D2, 0xE6EA3D65, 0xEBA91BBC, 0xEF68060B, 0xD727BBB6, 0xD3E6A601, 0xDEA580D8, 0xDA649D6F, 0xC423CD6A, 0xC0E2D0DD, 0xCDA1F604, 0xC960EBB3, 
-  0xBD3E8D7E, 0xB9FF90C9, 0xB4BCB610, 0xB07DABA7, 0xAE3AFBA2, 0xAAFBE615, 0xA7B8C0CC, 0xA379DD7B, 0x9B3660C6, 0x9FF77D71, 0x92B45BA8, 0x9675461F, 0x8832161A, 0x8CF30BAD, 0x81B02D74, 0x857130C3, 
-  0x5D8A9099, 0x594B8D2E, 0x5408ABF7, 0x50C9B640, 0x4E8EE645, 0x4A4FFBF2, 0x470CDD2B, 0x43CDC09C, 0x7B827D21, 0x7F436096, 0x7200464F, 0x76C15BF8, 0x68860BFD, 0x6C47164A, 0x61043093, 0x65C52D24, 
-  0x119B4BE9, 0x155A565E, 0x18197087, 0x1CD86D30, 0x029F3D35, 0x065E2082, 0x0B1D065B, 0x0FDC1BEC, 0x3793A651, 0x3352BBE6, 0x3E119D3F, 0x3AD08088, 0x2497D08D, 0x2056CD3A, 0x2D15EBE3, 0x29D4F654, 
-  0xC5A92679, 0xC1683BCE, 0xCC2B1D17, 0xC8EA00A0, 0xD6AD50A5, 0xD26C4D12, 0xDF2F6BCB, 0xDBEE767C, 0xE3A1CBC1, 0xE760D676, 0xEA23F0AF, 0xEEE2ED18, 0xF0A5BD1D, 0xF464A0AA, 0xF9278673, 0xFDE69BC4, 
-  0x89B8FD09, 0x8D79E0BE, 0x803AC667, 0x84FBDBD0, 0x9ABC8BD5, 0x9E7D9662, 0x933EB0BB, 0x97FFAD0C, 0xAFB010B1, 0xAB710D06, 0xA6322BDF, 0xA2F33668, 0xBCB4666D, 0xB8757BDA, 0xB5365D03, 0xB1F740B4, 
-};
-
-
-uint32_t CalcCRC32(uint8_t * pData, uint32_t DataLength)
-{
-    uint32_t Checksum = 0xFFFFFFFF;
-    for(unsigned int i=0; i < DataLength; i++)
-    {
-        uint8_t top = (uint8_t)(Checksum >> 24);
-        top ^= pData[i];
-        Checksum = (Checksum << 8) ^ crc32_table[top];
-    }
-    return Checksum;
-}
-
-
-
-uint32_t CalcCRC32_step(uint8_t pData, uint32_t Checksum)
-{
-  uint8_t top = (uint8_t)(Checksum >> 24);
-  top ^= pData;
-  Checksum = (Checksum << 8) ^ crc32_table[top];
-  return Checksum;
-}
 
 
 
@@ -1242,7 +1048,6 @@ int buf_x5_num;
 
 
 
-//FLASH variables
 
 
 
@@ -1574,12 +1379,8 @@ static void MX_GPIO_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_DAC_Init(void);
-static void MX_CRC_Init(void);
-static void MX_RNG_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_ADC2_Init(void);
-static void MX_SPI2_Init(void);
-static void MX_SPI1_Init(void);
 static void MX_I2C3_Init(void);
 
 
@@ -1602,23 +1403,8 @@ float BR6_F (float *mas, int centor_int);
 float BR4_C (float *mas, int centor_int);    
 float calc (float *mas, int centor_int);
 
-void Send_SPI(unsigned char *trm_buff);
-void Recv_SPI();
-void spi_recv_process (unsigned char *recv_buff);
-int spi_SendBuf1(unsigned char *data, unsigned char len);
-int spi_SendBuf2(unsigned char *data, unsigned char len);
-void spi_SendExec();
-void spi_FreeAll();
 
-uint8_t ProgCheckStm32();
-uint8_t ProgBlock();
-uint8_t CalcUpdateChecksum();
-uint8_t ProgFlashHeader();
-void ReadFlashHeader();
-void SloComProcess();
 
-void Flash_Read_Data (uint32_t StartPageAddress, void *Data, uint16_t numberofwords);
-uint32_t Flash_Write_Data (uint32_t StartPageAddress, void *Data, uint16_t numberofwords);
 
 void init_vars();
 static void Backlight_StartFromSI(void);
@@ -2280,7 +2066,7 @@ void err_corr(void) {
   * конкретного сектора и реальных углов его границ. Поэтому ошибки нанесения
   * шкалы (до +-90 угл.сек) уходят в ang_tab и компенсируются.
   *
-  * Результат: cur_ang_X - "сырой" угол текущего кадра. В SPI уходит cur_ang_E,
+  * Результат: cur_ang_X - "сырой" угол текущего кадра. Наружу отдаётся cur_ang_E,
   * который обновляется из cur_ang_X в main() только при errorflag == 0.
   *
   * @param  none
@@ -2922,16 +2708,17 @@ void find_avg() {
   * Никакого внешнего эталона угла не требуется - это классическая self-calibration
   * круговой шкалы (принцип полной окружности / closure method).
   *
-  * ЗАПУСК И ХОД (две команды SPI, два прохода):
-  *   0x11 -> start_calibrate=1, encoder_state=0x10 : проход "вправо";
+  * ЗАПУСК И ХОД (два прохода; внешний командный канал удалён вместе с SPI,
+ *   запуск будет переведён на RS485/ModBus, флаги те же):
+ *   start_calibrate=1, encoder_state=0x10 : проход "вправо";
   *           оператор вращает вал в одну сторону, пока не будут измерены все 144
   *           сектора; по завершении auto_cal=0 и encoder_state=0x20;
-  *   0x12 -> start_calibrate=2, encoder_state=0x30 : проход "влево";
+ *   start_calibrate=2, encoder_state=0x30 : проход "влево";
   *           по завершении таблицы усредняются
   *               new_ang_tab[j] = (new_ang_tab1[j] + new_ang_tab2[j]) / 2,
   *           копируются в ang_tab, пишутся в EEPROM (стр. 0, адрес 0, 576 байт +
   *           CRC16), encoder_state=0x40;
-  *   0x10 -> аварийная остановка: start_calibrate=0, auto_cal=0, encoder_state=0x00.
+ *   аварийная остановка: start_calibrate=0, auto_cal=0, encoder_state=0x00.
   *
   * УСЛОВИЕ ВЗЯТИЯ ОТСЧЁТА (ключевая строка if ниже):
   *     (cur_sector != old_sector) И ( s_l1 в [offset-25, offset-24]
@@ -2947,7 +2734,7 @@ void find_avg() {
   * усредняются в pix_dif_tab[j], сектор помечается готовым (pix_rdy_tab[j]=1),
   * счётчик готовых pix_rdy_num растёт от 0 до BIT_TAB_SIZE=144.
   * КОНТРОЛЬ ХОДА калибровки: читать pix_rdy_num1 / pix_rdy_num2 (отладчик/SWD)
-  * и encoder_state (по SPI). Пока pix_rdy_num < 144 - продолжать вращение.
+  * и encoder_state. Пока pix_rdy_num < 144 - продолжать вращение.
   *
   * ВАЖНО: pix_dif берётся из глобальной переменной, вычисленной в calc_ang(),
   * и НЕ зависит от старого содержимого ang_tab - калибровка не "тянет" за собой
@@ -3111,7 +2898,7 @@ void angtab_cal(){
               LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_9);                     //WP disable
               HAL_I2C_Mem_Write_IT(&I2c3Handle, EEPROM_DEVICE_PAGE0, eeprom_ang_tab&0xFF, I2C_MEMADD_SIZE_8BIT, &eeprom_buf[eeprom_ang_tab], BIT_TAB_SIZE*4+2); //write ang_tab to FLASH
 
-              encoder_state=0x40;                                               //set "ang_tab calibration ready" SPI status
+              encoder_state=0x40;                                               //set "ang_tab calibration ready" status
 
               auto_cal=0;                                                       //reset ang_tab calibration flag
                 
@@ -3184,8 +2971,9 @@ void angtab_cal(){
   *         1536), encoder_state = 0x60, start_offset_cal = 0, переход на 101;
   *   101 - калибровка завершена, ничего не делать.
   *
-  * Запуск - команда SPI 0x13 (она же обнуляет offset_phase, avg_minmax_num,
-  * массив offset_minmax[] и ставит encoder_state = 0x50).
+  * Запуск - установка флагов (обнуляются offset_phase, avg_minmax_num,
+  * массив offset_minmax[], encoder_state = 0x50; ранее - команда SPI 0x13,
+ * внешний командный канал удалён).
   * Время работы: примерно (число проб) * 3 оборота, то есть вал надо вращать
   * равномерно всё это время.
   *
@@ -3398,7 +3186,7 @@ void offset_cal() {
         LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_9);                           //WP disable
         HAL_I2C_Mem_Write_IT(&I2c3Handle, EEPROM_DEVICE_PAGE6, eeprom_offset&0xFF, I2C_MEMADD_SIZE_8BIT, &eeprom_buf[eeprom_offset], 6); //write offset to FLASH
 
-        encoder_state=0x60;                                                     //set "offset calibration ready" SPI status
+        encoder_state=0x60;                                                     //set "offset calibration ready" status
         offset_phase=101;
 
         start_offset_cal=0;                                                     //reset offset calibration flag
@@ -3440,7 +3228,8 @@ void offset_cal() {
   * местах линейки, а BR4 чувствителен к асимметрии профиля - появляется
   * периодическая ошибка угла. buf_k[i] выравнивает отклик пикселей.
   *
-  * Фазы (anglek_phase), запуск командой SPI 0x14 (encoder_state = 0x70):
+  * Фазы (anglek_phase), запуск установкой флагов (ранее - команда SPI 0x14,
+ * encoder_state = 0x70; внешний командный канал удалён):
   *   0   - сбросить buf_k[15..119] = 1, начать накопление. Параллельно
   *         copy_data() заполняет buf_x3[i] пиковой яркостью пикселя i
   *         (пиковый детектор работает, пока anglek_phase < 4);
@@ -3825,7 +3614,7 @@ void angk_cal() {
         LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_9);                           //WP disable
         HAL_I2C_Mem_Write_IT(&I2c3Handle, EEPROM_DEVICE_PAGE3, eeprom_buf_k&0xFF, I2C_MEMADD_SIZE_8BIT, &eeprom_buf[eeprom_buf_k], 514); //write buf_k to FLASH
 
-        encoder_state=0x80;                                                     //set "angle_k calibration ready" SPI status
+        encoder_state=0x80;                                                     //set "angle_k calibration ready" status
         backlight_width_en=1;
         anglek_phase=101;
 
@@ -3856,49 +3645,6 @@ void angk_cal() {
 
 
 
-/**
-  * @brief  Включение оконного сторожевого таймера WWDG.
-  *
-  * WWDG (Window Watchdog) - аппаратный таймер, который перезагружает МК, если
-  * программа не "погладила" его вовремя. Здесь он используется НАМЕРЕННО как
-  * способ перезапуска: по команде spi_ProgExecBoot WWDG включается и больше не
-  * обслуживается - через ~2 с происходит сброс, и загрузчик видит в EEPROM
-  * признак boot_state = 0 (запуск в режиме обновления прошивки).
-  * @param  None
-  * @retval None
-  */
-void Configure_WWDG(void)
-{
-  /* Enable the peripheral clock of DBG register (uncomment for debug purpose) */
-  /*LL_DBGMCU_APB1_GRP1_FreezePeriph(LL_DBGMCU_APB1_GRP1_WWDG_STOP); */
-  
-  /* Enable the peripheral clock WWDG */
-  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_WWDG);
-
-  /* Configure WWDG */
-  /* (1) set prescaler to have a rollover each about ~2s */
-  /* (2) set window value to same value (~2s) as downcounter in order to ba able to refresh the WWDG almost immediately */
-  /* (3) Refresh WWDG before activate it */
-  /* (4) Activate WWDG */
-  LL_WWDG_SetPrescaler(WWDG, LL_WWDG_PRESCALER_8); /* (1) */
-  LL_WWDG_SetWindow(WWDG,0x7E);                    /* (2) */
-  LL_WWDG_SetCounter(WWDG, 0X7E);                  /* (3) */
-  LL_WWDG_Enable(WWDG);                            /* (4) */
-}
-
-/**
-  * @brief  This function check if the system has resumed from WWDG reset
-  * @param  None
-  * @retval None
-  */
-void Check_WWDG_Reset(void)
-{
-  if (LL_RCC_IsActiveFlag_WWDGRST())
-  {
-    /* clear WWDG reset flag */
-    LL_RCC_ClearResetFlags();
-  }
-}
 
 
 
@@ -3964,318 +3710,6 @@ void dac_ctrl() {
 
 
 
-/**
-  * @brief  Выполнение "медленных" команд обновления прошивки в главном цикле.
-  *
-  * Эти операции занимают десятки миллисекунд (стирание сектора 4 КБ, расчёт CRC32
-  * по всему образу), поэтому они вынесены из обработчика SPI сюда:
-  *   spi_ProgEndBlock     - записать накопленный блок 4 КБ во внешнюю Flash;
-  *   spi_ProgUpdateHeader - проверить CRC32 образа и записать его заголовок;
-  *   spi_ProgUpdateCheck  - сверить внешний образ с внутренней Flash МК;
-  *   spi_ProgExecBoot     - записать в EEPROM признак загрузки в загрузчик и
-  *                          намеренно НЕ обслуживать WWDG, чтобы сторожевой
-  *                          таймер перезапустил МК (мягкий переход в загрузчик).
-  * Ответ на каждую команду кладётся в очередь spi_buf2.
-  */
-void SloComProcess() {
-
-    if(SloCom>0)
-      switch (SloCom)  {
-
-        //prog end block
-        case spi_ProgEndBlock:
-          prog_errcode=ProgBlock();                                             //Program block to flash
-          s_buf[0]=spi_ProgEndBlock;                                            //response code
-          s_buf[6]=prog_errcode;                                                //error code
-          spi_SendBuf2(&s_buf[0],14);                                           //send response
-          SloCom=0;                                                             //reset SloCom
-          break;
-
-        //prog update header
-        case spi_ProgUpdateHeader:
-          prog_errcode=CalcUpdateChecksum();                                    //check update crc32
-          if (prog_errcode==0) {                                                //if crc32 ok
-            prog_errcode=ProgFlashHeader();                                     // prog header to flash
-          }
-          s_buf[0]=spi_ProgUpdateHeader;                                        //response code
-          s_buf[6]=prog_errcode;                                                //error code
-          spi_SendBuf2(&s_buf[0],14);                                           //send response
-          SloCom=0;                                                             //reset SloCom
-          break;
-
-        //prog update check
-        case spi_ProgUpdateCheck:
-          ReadFlashHeader();                                                    //read flash header
-          prog_errcode=CalcUpdateChecksum();                                    //check update crc32
-          if (prog_errcode==0) {                                                //if crc32 ok
-            prog_errcode=ProgCheckStm32();                                      //check FLASH update
-          }
-          s_buf[0]=spi_ProgUpdateCheck;                                         //response code
-          memcpy(&s_buf[6],&update_len,4);                                      //update length
-          s_buf[10]=prog_errcode;                                               //error code
-          spi_SendBuf2(&s_buf[0],14);                                           //send response
-          SloCom=0;                                                             //reset SloCom
-          break;
-
-        //execute boot command
-        case spi_ProgExecBoot:
-          SloCom=0;                                                             //reset SloCom
-          boot_state=0;
-          LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_9);                         //WP disable
-          HAL_I2C_Mem_Write(&I2c3Handle, EEPROM_DEVICE_PAGE7, 0xF0, I2C_MEMADD_SIZE_8BIT, &boot_state, 1, 1000); //write boot state to EEPROM
-          Check_WWDG_Reset();
-          Configure_WWDG();
-          break;
-
-
-        default:
-          break;
-
-    }
-
-
-
-}
-
-
-
-
-
-
-/**
-  * @brief  Запись одного блока 4 КБ образа прошивки во внешнюю SPI-Flash.
-  *
-  * Последовательность, типовая для NOR-flash: проверка CRC16 блока -> Write Enable
-  * -> стирание сектора 4 КБ -> построчное программирование страницами по 256 байт
-  * (аппаратное ограничение микросхемы) -> обратное чтение и побайтовое сравнение.
-  * Коды возврата: 0 - успех, 1 - не сошлась CRC16 блока, 2 - ошибка записи Flash.
-  */
-uint8_t ProgBlock() {
-
-  uint8_t errcode;                                                              //error code
-
-  prog_crc_cur=0xffff;                                                          //init block crc16
-  for (int i=0;i<prog_len;i++) {                                                //block crc16 calculation
-    prog_crc_cur=Crc16_step(sec_buffer[i], prog_crc_cur);                       //calc block crc16
-  }
-  if(prog_crc==prog_crc_cur) {                                                  //if crc16 is good
-    prog_data=prog_addr+4096;                                                   //calc data address
-    standardflashWriteEnable();                                                 //Write enable the device
-    standardflashBlockErase4K(prog_data);                                       //Block erase 4K block
-    standardflashWaitOnReady();                                                 //Wait on ready
-    standardflashWriteEnable();                                                 //Write enable the device
-
-    prog_cur=0;                                                                 //clear cur address
-    prog_len_cnt=prog_len;                                                      //set length counter
-    while (prog_len_cnt>=256) {
-      standardflashWriteEnable();                                               //Write enable the device
-      standardflashBytePageProgram(prog_data+prog_cur, sec_buffer+prog_cur, 256);//Program the device
-      standardflashWaitOnReady();                                               //Wait on ready
-      prog_cur+=256;                                                            //Modify addr
-      prog_len_cnt-=256;                                                        //Modify counter
-    }
-    if (prog_len_cnt>0) {
-      standardflashWriteEnable();                                               //Write enable the device
-      standardflashBytePageProgram(prog_data+prog_cur, sec_buffer+prog_cur, prog_len_cnt);//Program the device
-      standardflashWaitOnReady();                                               //Wait on ready
-    }
-
-    standardflashReadArrayLowFreq(prog_data, dataRead, prog_len);               //Now read back the data in order to confirm that erase/program/read all
-    if(compareByteArrays(sec_buffer, dataRead, prog_len)) {
-      errcode=0;                                                                // set no error code
-    }
-    else {
-      errcode=2;                                                                // set flash error code
-    }
-
-  }
-  else {                                                                        //if crc16 is bad
-    errcode=1;                                                                  // set crc16 error code
-  }
-
-  return (errcode);
-
-}
-
-
-
-
-
-/**
-  * @brief  Расчёт CRC32 по всему образу прошивки во внешней Flash и сверка с эталоном.
-  * @retval 0 - CRC32 совпала, 3 - не совпала.
-  */
-uint8_t CalcUpdateChecksum() {
-
-  uint8_t errcode;                                                              //error code
-
-  update_Checksum=0xFFFFFFFF;                                                   //init crc32
-  prog_data=4096;                                                               //calc data address
-  prog_cur=0;                                                                   //clear current data address
-  prog_len_cnt=update_len;                                                      //init length counter
-  while (prog_len_cnt>=4096) {
-    standardflashReadArrayLowFreq(prog_data+prog_cur, dataRead, 4096);          //read data buffer
-    for (int i=0;i<4096;i++) {
-      update_Checksum=CalcCRC32_step(dataRead[i], update_Checksum);             //calc crc32
-    }
-    prog_cur+=4096;                                                             //Modify addr
-    prog_len_cnt-=4096;                                                         //Modify counter
-  }
-  if (prog_len_cnt>0) {
-    standardflashReadArrayLowFreq(prog_data+prog_cur, dataRead, prog_len_cnt);  //read data buffer
-    for (int i=0;i<prog_len_cnt;i++) {
-      update_Checksum=CalcCRC32_step(dataRead[i], update_Checksum);             //calc crc32
-    }
-  }
-
-  if (update_crc==update_Checksum) {                                            //if crc32 ok
-    errcode=0;                                                                  // set no error code
-  }
-  else {                                                                        //if crc32 not ok
-    errcode=3;                                                                  // set update crc32 error code
-  }
-
-  return (errcode);
-
-}
-
-
-
-
-
-uint8_t ProgFlashHeader() {
-
-  uint8_t errcode;                                                              //error code
-
-  prog_data=0;                                                                  //header address
-  standardflashWriteEnable();                                                   //Write enable the device
-  standardflashBlockErase4K(prog_data);                                         //Block erase 4K block
-  standardflashWaitOnReady();                                                   //Wait on ready
-  standardflashWriteEnable();                                                   //Write enable the device
-  memcpy(&dataWrite[0],&update_len,4);                                          //write update length
-  memcpy(&dataWrite[4],&update_crc,4);                                          //write update crc32
-  memcpy(&dataWrite[8],&update_time,4);                                         //write update time
-  standardflashWriteEnable();                                                   //Write enable the device
-  standardflashBytePageProgram(prog_data, dataWrite, 12);                       //Program the device
-  standardflashWaitOnReady();                                                   //Wait on ready
-  standardflashReadArrayLowFreq(prog_data, dataRead, 12);                       //read back header
-  if(compareByteArrays(dataWrite, dataRead, 12)) {
-    errcode=0;                                                                  // set no error code
-  }
-  else {
-    errcode=4;                                                                  // set header flash error code
-  }
-
-  return (errcode);
-
-}
-
-
-
-
-
-void ReadFlashHeader() {
-
-  prog_data=0;                                                                  //header address
-  standardflashReadArrayLowFreq(prog_data, dataRead, 12);                       //read back header
-  memcpy(&update_len,&dataRead[0],4);                                           //read update length
-  memcpy(&update_crc,&dataRead[4],4);                                           //read update crc32
-  memcpy(&update_time,&dataRead[8],4);                                          //read update time
-
-}
-
-
-
-
-
-/**
-  * @brief  Сверка внутренней Flash МК с образом во внешней Flash.
-  *
-  * Побайтово сравнивает участок внутренней Flash начиная с FLASH_START_ADDRESS
-  * с образом и одновременно считает по нему CRC32.
-  * @retval 0 - прошивка соответствует образу; 100 - расхождение CRC32;
-  *         101 - прямое расхождение содержимого.
-  */
-uint8_t ProgCheckStm32() {
-
-  uint8_t errcode;                                                              //error code
-  uint32_t CurPageAddress;
-
-  prog_data=0;                                                                  //header address
-  standardflashReadArrayLowFreq(prog_data, dataRead, 12);                       //read back header
-  memcpy(&update_len,&dataRead[0],4);                                           //read update length
-  memcpy(&update_crc,&dataRead[4],4);                                           //read update crc32
-  memcpy(&update_time,&dataRead[8],4);                                          //read update time
-
-  update_Checksum=0xFFFFFFFF;                                                   //init crc32
-  prog_data=4096;                                                               //calc data address
-  prog_cur=0;                                                                   //clear current data address
-  prog_len_cnt=update_len;                                                      //init length counter
-  CurPageAddress=FLASH_START_ADDRESS;                                           //init FLASH page address
-  if(prog_len_cnt>0x70000) prog_len_cnt=0x70000;                                //limit length counter
-
-  while (prog_len_cnt>=4096) {
-    standardflashReadArrayLowFreq(prog_data+prog_cur, dataRead, 4096);          //read data buffer
-
-    Flash_Read_Data (CurPageAddress, &dataWrite, 1024);                         //read FLASH buffer
-    for (int i=0;i<4096;i++) {
-      update_Checksum=CalcCRC32_step(dataWrite[i], update_Checksum);            //calc crc32
-    }
-
-    if (memcmp(dataRead,dataWrite,4096)!=0) {
-      return 101;
-    }
-
-    CurPageAddress+=4096;                                                       //Modify FLASH addr
-    prog_cur+=4096;                                                             //Modify addr
-    prog_len_cnt-=4096;                                                         //Modify counter
-  }
-  if (prog_len_cnt>0) {
-    standardflashReadArrayLowFreq(prog_data+prog_cur, dataRead, prog_len_cnt);  //read data buffer
-
-    Flash_Read_Data (CurPageAddress, &dataWrite, 1024);                         //read FLASH buffer
-
-    if (memcmp(dataRead,dataWrite,prog_len_cnt)!=0) {
-      return 101;
-    }
-
-    for (int i=0;i<prog_len_cnt;i++) {
-      update_Checksum=CalcCRC32_step(dataWrite[i], update_Checksum);            //calc crc32
-    }
-
-  }
-
-  if (update_crc==update_Checksum) {                                            //if crc32 ok
-    errcode=0;                                                                  // set no error code
-  }
-  else {                                                                        //if crc32 not ok
-    errcode=100;                                                                // set update crc32 error code
-  }
-
-  return (errcode);
-
-}
-
-
-
-
-
-/**
-  * @brief  Чтение внутренней Flash МК как обычной памяти (32-битными словами).
-  * @note   У STM32F7 Flash отображена в адресное пространство, поэтому чтение -
-  *         это просто разыменование указателя; специальный драйвер нужен только
-  *         для записи и стирания.
-  */
-void Flash_Read_Data (uint32_t StartPageAddress, void *Data, uint16_t numberofwords)
-{
-  uint32_t *RxBuf = Data;
-  while (numberofwords--) {
-
-    *RxBuf = *(__IO uint32_t *)StartPageAddress;
-    StartPageAddress += 4;
-    RxBuf++;
-  }
-}
 
 
 
@@ -4355,27 +3789,21 @@ static void Backlight_StartFromSI(void)
 /**
   * @brief  Загрузка калибровок из EEPROM и начальная инициализация переменных.
   *
-  * Порядок:
-  *   1) очистка очередей передачи SPI;
-  *   2) ОДНО блокирующее чтение всей EEPROM (2048 байт) в eeprom_buf[];
-  *   3) для каждого из четырёх блоков (ang_tab, buf_k, offset, lasdac)
-  *      пересчитывается CRC16 и сравнивается с хранимой рядом контрольной суммой.
-  *      Совпала - блок копируется в рабочую переменную и ставится флаг *_rdy = 1.
-  *      Не совпала - блок молча игнорируется и остаётся значение по умолчанию,
-  *      зашитое в код. Это защита от чтения "мусора" после сбоя записи;
-  *   4) чтение перемычки конфигурации PB8 -> config_state (ориентация головки
-  *      и слот случайной задержки SPI);
-  *   5) ProgCheckStm32() - сверка прошивки во внутренней Flash с образом во
-  *      внешней SPI-Flash (результат в prog_errcode, отдаётся по команде 0x79);
-  *   6) заполнение таблицы delta_cor[] - табулированной синусоиды компенсации
-  *      субпиксельной ошибки (используется неиспользуемыми вариантами BR6/BR8).
+ * Порядок:
+ *   1) ОДНО блокирующее чтение всей EEPROM (2048 байт) в eeprom_buf[];
+ *   2) для каждого из четырёх блоков (ang_tab, buf_k, offset, lasdac)
+ *      пересчитывается CRC16 и сравнивается с хранимой рядом контрольной суммой.
+ *      Совпала - блок копируется в рабочую переменную и ставится флаг *_rdy = 1.
+ *      Не совпала - блок молча игнорируется и остаётся значение по умолчанию,
+ *      зашитое в код. Это защита от чтения "мусора" после сбоя записи;
+ *   3) чтение перемычки конфигурации PB8 -> config_state (ориентация головки);
+ *   4) заполнение таблицы delta_cor[] - табулированной синусоиды компенсации
+ *      субпиксельной ошибки (используется неиспользуемыми вариантами BR6/BR8).
   *
   * @retval None
   */
 void init_vars() {
 
-  //init buffers
-  spi_FreeAll();
 
 
   //EEPROM vars init
@@ -4433,7 +3861,6 @@ void init_vars() {
     config_state=0;
   }
 
-  prog_errcode=ProgCheckStm32();                                                //check FLASH update
 
   //compensation BR4
   phase=0;
@@ -4457,7 +3884,7 @@ void init_vars() {
   *
   * Архитектура программы - СУПЕРЦИКЛ без ОС:
   *   - прерывания выполняют только жёсткое реальное время (тактирование линейки,
-  *     перекладывание кадра из DMA, приём/передача SPI);
+  *     перекладывание кадра из DMA);
   *   - вся арифметика идёт в while(1) по флагу adc_rdy, выставленному из
   *     DMA2_Stream3_IRQHandler. Один проход цикла = один кадр линейки (~80 мкс).
   *
@@ -4496,10 +3923,6 @@ int main(void)
   MX_ADC2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
-  MX_SPI2_Init();
-  MX_SPI1_Init();
-  MX_CRC_Init();
-  MX_RNG_Init();
   MX_I2C3_Init();
 
   init_vars();                                                                  // init variables
@@ -4551,11 +3974,9 @@ int main(void)
 
       }
 
-      spi_SendExec();                                                           // SPI send data
 
       dac_ctrl();                                                               // DAC ctrl
 
-      SloComProcess();                                                          // process slow commands
 
       SCB_InvalidateDCache_by_Addr((uint32_t *)aADCxConvertedData,((2+31)/32)*32);//force to let update caches again with memory content to see the changes
       Vsense=(aADCxConvertedData[0]*3.3f)/4095.0f;                              // calculate Temperature
@@ -4637,7 +4058,8 @@ void SystemClock_Config(void)
   * время выборки 480 тактов (у внутренних каналов большое выходное сопротивление).
   * Запуск программный + ContinuousMode, DMA в кольцевом режиме бесконечно
   * обновляет aADCxConvertedData[0] - процессор просто читает актуальное значение.
-  * Температура нужна как служебный параметр (отдаётся по команде SPI 0x62) и как
+  * Температура нужна как служебный параметр для телеметрии (внешний интерфейс
+ * в разработке) и как
   * косвенный признак теплового дрейфа геометрии.
   * @param None
   * @retval None
@@ -4907,7 +4329,7 @@ static void MX_TIM3_Init(void)
   *
   * Вычитающий счёт, предделитель 0 (1 тик = 1/108 мкс = 9.26 нс), автоперезагрузка
   * 0xFFFF. Счётчик заряжается нужным числом тиков и по достижении нуля выдаёт
-  * прерывание UPDATE -> TIM4_IRQHandler. Приоритет NVIC 1 - выше SPI, ниже кадра.
+  * прерывание UPDATE -> TIM4_IRQHandler. Приоритет NVIC 1 - ниже кадра линейки.
   * Этот же таймер используется для блокирующей выдержки tqt (DelayTim4Ticks).
   * @param None
   * @retval None
@@ -4967,58 +4389,6 @@ static void MX_DAC_Init(void)
 
 
 
-/**
-  * @brief  Аппаратный блок CRC: контрольная сумма кадров SPI.
-  *
-  * CRC (Cyclic Redundancy Check) - контрольная сумма для обнаружения искажений.
-  * Используется стандартный полином Ethernet CRC-32 (0x04C11DB7), вход - 32-битные
-  * слова. Аппаратный расчёт занимает 1 такт на слово, поэтому вызывается прямо в
-  * обработчике DMA. Важная тонкость: блок CRC один на весь МК и имеет внутреннее
-  * состояние, поэтому расчёт в Send_SPI/Recv_SPI обрамлён __disable_irq/__enable_irq.
-  * @param None
-  * @retval None
-  */
-static void MX_CRC_Init(void)
-{
-
- //##-1- Configure the CRC peripheral #######################################
-  CrcHandle.Instance = CRC;
-  // The default polynomial is used
-  CrcHandle.Init.DefaultPolynomialUse    = DEFAULT_POLYNOMIAL_ENABLE;
-  // The default init value is used
-  CrcHandle.Init.DefaultInitValueUse     = DEFAULT_INIT_VALUE_ENABLE;
-  // The input data are not inverted
-  CrcHandle.Init.InputDataInversionMode  = CRC_INPUTDATA_INVERSION_NONE;
-  // The output data are not inverted
-  CrcHandle.Init.OutputDataInversionMode = CRC_OUTPUTDATA_INVERSION_DISABLE;
-  // The input data are 32-bit long words
-  CrcHandle.InputDataFormat              = CRC_INPUTDATA_FORMAT_WORDS;
-  // Initialization CRC
-  HAL_CRC_Init(&CrcHandle);
-
-}
-
-
-
-/**
-  * @brief  RNG - аппаратный генератор случайных чисел.
-  *
-  * Нужен не для криптографии, а для РАЗРЕШЕНИЯ КОЛЛИЗИЙ на общей шине: в Send_SPI
-  * случайное число задаёт дополнительную задержку старта передачи для второй
-  * головки (config_state==1), чтобы две головки не выходили в эфир одновременно.
-  * @param None
-  * @retval None
-  */
-static void MX_RNG_Init(void)
-{
-
-  //Enable RNG peripheral clock
-  __HAL_RCC_RNG_CLK_ENABLE();
-  //Initialize RNG
-  RNG_Handle.Instance = RNG;
-  HAL_RNG_Init(&RNG_Handle);
-
-}
 
 
 
@@ -5060,693 +4430,6 @@ static void MX_I2C3_Init(void)
 
 
 
-/**
-  * @brief  SPI1: шина к внешней микросхеме flash-памяти (Adesto AT25SF641, 64 Мбит).
-  *
-  * Выводы PC4 (NSS, управляется программно), PA5 (SCK), PA6 (MISO), PA7 (MOSI).
-  * Режим 0 (CPOL=0, CPHA=1EDGE), 8 бит, делитель /16 от APB2 108 МГц = 6.75 МГц.
-  * Назначение: хранение ОБРАЗА ОБНОВЛЕНИЯ ПРОШИВКИ. Внешний мастер по SPI2
-  * блоками закачивает новую прошивку (команды 0x71..0x76), она пишется сюда
-  * драйвером standardflash*, проверяется по CRC32 и затем переносится во
-  * внутреннюю Flash загрузчиком (команда 0x7a - перезапуск в загрузчик).
-  * @param None
-  * @retval None
-  */
-
-
-static void MX_SPI1_Init(void)
-{
-
-  LL_SPI_DeInit(SPI1);
-
-  //SPI1 initialization
-  LL_SPI_InitTypeDef SPI_InitStruct = {0};
-  LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-  /* Peripheral clock enable */
-  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SPI1);
-  
-  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
-  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
-  /**SPI1 GPIO Configuration  
-  PC4    ------> SPI1_NSS
-  PA5    ------> SPI1_SCK
-  PA6    ------> SPI1_MISO
-  PA7    ------> SPI1_MOSI 
-  */
-
-  //SPI1_NSS
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_4;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-  LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-  LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_4);
-
-  //SPI1_SCK
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_5;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  GPIO_InitStruct.Alternate = LL_GPIO_AF_5;
-  LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  //SPI1_MISO
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_6;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  GPIO_InitStruct.Alternate = LL_GPIO_AF_5;
-  LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  //SPI1_MOSI
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_7;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  GPIO_InitStruct.Alternate = LL_GPIO_AF_5;
-  LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  // SPI1 parameter configuration
-  SPI_InitStruct.TransferDirection = LL_SPI_FULL_DUPLEX;
-  SPI_InitStruct.Mode = LL_SPI_MODE_MASTER;
-  SPI_InitStruct.DataWidth = LL_SPI_DATAWIDTH_8BIT;
-  SPI_InitStruct.ClockPolarity = LL_SPI_POLARITY_LOW;
-  SPI_InitStruct.ClockPhase = LL_SPI_PHASE_1EDGE;
-  SPI_InitStruct.NSS = LL_SPI_NSS_SOFT;
-  SPI_InitStruct.BaudRate = LL_SPI_BAUDRATEPRESCALER_DIV16;
-  SPI_InitStruct.BitOrder = LL_SPI_MSB_FIRST;
-  SPI_InitStruct.CRCCalculation = LL_SPI_CRCCALCULATION_DISABLE;
-  SPI_InitStruct.CRCPoly = 7;
-  LL_SPI_Init(SPI1, &SPI_InitStruct);
-
-  LL_SPI_SetRxFIFOThreshold(SPI1, LL_SPI_RX_FIFO_TH_QUARTER);
-  LL_SPI_SetStandard(SPI1, LL_SPI_PROTOCOL_MOTOROLA);
-
-  LL_SPI_Enable(SPI1);                                                          // Enable SPI1
-
-};
-
-
-
-
-
-/**
-  * @brief  SPI2 + DMA1 (Stream4 TX / Stream3 RX): канал обмена с внешним контроллером.
-  *
-  * Выводы PB12 (NSS - программно, как обычный GPIO), PB13 (SCK), PB14 (MISO),
-  * PB15 (MOSI). 16 бит, CPOL=0/CPHA=2EDGE, делитель /8 от APB1 54 МГц = 6.75 МГц.
-  * Головка работает МАСТЕРОМ и сама инициирует кадр.
-  * Таймеры обслуживания линии:
-  *   TIM2 - задержка перед стартом посылки; величина 10 + (1000+случайное)*config_state
-  *          даёт второй головке случайный слот и устраняет коллизии на общей шине;
-  *   TIM5 - пауза 1000 тиков после окончания передачи, прежде чем снять NSS.
-  * Приоритеты NVIC: RX (6) выше TX (7) - принятый кадр важнее.
-  * @param None
-  * @retval None
-  */
-static void MX_SPI2_Init(void)
-{
-
-  // Peripheral clock enable
-  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_SPI2);
-  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
-  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
-  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM5); 
-  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM2); 
-
-  /**SPI2 GPIO Configuration  
-  PB12   ------> SPI2_NSS
-  PB13   ------> SPI2_SCK
-  PB14   ------> SPI2_MISO
-  PB15   ------> SPI2_MOSI 
-  */
-  LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-  LL_GPIO_SetPinMode(GPIOB, LL_GPIO_PIN_12, LL_GPIO_MODE_OUTPUT);
-  LL_GPIO_SetPinOutputType(GPIOB, LL_GPIO_PIN_12, LL_GPIO_OUTPUT_PUSHPULL);
-  LL_GPIO_SetPinSpeed(GPIOB, LL_GPIO_PIN_12, LL_GPIO_SPEED_FREQ_VERY_HIGH);
-  LL_GPIO_SetPinPull(GPIOB, LL_GPIO_PIN_12, LL_GPIO_PULL_UP);
-  LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_12);
-
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_13;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  GPIO_InitStruct.Alternate = LL_GPIO_AF_5;
-  LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_14;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  GPIO_InitStruct.Alternate = LL_GPIO_AF_5;
-  LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_15;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  GPIO_InitStruct.Alternate = LL_GPIO_AF_5;
-  LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-  
-  LL_TIM_DeInit(TIM5);                                                          // Deinit timer
-  LL_TIM_SetCounterMode(TIM5, LL_TIM_COUNTERMODE_DOWN);                         // Set the timer counter counting mode
-  LL_TIM_SetPrescaler(TIM5, 0);                                                 // Set the pre-scaler value
-  NVIC_SetPriority(TIM5_IRQn, 5);                                               // Set TIM5 global Interrupt priority
-  NVIC_EnableIRQ(TIM5_IRQn);                                                    // Enable TIM5 global Interrupt
-  LL_TIM_EnableIT_UPDATE(TIM5);                                                 // Enable update interrupt (UIE)
- 
-  LL_TIM_DeInit(TIM2);                                                          // Deinit timer
-  LL_TIM_SetCounterMode(TIM2, LL_TIM_COUNTERMODE_DOWN);                         // Set the timer counter counting mode
-  LL_TIM_SetPrescaler(TIM2, 0);                                                 // Set the pre-scaler value
-  NVIC_SetPriority(TIM2_IRQn, 5);                                               // Set TIM5 global Interrupt priority
-  NVIC_EnableIRQ(TIM2_IRQn);                                                    // Enable TIM2 global Interrupt
-  LL_TIM_EnableIT_UPDATE(TIM2);                                                 // Enable update interrupt (UIE)
-
-
-  LL_SPI_InitTypeDef SPI_InitStruct = {0};
-  LL_SPI_DeInit(SPI2);
-  // SPI2 parameter configuration
-  SPI_InitStruct.TransferDirection = LL_SPI_FULL_DUPLEX;
-  SPI_InitStruct.Mode = LL_SPI_MODE_MASTER;
-  SPI_InitStruct.DataWidth = LL_SPI_DATAWIDTH_16BIT;
-  SPI_InitStruct.ClockPolarity = LL_SPI_POLARITY_LOW;
-  SPI_InitStruct.ClockPhase = LL_SPI_PHASE_2EDGE;
-  SPI_InitStruct.NSS = LL_SPI_NSS_SOFT;
-  SPI_InitStruct.BaudRate = LL_SPI_BAUDRATEPRESCALER_DIV8;
-  SPI_InitStruct.BitOrder = LL_SPI_MSB_FIRST;
-  SPI_InitStruct.CRCCalculation = LL_SPI_CRCCALCULATION_DISABLE;
-  SPI_InitStruct.CRCPoly = 7;
-  LL_SPI_Init(SPI2, &SPI_InitStruct);
-  LL_SPI_SetStandard(SPI2, LL_SPI_PROTOCOL_MOTOROLA);
-  LL_SPI_EnableDMAReq_TX(SPI2);                                                 //Enable SPI DMA TX Requsts
-  LL_SPI_EnableDMAReq_RX(SPI2);                                                 //Enable SPI DMA RX Requsts
-
-
-  // SPI2_TX Init
-  LL_DMA_DeInit(DMA1, LL_DMA_STREAM_4);
-  LL_DMA_SetChannelSelection(DMA1, LL_DMA_STREAM_4, LL_DMA_CHANNEL_0);
-  LL_DMA_SetDataTransferDirection(DMA1, LL_DMA_STREAM_4, LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
-  LL_DMA_SetStreamPriorityLevel(DMA1, LL_DMA_STREAM_4, LL_DMA_PRIORITY_MEDIUM);
-  LL_DMA_SetMode(DMA1, LL_DMA_STREAM_4, LL_DMA_MODE_NORMAL);
-  LL_DMA_SetPeriphIncMode(DMA1, LL_DMA_STREAM_4, LL_DMA_PERIPH_NOINCREMENT);
-  LL_DMA_SetMemoryIncMode(DMA1, LL_DMA_STREAM_4, LL_DMA_MEMORY_INCREMENT);
-  LL_DMA_SetPeriphSize(DMA1, LL_DMA_STREAM_4, LL_DMA_PDATAALIGN_HALFWORD);
-  LL_DMA_SetMemorySize(DMA1, LL_DMA_STREAM_4, LL_DMA_MDATAALIGN_HALFWORD);
-  LL_DMA_SetDataLength(DMA1, LL_DMA_STREAM_4, SPI_TxBufSize);
-  LL_DMA_SetMemoryAddress(DMA1, LL_DMA_STREAM_4, (uint32_t) &aTxBuffer );
-  LL_DMA_SetPeriphAddress(DMA1, LL_DMA_STREAM_4, (uint32_t) &(SPI2->DR) );
-  LL_DMA_DisableFifoMode(DMA1, LL_DMA_STREAM_4);
-  LL_DMA_SetMemoryBurstxfer(DMA1, LL_DMA_STREAM_4, LL_DMA_MBURST_SINGLE);
-  LL_DMA_SetPeriphBurstxfer(DMA1, LL_DMA_STREAM_4, LL_DMA_PBURST_SINGLE);
-  // Configure NVIC for DMA transfer complete/error interrupts
-  LL_DMA_EnableIT_TC(DMA1, LL_DMA_STREAM_4);
-  NVIC_SetPriority(DMA1_Stream4_IRQn, 7);
-  NVIC_EnableIRQ(DMA1_Stream4_IRQn);
-
-  // SPI2_RX Init
-  LL_DMA_DeInit(DMA1, LL_DMA_STREAM_3);
-  LL_DMA_SetChannelSelection(DMA1, LL_DMA_STREAM_3, LL_DMA_CHANNEL_0);
-  LL_DMA_SetDataTransferDirection(DMA1, LL_DMA_STREAM_3, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
-  LL_DMA_SetStreamPriorityLevel(DMA1, LL_DMA_STREAM_3, LL_DMA_PRIORITY_MEDIUM);
-  LL_DMA_SetMode(DMA1, LL_DMA_STREAM_3, LL_DMA_MODE_NORMAL);
-  LL_DMA_SetPeriphIncMode(DMA1, LL_DMA_STREAM_3, LL_DMA_PERIPH_NOINCREMENT);
-  LL_DMA_SetMemoryIncMode(DMA1, LL_DMA_STREAM_3, LL_DMA_MEMORY_INCREMENT);
-  LL_DMA_SetPeriphSize(DMA1, LL_DMA_STREAM_3, LL_DMA_PDATAALIGN_HALFWORD);
-  LL_DMA_SetMemorySize(DMA1, LL_DMA_STREAM_3, LL_DMA_MDATAALIGN_HALFWORD);
-  LL_DMA_SetMemoryAddress(DMA1, LL_DMA_STREAM_3, (uint32_t) &aRxBuffer );
-  LL_DMA_SetPeriphAddress(DMA1, LL_DMA_STREAM_3, (uint32_t) &(SPI2->DR) );
-  LL_DMA_SetDataLength(DMA1, LL_DMA_STREAM_3, SPI_RxBufSize);
-  LL_DMA_DisableFifoMode(DMA1, LL_DMA_STREAM_3);
-  LL_DMA_SetMemoryBurstxfer(DMA1, LL_DMA_STREAM_3, LL_DMA_MBURST_SINGLE);
-  LL_DMA_SetPeriphBurstxfer(DMA1, LL_DMA_STREAM_3, LL_DMA_PBURST_SINGLE);
-  // Configure NVIC for DMA transfer complete/error interrupts
-  LL_DMA_EnableIT_TC(DMA1, LL_DMA_STREAM_3);
-  NVIC_SetPriority(DMA1_Stream3_IRQn, 6);
-  NVIC_EnableIRQ(DMA1_Stream3_IRQn);
-
-}
-
-
-
-
-// @brief  This function handles DMA1_STREAM4 (SPI2 TC) interrupt request.
-// @param  None
-// @retval : None
-void DMA1_Stream4_IRQHandler(void)
-{
-  if(LL_DMA_IsActiveFlag_TC4(DMA1) == 1) {                                      //If Stream 4 transfer complete flag
-    LL_DMA_ClearFlag_TC4(DMA1);                                                 // Clear Stream 4 transfer complete flag
-    LL_DMA_DisableStream(DMA1,LL_DMA_STREAM_4);                                 // Disable the DMA transfer
-    spi_send_cnt++;                                                             // increment sent frames counter
-    LL_TIM_SetCounter(TIM5, 1000);                                              // Set the timer counter value
-    LL_TIM_EnableCounter(TIM5);                                                 // Enable timer counter
-  }
-}
-
-
-
-
-// @brief  This function handles DMA1_STREAM3 (SPI2 RC) interrupt request.
-// @param  None
-// @retval : None
-void DMA1_Stream3_IRQHandler(void)
-{
-  if(LL_DMA_IsActiveFlag_TC3(DMA1) == 1) {                                      //If Stream 3 transfer complete flag
-    LL_DMA_ClearFlag_TC3(DMA1);                                                 // Clear DMA1 Stream 3 transfer complete flag
-    LL_DMA_DisableStream(DMA1,LL_DMA_STREAM_3);                                 // Disable the DMA1 Stream3 transfer
-    SCB_InvalidateDCache_by_Addr((uint32_t *)aRxBuffer,((SPI_RxBufSize*2+31)/32)*32);//force to let update caches again with memory content to see the changes
-    Recv_SPI();                                                                 // process received frame
-  }
-}
-
-
-
-/**
-* @brief  This function handles TIM5 interrupt.
-* @param  None
-* @retval None
-*/
-void TIM5_IRQHandler(void)
-{
-  if(LL_TIM_IsActiveFlag_UPDATE(TIM5) == 1) {                                   //If UPDATE interrupt is pending
-    LL_TIM_ClearFlag_UPDATE(TIM5);                                              // Clear the update interrupt flag
-    LL_TIM_DisableCounter(TIM5);                                                // Disable counter
-    LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_12);                                // NSS = 1
-  }
-}
-
-
-
-
-
-/**
-  * @brief  Разбор принятого кадра SPI.
-  *
-  * Проверки идут в два этапа:
-  *   1) ЦЕЛОСТНОСТЬ: аппаратная CRC32 считается по 4 словам кадра и сравнивается
-  *      с переданной. Не сошлась -> spi_badframes++ и ПОЛНАЯ ПЕРЕИНИЦИАЛИЗАЦИЯ
-  *      SPI2 (MX_SPI2_Init) - типовой приём восстановления после рассинхронизации
-  *      по битам, когда ведомый "съехал" на полбайта;
-  *   2) ПОСЛЕДОВАТЕЛЬНОСТЬ: в кадре есть счётчик номера. Если он не равен
-  *      ожидаемому (recv_num_prev+1), кадр считается пропущенным -> spi_lostframes++.
-  * Только при обеих успешных проверках вызывается spi_recv_process().
-  * Перед работой с aRxBuffer обязателен SCB_InvalidateDCache_by_Addr (см. выше
-  * про D-Cache и DMA). В конце буфер очищается, чтобы "старый" кадр не был принят
-  * повторно при сбое приёма.
-  * @param  None
-  * @retval None
-  */
-void Recv_SPI() {
-  recv_num_prev++;                                                              //increment last recv frame number
-  recv_num=(aRxBuffer[1]&0xff);                                                 //frame number
-  spi_recv_p2 = (uint32_t*)&aRxBuffer[2];                                       //recv buffer address
-  __disable_irq ();                                                             //disable IRQ
-  LL_CRC_ResetCRCCalculationUnit(CRC);                                          //init crc32 calc
-  LL_CRC_FeedData32(CRC, aRxBuffer[1]);                                         //add data to crc32
-  LL_CRC_FeedData32(CRC, *spi_recv_p2++);                                       //add data to crc32
-  LL_CRC_FeedData32(CRC, *spi_recv_p2++);                                       //add data to crc32
-  LL_CRC_FeedData32(CRC, *spi_recv_p2++);                                       //add data to crc32
-  spi_recv_CRCValue = ~LL_CRC_ReadData32(CRC);                                  //read calculated crc32
-  __enable_irq ();                                                              //enable IRQ
-  spi_recv_crc32=*spi_recv_p2++;                                                //read frame crc32
-  if(spi_recv_CRCValue == spi_recv_crc32) {                                     //if frame crc correct
-    if (recv_num_prev!=recv_num) {                                              // if frame num not ok
-      spi_lostframes++;                                                         //  increment lost frames counter
-    }
-    else {                                                                      // if frame num ok
-      spi_recv_process ((void*)&aRxBuffer[1]);                                  //  process received frame
-      spi_goodframes++;                                                         //  increment good frames counter
-    }
-  }
-  else {                                                                        //if frame crc bad
-    spi_badframes++;                                                            // increment error frames counter
-    MX_SPI2_Init();                                                             // reinit SPI
-  }
-  recv_num_prev=recv_num;                                                       //store last recv frame number
-  memset(&aRxBuffer[0],0,SPI_RxBufSize*2);                                      //clear recv buffer
-}
-
-
-
-
-
-/*******************************************************************************
-* Function Name  : Send_SPI
-* Description    : Подготовка и запуск передачи кадра SPI.
-*                  Структура кадра (10 полуслов = 20 байт):
-*                    [0]    0x55 (преамбула) | младший байт счётчика кадров
-*                    [1..7] 14 байт данных: [0]=код ответа, [1]=encoder_state,
-*                           [2..5]=угол (float), далее полезная нагрузка команды
-*                    [8..9] CRC32 по первым 16 байтам (аппаратный блок CRC)
-*                  Сама передача НЕ начинается сразу: взводится TIM2 на
-*                  10 + (1000 + случайное 0..4095) * config_state тиков.
-*                  Для головки с config_state==0 это ~0 (мастер шины),
-*                  для второй головки - случайный слот, что исключает коллизии.
-*                  Фактический старт DMA происходит в TIM2_IRQHandler.
-* Input          : trm_buff
-* Output         : None
-* Return         : None
-*******************************************************************************/
-void Send_SPI(unsigned char *trm_buff) {
-  aTxBuffer[0]=(0x55<<8)|(spi_send_cnt&0xff);                                   //preamble and frame number
-  memcpy(&aTxBuffer[1],trm_buff,14);                                            //copy data to send buffer
-  spi_send_p2 = (uint32_t*)&aTxBuffer[0];                                       //init send buffer address
-  __disable_irq ();                                                             //disable IRQ
-  LL_CRC_ResetCRCCalculationUnit(CRC);                                          //init crc32 calc
-  LL_CRC_FeedData32(CRC, *spi_send_p2++);                                       //add data to crc32
-  LL_CRC_FeedData32(CRC, *spi_send_p2++);                                       //add data to crc32
-  LL_CRC_FeedData32(CRC, *spi_send_p2++);                                       //add data to crc32
-  LL_CRC_FeedData32(CRC, *spi_send_p2++);                                       //add data to crc32
-  spi_send_CRCValue = ~LL_CRC_ReadData32(CRC);                                  //read calculated crc32
-   __enable_irq ();                                                             //enable IRQ
-  *spi_send_p2++=spi_send_CRCValue;                                             //write calculated crc32 to send buffer
-  rng_value=HAL_RNG_GetRandomNumber(&RNG_Handle)&0x00000FFF;                    //get random
-  LL_TIM_SetCounter(TIM2, 10+(1000+rng_value)*config_state);                    //Set the timer counter value
-  LL_TIM_EnableCounter(TIM2);                                                   //Enable timer counter
-}
-
-
-
-
-/**
-* @brief  This function handles TIM2 interrupt.
-* @param  None
-* @retval None
-*/
-void TIM2_IRQHandler(void)
-{
-  if(LL_TIM_IsActiveFlag_UPDATE(TIM2) == 1) {                                   //If UPDATE interrupt is pending
-    LL_TIM_ClearFlag_UPDATE(TIM2);                                              // Clear the update interrupt flag
-    LL_TIM_DisableCounter(TIM2);                                                // Disable counter
-    LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_12);                              // NSS = 0
-    LL_SPI_Enable(SPI2);                                                        // Enable SPI2
-    LL_DMA_SetMemoryAddress(DMA1, LL_DMA_STREAM_4, (uint32_t) &aTxBuffer );     // Set TX Memory address
-    LL_DMA_SetDataLength(DMA1, LL_DMA_STREAM_4, SPI_TxBufSize);                 // Set TX Number of data to transfer
-    LL_DMA_SetMemoryAddress(DMA1, LL_DMA_STREAM_3, (uint32_t) &aRxBuffer );     // Set RX Memory address
-    LL_DMA_SetDataLength(DMA1, LL_DMA_STREAM_3, SPI_RxBufSize);                 // Set RX Number of data to transfer
-    SCB_CleanDCache_by_Addr((uint32_t *)aTxBuffer, ((SPI_TxBufSize*2+31)/32)*32 );// force to let update the memory with cache content
-    LL_DMA_EnableStream(DMA1,LL_DMA_STREAM_4);                                  // Start the TX DMA transfer
-    LL_DMA_EnableStream(DMA1,LL_DMA_STREAM_3);                                  // Start the RX DMA transfer
-  }
-}
-
-
-
-
-
-/**
-  * @brief  Диспетчер команд, принятых по SPI.
-  *
-  * БЫСТРЫЕ команды обрабатываются прямо здесь (чтение статуса, температуры,
-  * приём блока данных прошивки, управление калибровками).
-  * МЕДЛЕННЫЕ команды (стирание/запись внешней Flash, расчёт CRC32 по всему
-  * образу - это десятки миллисекунд) только взводят флаг SloCom, а выполняются
-  * в SloComProcess() из главного цикла - иначе сорвалось бы реальное время кадра.
-  *
-  * Команды управления самокалибровкой:
-  *   0x10 - СТОП: сбросить все флаги калибровок, encoder_state = 0x00;
-  *   0x11 - старт прохода 1 калибровки ang_tab (encoder_state = 0x10);
-  *   0x12 - старт прохода 2 калибровки ang_tab (encoder_state = 0x30);
-  *   0x13 - старт калибровки offset (encoder_state = 0x50);
-  *   0x14 - старт калибровки buf_k  (encoder_state = 0x70).
-  *
-  * @param  recv_buff указатель на принятый кадр (команда лежит со смещением 1)
-  * @retval None
-  */
-/*-----------------------------------------------------------------------------------*/
-void spi_recv_process (unsigned char *recv_buff) {
-
-  recv_buff++;
-  command = recv_buff[0];                                                       //command
-  
-  switch (command)  {
-
-
-      //read BadFrames command
-      case spi_ReadBadFrames:
-        s_buf[0]=spi_ReadBadFrames;
-        memcpy(&s_buf[10],&spi_badframes,4);
-        spi_SendBuf2(&s_buf[0],14);
-        break;
-
-      //read temperature command
-      case spi_ReadTemperature:
-        s_buf[0]=spi_ReadTemperature;                                           //response code
-        memcpy(&s_buf[6],&Temperature,4);                                       //read temperature
-        spi_SendBuf2(&s_buf[0],14);                                             //send response
-        break;
-
-
-      //prog start block
-      case spi_ProgStartBlock:
-        memset(&sec_buffer[0],0xff,4096);                                       //clear block buffer
-        s_buf[0]=spi_ProgStartBlock;                                            //response code
-        spi_SendBuf1(&s_buf[0],14);                                             //send response
-        break;
-
-      //prog send data
-      case spi_ProgSendData:
-        memcpy(&prog_offset,&recv_buff[1],2);                                   //read buffer offset
-        if (prog_offset>4092) prog_offset=4092;                                 //limit offset
-        memcpy(&sec_buffer[prog_offset],&recv_buff[3],4);                       //copy buffer fragment
-        s_buf[0]=spi_ProgSendData;                                              //response code
-        memcpy(&s_buf[6],&recv_buff[1],6);                                      //response data
-        spi_SendBuf1(&s_buf[0],14);                                             //send response
-        break;
-
-      //prog end block
-      case spi_ProgEndBlock:
-        memcpy(&prog_crc,&recv_buff[1],2);                                      //read block crc16
-        memcpy(&prog_len,&recv_buff[3],2);                                      //read block length
-        memcpy(&prog_addr,&recv_buff[5],4);                                     //read block address
-        SloCom=spi_ProgEndBlock;
-        break;
-
-      //prog update header
-      case spi_ProgUpdateHeader:
-        memcpy(&update_len,&recv_buff[1],4);                                    //read update length
-        memcpy(&update_crc,&recv_buff[5],4);                                    //read update crc32
-        memcpy(&update_time,&recv_buff[9],4);                                   //read update time
-        SloCom=spi_ProgUpdateHeader;
-        break;
-
-      //prog update check
-      case spi_ProgUpdateCheck:
-        SloCom=spi_ProgUpdateCheck;
-        break;
-
-      //prog update check2
-      case spi_ProgUpdateCheck2:
-        s_buf[0]=spi_ProgUpdateCheck2;                                          //response code
-        memcpy(&s_buf[6],&update_crc,4);                                        //update crc
-        memcpy(&s_buf[10],&update_time,4);                                      //update time
-        spi_SendBuf1(&s_buf[0],14);                                             //send response
-        break;
-
-      //execute boot command
-      case spi_ProgExecBoot:
-        s_buf[0]=spi_ProgExecBoot;                                              //response code
-        s_buf[6]=0;                                                             //error code
-        spi_SendBuf1(&s_buf[0],14);                                             //send response
-        SloCom=spi_ProgExecBoot;
-        break;
-
-      //check soft version command
-      case spi_ProgGetVersion:
-        s_buf[0]=spi_ProgGetVersion;                                            //response code
-        memcpy(&s_buf[6],&update_version,2);                                    //update version
-        memcpy(&s_buf[8],&prog_errcode,1);                                      //read errcode
-        spi_SendBuf2(&s_buf[0],14);                                             //send response
-        break;
-
-
-
-
-      /* --- Управление самокалибровкой ----------------------------------
-         Последовательность полной калибровки изделия:
-           0x14 (buf_k) -> ждать 0x80  ->  0x13 (offset) -> ждать 0x60  ->
-           0x11 (проход 1 ang_tab) -> ждать 0x20  ->  0x12 (проход 2) -> ждать 0x40.
-         Всё это время вал должен равномерно вращаться.                      */
-
-      //stop calibration
-      case 0x10:
-        start_calibrate=0;
-        auto_cal=0;
-        start_offset_cal=0;
-        cycles_max=0;
-        encoder_state=0x00;
-        break;
-          
-      //angle calibration right
-      case 0x11:
-        start_calibrate=1;
-        encoder_state=0x10;
-        break;
-
-      //angle calibration left
-      case 0x12:
-        start_calibrate=2;
-        encoder_state=0x30;
-        break;
-
-
-      //offset calibration
-      case 0x13:
-        start_offset_cal=1;
-        avg_minmax_num=0;
-        offset_phase=0;
-        for (int i=0;i<=127;i++) {
-          offset_minmax[i]=1;
-        }
-        offset_cur=offset_start;
-        encoder_state=0x50;
-        break;
-        
-      //bufk calibration
-      case 0x14:
-        start_angk_cal=1;
-        avg_minmax_num=0;
-        for (int i=0;i<128;i++) buf_x3[i]=0;
-        anglek_phase=0;
-        backlight_width_en=0;
-        encoder_state=0x70;
-        break;
-     
-        
-      default:
-        break;
-
-    }
-
-
-
-
-}
-
-
-
-
-
-
-
-
-/**
-  * @brief  Free all buffers SPI
-  * @param  None
-  * @retval None
-  */
-
-void spi_FreeAll() {
-  
-  spi_buf1.used=0;
-  spi_buf2.used=0;
-  
-} 
-
-
-
-
-
-/**
-  * @brief  This function puts data to send buffer SPI
-  * @param  data: pointer to data
-  *         len:  length of data
-    * @retval 0: data sent to buffer
-  *         -1: error occurred
-  */
-
-int spi_SendBuf1(unsigned char *data, unsigned char len) {
-
-  if ( (len>16) || (len<1)) {                            //error - invalid length
-    return -2;
-  }
-  
-  if (spi_buf1.used==0) {
-    spi_buf1.used=1;
-    spi_buf1.len=len;
-    memcpy(&spi_buf1.data[0], data, len);
-    return 0;                                           //data sent to buffer
-  }
-
-  return -1;                                            //error - no free buffer
- 
-}
-
-
-
-/**
-  * @brief  This function puts data to send buffer SPI
-  * @param  data: pointer to data
-  *         len:  length of data
-    * @retval 0: data sent to buffer
-  *         -1: error occurred
-  */
-
-int spi_SendBuf2(unsigned char *data, unsigned char len) {
-
-  if ( (len>16) || (len<1)) {                            //error - invalid length
-    return -2;
-  }
-  
-  if (spi_buf2.used==0) {
-    spi_buf2.used=1;
-    spi_buf2.len=len;
-    memcpy(&spi_buf2.data[0], data, len);
-    return 0;                                           //data sent to buffer
-  }
-
-  return -1;                                            //error - no free buffer
- 
-}
-
-
-
-
-
-/**
-  * @brief  Отправка одного кадра SPI за вызов (один кадр линейки = один кадр SPI).
-  *
-  * Приоритет: сначала очередь spi_buf1 (быстрые ответы), затем spi_buf2 (ответы
-  * медленных команд), а если обе пусты - отправляется телеметрия spi_ReadStatus.
-  * В ЛЮБОЙ кадр независимо от команды подставляются:
-  *   data[1]    = encoder_state (код состояния/этапа калибровки),
-  *   data[2..5] = cur_ang_E (последний достоверный угол, float).
-  * Поэтому мастер может следить за ходом калибровки, просто слушая поток кадров.
-  * @param  None
-  * @retval None
-  */
-
-void spi_SendExec() {
-    
-  if (spi_buf1.used==1) {
-    spi_buf1.used=0;
-    spi_buf1.data[1]=encoder_state;                                             //state
-    memcpy(&spi_buf1.data[2],&cur_ang_E,4);                                     //angle
-    Send_SPI(&spi_buf1.data[0]);
-  }
-  else if (spi_buf2.used==1) {
-    spi_buf2.used=0;
-    spi_buf2.data[1]=encoder_state;                                             //state
-    memcpy(&spi_buf2.data[2],&cur_ang_E,4);                                     //angle
-    Send_SPI(&spi_buf2.data[0]);
-  }
-  else {
-    TxBuffer[0]=spi_ReadStatus;                                                 //command
-    TxBuffer[1]=encoder_state;                                                  //state
-    memcpy(&TxBuffer[2],&cur_ang_E,4);                                          //angle
-    Send_SPI(TxBuffer);
-  }
-  
-}
 
 
 

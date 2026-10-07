@@ -58,12 +58,6 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 
 
-//------------------------- REM_BUF --------------------------
-typedef  struct  rem_buf {
-    unsigned char used;
-    unsigned char data[16];                         /*                                                 */
-    unsigned char len;                               /*                                                */
-} REM_BUF;                                        
 
 
 
@@ -72,27 +66,12 @@ typedef  struct  rem_buf {
 
 
 
-#define SPI_RxBufSize  10
-#define SPI_TxBufSize  10
 
 
 
 
 
-#define spi_ReadStatus		        0x25		                        //read status command
-#define spi_ReadBadFrames	        0x61		                        //read badframes command
-#define spi_ReadTemperature	        0x62		                        //read temperature command
 
-#define spi_ProgSendData	        0x71		                        //prog send data
-#define spi_ProgStartBlock	        0x72		                        //prog start block
-#define spi_ProgEndBlock	        0x73		                        //prog end block
-#define spi_ProgUpdateHeader	        0x74		                        //prog update header
-#define spi_ProgUpdateCheck	        0x75		                        //prog update check
-#define spi_ProgUpdateCheck2	        0x76		                        //prog update check2
-#define spi_ProgFlash   	        0x77		                        //program update to FLASH
-#define spi_ProgExecWork    	        0x78		                        //execute updated soft command
-#define spi_ProgGetVersion              0x79		                        //check soft version command
-#define spi_ProgExecBoot    	        0x7a		                        //execute boot soft command
 
 
 
