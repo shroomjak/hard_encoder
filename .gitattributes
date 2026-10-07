@@ -1,0 +1,7 @@
+# Keep C/H sources in CP1251 on disk (Russian comments). Git stores bytes as-is.
+*.c text working-tree-encoding=CP1251
+*.h text working-tree-encoding=CP1251
+
+# UTF-8 for tooling / docs
+*.md text eol=lf
+*.json text eol=lf
