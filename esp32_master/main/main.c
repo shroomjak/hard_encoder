@@ -122,16 +122,16 @@ static void poll_heads(uint16_t seq)
             continue;
         }
         /* Пары 16-битных регистров передаются старшим словом первым.
-         * Угол — uint32 миллиградусов, sample и time_ms — uint32.
+         * Угол — uint32 микроградусов, sample и time_ms — uint32.
          * tick_ms каждой головки считается от ЕЁ перезагрузки; он не
          * синхронизирован со временем другой головки или ESP32. */
-        uint32_t mdeg = ((uint32_t)r[2] << 16) | r[3];
+        uint32_t udeg = ((uint32_t)r[2] << 16) | r[3];
         uint32_t sample = ((uint32_t)r[7] << 16) | r[8];
         uint32_t time_ms = ((uint32_t)r[9] << 16) | r[10];
-        ESP_LOGI(TAG, "DATA id=%u seq=%u angle=%u.%03u deg sector=%u "
+        ESP_LOGI(TAG, "DATA id=%u seq=%u angle=%u.%06u deg sector=%u "
                  "error=%u encoder_state=0x%02x sample=%lu tick_ms=%lu",
-                 (unsigned)head_ids[i], (unsigned)seq, (unsigned)(mdeg / 1000),
-                 (unsigned)(mdeg % 1000), (unsigned)r[4], (unsigned)r[5],
+                 (unsigned)head_ids[i], (unsigned)seq, (unsigned)(udeg / 1000000U),
+                 (unsigned)(udeg % 1000000U), (unsigned)r[4], (unsigned)r[5],
                  (unsigned)r[6], (unsigned long)sample, (unsigned long)time_ms);
     }
 }
