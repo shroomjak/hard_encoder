@@ -48,7 +48,7 @@ static void *master;
  * запросе задаётся отдельно. Полученные слова обрабатываются вручную. */
 static const mb_parameter_descriptor_t descriptor[] = {
     {0, "snapshot", "", 1, MB_PARAM_INPUT, 0, REG_COUNT, 0,
-     PARAM_TYPE_U16, 2, {0}, PAR_PERMS_READ}
+     PARAM_TYPE_U16, 2, {{0}}, PAR_PERMS_READ}
 };
 
 /* Общая оболочка стандартного запроса Modbus. first — адрес регистра на
