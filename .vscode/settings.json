@@ -10,5 +10,6 @@
   },
   "files.associations": {
     "*.h": "c"
-  }
+  },
+  "cmake.sourceDirectory": "C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/esp32_master"
 }
