@@ -49,6 +49,11 @@ int main(void)
     send_request(read, 6);
     assert(sent_len==27 && sent[0]==1 && sent[1]==4 && sent[2]==22);
     assert(sent[3]==0 && sent[4]==42 && sent[5]==0 && sent[6]==1);
+    /* Decode bytes exactly as the master decodes high/low FC04 words. */
+    uint32_t angle_udeg = (uint32_t)sent[7] << 24 | (uint32_t)sent[8] << 16
+                          | (uint32_t)sent[9] << 8 | sent[10];
+    assert(angle_udeg == 90500000U);
+    assert(angle_udeg / 1000000U == 90U && angle_udeg % 1000000U == 500000U);
     assert(usMBCRC16(sent, sent_len)==0);
     sent_len=0;
     UCHAR other[16]={2,4,0,0,0,2};

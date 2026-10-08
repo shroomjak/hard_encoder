@@ -2,6 +2,7 @@
 #define SNAPSHOT_REGISTERS_H
 #include <stdint.h>
 /* Адреса входных регистров FC04 на линии отсчитываются от нуля.
+ * Угол — uint32 в микроградусах (1° = 1000000), регистры 2–3.
  * У 32-битных значений первым идёт старший 16-битный регистр. */
 enum { SNAP_SEQ, SNAP_READY, SNAP_ANGLE_HI, SNAP_ANGLE_LO, SNAP_SECTOR,
        SNAP_ERROR, SNAP_ENCODER_STATE, SNAP_SAMPLE_HI, SNAP_SAMPLE_LO,
