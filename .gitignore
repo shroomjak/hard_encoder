@@ -60,3 +60,7 @@ esp32_master/managed_components/
 esp32_master/sdkconfig
 esp32_master/sdkconfig.old
 esp32_master/dependencies.lock
+
+# Хостовые скрипты (tools/, tests/*.py) — кэш интерпретатора.
+__pycache__/
+*.pyc

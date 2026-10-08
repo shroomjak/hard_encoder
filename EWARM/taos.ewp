@@ -1522,6 +1522,9 @@
             <name>$PROJ_DIR$\..\Src\modbus_port.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\Src\modbus_calib.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\Src\modbus_registers.c</name>
         </file>
         <file>

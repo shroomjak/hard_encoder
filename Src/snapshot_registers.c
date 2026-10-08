@@ -94,3 +94,14 @@ uint16_t snapshot_register(uint16_t address)
     default: return 0;
     }
 }
+
+/*
+ * Живой счётчик кадров, а не счётчик зафиксированного снимка: latest.sample
+ * растёт на каждый обработанный кадр АЦП, независимо от того, было ли вещание
+ * SNAP. Блок калибровки по нему отличает «прогресс встал» от «головка вообще не
+ * видит кадров» — см. docs/calibration_modbus.md §7.
+ */
+uint32_t snapshot_publish_count(void)
+{
+    return latest.sample;
+}

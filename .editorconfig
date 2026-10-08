@@ -11,14 +11,24 @@ insert_final_newline = true
 [*.{md,json,yml,yaml,xml}]
 charset = utf-8
 
-[Src/{modbus_port,modbus_registers,snapshot_registers}.c]
+[Src/{modbus_port,modbus_registers,modbus_calib,snapshot_registers}.c]
 charset = utf-8
 end_of_line = lf
 
-[Inc/{modbus_board,port,snapshot_registers}.h]
+[Inc/{encoder_vars,modbus_board,modbus_calib,port,snapshot_registers}.h]
 charset = utf-8
 end_of_line = lf
 
 [esp32_master/**]
 charset = utf-8
 end_of_line = lf
+
+# Хостовые тесты, утилиты и скрипты — UTF-8/LF (IAR их не собирает).
+[tests/**.{c,h,py,sh}]
+charset = utf-8
+end_of_line = lf
+
+[tools/**.py]
+charset = utf-8
+end_of_line = lf
+
