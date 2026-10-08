@@ -1113,6 +1113,9 @@
                 <name>$PROJ_DIR$\..\Inc\main.h</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\Inc\port.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\Inc\stm32f7xx_hal_conf.h</name>
             </file>
             <file>
@@ -1121,34 +1124,7 @@
             <file>
                 <name>$PROJ_DIR$\..\Src\stm32f7xx_it.c</name>
             </file>
-            <file>
-                <name>$PROJ_DIR$\..\Src\modbus_port.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\Src\modbus_slave.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\Inc\modbus_port.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\Inc\modbus_slave.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\Inc\port.h</name>
-            </file>
         </group>
-    </group>
-    <group>
-        <name>Modbus RTU</name>
-        <file><name>$PROJ_DIR$\..\Src\modbus_port.c</name></file>
-        <file><name>$PROJ_DIR$\..\Src\modbus_registers.c</name></file>
-        <file><name>$PROJ_DIR$\..\Src\snapshot_registers.c</name></file>
-        <file><name>$PROJ_DIR$\..\ThirdParty\FreeModbus\mb.c</name></file>
-        <file><name>$PROJ_DIR$\..\ThirdParty\FreeModbus\rtu\mbrtu.c</name></file>
-        <file><name>$PROJ_DIR$\..\ThirdParty\FreeModbus\rtu\mbcrc.c</name></file>
-        <file><name>$PROJ_DIR$\..\ThirdParty\FreeModbus\functions\mbfuncholding.c</name></file>
-        <file><name>$PROJ_DIR$\..\ThirdParty\FreeModbus\functions\mbfuncinput.c</name></file>
-        <file><name>$PROJ_DIR$\..\ThirdParty\FreeModbus\functions\mbutils.c</name></file>
     </group>
     <group>
         <name>Drivers</name>
@@ -1521,5 +1497,35 @@
                 </settings>
             </configuration>
         </group>
+    </group>
+    <group>
+        <name>Modbus RTU</name>
+        <file>
+            <name>$PROJ_DIR$\..\ThirdParty\FreeModbus\mb.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\ThirdParty\FreeModbus\rtu\mbcrc.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\ThirdParty\FreeModbus\functions\mbfuncholding.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\ThirdParty\FreeModbus\functions\mbfuncinput.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\ThirdParty\FreeModbus\rtu\mbrtu.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\ThirdParty\FreeModbus\functions\mbutils.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Src\modbus_port.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Src\modbus_registers.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Src\snapshot_registers.c</name>
+        </file>
     </group>
 </project>

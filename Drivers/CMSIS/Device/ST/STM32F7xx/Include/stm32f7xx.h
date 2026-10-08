@@ -209,6 +209,37 @@ typedef enum
 
 #define MODIFY_REG(REG, CLEARMASK, SETMASK)  WRITE_REG((REG), (((READ_REG(REG)) & (~(CLEARMASK))) | (SETMASK)))
 
+#ifndef ATOMIC_SET_BIT
+#define ATOMIC_SET_BIT(REG, BIT)                           \
+  do {                                                    \
+    uint32_t atomic_value;                                \
+    do {                                                  \
+      atomic_value = __LDREXW(&(REG)) | (BIT);             \
+    } while (__STREXW(atomic_value, &(REG)) != 0U);         \
+  } while (0)
+#endif
+
+#ifndef ATOMIC_CLEAR_BIT
+#define ATOMIC_CLEAR_BIT(REG, BIT)                         \
+  do {                                                    \
+    uint32_t atomic_value;                                \
+    do {                                                  \
+      atomic_value = __LDREXW(&(REG)) & ~(BIT);            \
+    } while (__STREXW(atomic_value, &(REG)) != 0U);         \
+  } while (0)
+#endif
+
+#ifndef ATOMIC_MODIFY_REG
+#define ATOMIC_MODIFY_REG(REG, CLEARMASK, SETMASK)         \
+  do {                                                    \
+    uint32_t atomic_value;                                \
+    do {                                                  \
+      atomic_value =                                     \
+          (__LDREXW(&(REG)) & ~(CLEARMASK)) | (SETMASK);    \
+    } while (__STREXW(atomic_value, &(REG)) != 0U);         \
+  } while (0)
+#endif
+
 #define POSITION_VAL(VAL)     (__CLZ(__RBIT(VAL)))
 
 /**

@@ -45985,6 +45985,732 @@ void eeprom_write_byte(uint16_t eeprom_address, unsigned char value);
 
 
  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+ 
+ 
+ 
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+  #pragma system_include
+
+ 
+ 
+
+ 
+
+  #pragma system_include
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+    #pragma no_bounds
+    __intrinsic __nounwind void __aeabi_assert(char const *, char const *, int);
+  #pragma no_bounds
+  __intrinsic __nounwind int  __iar_ReportAssert(const char *, const char *,
+                                       const char *, const char *);
+  _Pragma("object_attribute = __weak")
+  __intrinsic __nounwind void __iar_EmptyStepPoint(void);
+
+
+    
+ 
+
+
+
+
+
+
+
+ 
+typedef uint8_t BOOL;
+typedef uint8_t UCHAR;
+typedef char CHAR;
+typedef uint16_t USHORT;
+typedef int16_t SHORT;
+typedef uint32_t ULONG;
+typedef int32_t LONG;
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+ 
+
+typedef enum
+{
+    EV_READY,                    
+    EV_FRAME_RECEIVED,           
+    EV_EXECUTE,                  
+    EV_FRAME_SENT                
+} eMBEventType;
+
+
+
+
+
+
+
+ 
+typedef enum
+{
+    MB_PAR_NONE,                 
+    MB_PAR_ODD,                  
+    MB_PAR_EVEN                  
+} eMBParity;
+
+ 
+BOOL            xMBPortEventInit( void );
+
+BOOL            xMBPortEventPost( eMBEventType eEvent );
+
+BOOL            xMBPortEventGet(    eMBEventType * eEvent );
+
+ 
+
+BOOL            xMBPortSerialInit( UCHAR ucPort, ULONG ulBaudRate,
+                                   UCHAR ucDataBits, eMBParity eParity,
+                                   UCHAR ucStopBits );
+
+void            vMBPortClose( void );
+
+void            xMBPortSerialClose( void );
+
+void            vMBPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable );
+
+BOOL            xMBPortSerialGetByte( CHAR * pucByte );
+
+BOOL            xMBPortSerialPutByte( CHAR ucByte );
+
+ 
+BOOL            xMBPortTimersInit( USHORT usTimeOut50us );
+
+void            xMBPortTimersClose( void );
+
+void            vMBPortTimersEnable( void );
+
+void            vMBPortTimersDisable( void );
+
+void            vMBPortTimersDelay( USHORT usTimeOutMS );
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+extern          BOOL( *pxMBFrameCBByteReceived ) ( void );
+
+extern          BOOL( *pxMBFrameCBTransmitterEmpty ) ( void );
+
+extern          BOOL( *pxMBPortCBTimerExpired ) ( void );
+
+ 
+BOOL            xMBTCPPortInit( USHORT usTCPPort );
+
+void            vMBTCPPortClose( void );
+
+void            vMBTCPPortDisable( void );
+
+BOOL            xMBTCPPortGetRequest( UCHAR **ppucMBTCPFrame, USHORT * usTCPLength );
+
+BOOL            xMBTCPPortSendResponse( const UCHAR *pucMBTCPFrame, USHORT usTCPLength );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+ 
+ 
+    typedef enum
+{
+    MB_EX_NONE = 0x00,
+    MB_EX_ILLEGAL_FUNCTION = 0x01,
+    MB_EX_ILLEGAL_DATA_ADDRESS = 0x02,
+    MB_EX_ILLEGAL_DATA_VALUE = 0x03,
+    MB_EX_SLAVE_DEVICE_FAILURE = 0x04,
+    MB_EX_ACKNOWLEDGE = 0x05,
+    MB_EX_SLAVE_BUSY = 0x06,
+    MB_EX_MEMORY_PARITY_ERROR = 0x08,
+    MB_EX_GATEWAY_PATH_FAILED = 0x0A,
+    MB_EX_GATEWAY_TGT_FAILED = 0x0B
+} eMBException;
+
+typedef         eMBException( *pxMBFunctionHandler ) ( UCHAR * pucFrame, USHORT * pusLength );
+
+typedef struct
+{
+    UCHAR           ucFunctionCode;
+    pxMBFunctionHandler pxHandler;
+} xMBFunctionHandler;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+ 
+
+
+
+ 
+
+ 
+
+
+
+
+
+
+
+ 
+    typedef enum
+{
+    MB_RTU,                      
+    MB_ASCII,                    
+    MB_TCP                       
+} eMBMode;
+
+
+
+
+
+
+
+
+
+
+
+ 
+typedef enum
+{
+    MB_REG_READ,                 
+    MB_REG_WRITE                 
+} eMBRegisterMode;
+
+
+
+ 
+typedef enum
+{
+    MB_ENOERR,                   
+    MB_ENOREG,                   
+    MB_EINVAL,                   
+    MB_EPORTERR,                 
+    MB_ENORES,                   
+    MB_EIO,                      
+    MB_EILLSTATE,                
+    MB_ETIMEDOUT                 
+} eMBErrorCode;
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+eMBErrorCode    eMBInit( eMBMode eMode, UCHAR ucSlaveAddress,
+                         UCHAR ucPort, ULONG ulBaudRate, eMBParity eParity,
+                         UCHAR ucStopBits );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+eMBErrorCode    eMBTCPInit( USHORT usTCPPort );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+eMBErrorCode    eMBClose( void );
+
+
+
+
+
+
+
+
+
+
+ 
+eMBErrorCode    eMBEnable( void );
+
+
+
+
+
+
+
+
+
+ 
+eMBErrorCode    eMBDisable( void );
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+eMBErrorCode    eMBPoll( void );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+eMBErrorCode    eMBSetSlaveID( UCHAR ucSlaveID, BOOL xIsRunning,
+                               UCHAR const *pucAdditional,
+                               USHORT usAdditionalLen );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+eMBErrorCode    eMBRegisterCB( UCHAR ucFunctionCode, 
+                               pxMBFunctionHandler pxHandler );
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+eMBErrorCode    eMBRegInputCB( UCHAR * pucRegBuffer, USHORT usAddress,
+                               USHORT usNRegs );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+eMBErrorCode    eMBRegHoldingCB( UCHAR * pucRegBuffer, USHORT usAddress,
+                                 USHORT usNRegs, eMBRegisterMode eMode );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+eMBErrorCode    eMBRegCoilsCB( UCHAR * pucRegBuffer, USHORT usAddress,
+                               USHORT usNCoils, eMBRegisterMode eMode );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+eMBErrorCode    eMBRegDiscreteCB( UCHAR * pucRegBuffer, USHORT usAddress,
+                                  USHORT usNDiscrete );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+eMBErrorCode    eMBRegFileCB( UCHAR * pucFileBuffer, USHORT usFileNumber,
+                              USHORT usRecordNumber, USHORT usRecordLength,
+							  eMBRegisterMode eMode );
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+ 
+enum { SNAP_SEQ, SNAP_READY, SNAP_ANGLE_HI, SNAP_ANGLE_LO, SNAP_SECTOR,
+       SNAP_ERROR, SNAP_ENCODER_STATE, SNAP_SAMPLE_HI, SNAP_SAMPLE_LO,
+       SNAP_TIME_HI, SNAP_TIME_LO, SNAP_REG_COUNT };
+ 
+void snapshot_publish(float angle_deg, uint16_t sector, uint8_t error,
+                      uint8_t encoder_state, uint32_t tick_ms);
+ 
+void snapshot_latch(uint16_t seq);
+ 
+uint16_t snapshot_register(uint16_t address);
  
  
 
@@ -55617,295 +56343,7 @@ float BR4_C (float *mas, int centor_int)
 }
 
 
-
-
-
-
-
-
-
  
-
-
-
-
-
-
-
-
-
-
- 
-float calc (float *mas, int centor_int)
-{
-  leftx[centor_int-4]=mas[centor_int-4];
-  leftx[centor_int-3]=leftx[centor_int-4]+mas[centor_int-3];
-  leftx[centor_int-2]=leftx[centor_int-3]+mas[centor_int-2];
-  leftx[centor_int-1]=leftx[centor_int-2]+mas[centor_int-1];
-  leftx[centor_int]=leftx[centor_int-1]+mas[centor_int];
-  leftx[centor_int+1]=leftx[centor_int]+mas[centor_int+1];
-  leftx[centor_int+2]=leftx[centor_int+1]+mas[centor_int+2];
-  leftx[centor_int+3]=leftx[centor_int+2]+mas[centor_int+3];
-  leftx[centor_int+4]=leftx[centor_int+3]+mas[centor_int+4];
-  
-  halfsum=leftx[centor_int+4]/2;
-  
-  for (int i=centor_int-4;i<=centor_int+4;i++) {
-    if (leftx[i]>halfsum) {
-      leftfind=i;
-      break;
-    }
-  }
-  return (float)leftfind-(leftx[leftfind]-halfsum)/(leftx[leftfind]-leftx[leftfind-1])+0.5;
-}
-
-
-
-
-
- 
- 
-float INTEGRAL (float *mas, int centor_int)
-{
-  float S[7] = 
-  {0.0297518919281908, 0.114768212171568, 0.358813823431494, 
-  0.641186176568506, 0.885231787828432, 0.970248108071809, 1};
-  float a = 26.617, b = 6.1341, c = 0.2545, d = 3.9292; 
-  float centor = centor_int;
-  float SP[7],SP1[7];
-  float SSS = mas[centor_int - 3] + mas[centor_int - 2] + mas[centor_int - 1] 
-    + mas[centor_int - 0] + mas[centor_int + 1] + mas[centor_int + 2] + mas[centor_int + 3];
-  
-  SP[3] = (mas[centor_int - 3] + mas[centor_int - 2] + mas[centor_int - 1] 
-           + mas[centor_int - 0] ) / SSS;
-  SP1[3] = (mas[centor_int - 0] + mas[centor_int + 1] + mas[centor_int + 2] 
-            + mas[centor_int + 3]) / SSS;     
-  SP1[4] = (mas[centor_int - 3] + mas[centor_int - 2] + mas[centor_int - 0] + mas[centor_int + 1] ) / SSS;
-  
-  SP[2] = ( mas[centor_int - 1] + mas[centor_int - 0] + mas[centor_int + 2] + mas[centor_int + 3]) / SSS;
-      
-
-  float A0 = S[3] - SP[3];
-  float A10 = S[3] - SP1[3];
-  float A01 = S[2] - SP[2];
-  float A101 = S[4] - SP1[4];
-  float H0 = - a * A0 * A0 * A0 * A0 + b * A0 * A0 * A0 - c * A0 * A0 + d * A0;
-  float H10 = a * A10 * A10 * A10 * A10 - b * A10 * A10 * A10 + c * A10 * A10 - d * A10;
-  float H101 = - a * A101 * A101 * A101 * A101 - b * A101 * A101 * A101 - c * A101 * A101 - d * A101;
-  float H01 = a * A01 * A01 * A01 * A01 + b * A01 * A01 * A01 + c * A01 * A01 + d * A01;
-    
-  return 0.5 + centor + (H0 + H10 + H101 + H01)/4;  
-}
-
-
-
-
-
- 
- 
-float KVADRATURA (float *mas, int centor_int)
-{
-  float g1 = mas[centor_int] * mas[centor_int];
-  float g0 = (centor_int) * mas[centor_int] * mas[centor_int];
-  
-  for (unsigned char i=1;i<=2;i++) {
-      g0 = g0 + (centor_int + i) * mas[centor_int + i] * mas[centor_int + i];
-      g0 = g0 + (centor_int - i) * mas[centor_int - i] * mas[centor_int - i];
-      
-      g1 = g1 + mas[centor_int + i] * mas[centor_int + i];
-      g1 = g1 + mas[centor_int - i] * mas[centor_int - i];
-  }
-  
-  return g0 / g1;
-}
-
-
-
-
-
- 
- 
-float CENTR_OF_MASS (float *mas, int centor_int)
-{
-  float g1 = mas[centor_int];
-  float g0 = (centor_int) * mas[centor_int];
-  
-  for (unsigned char i=1;i<=2;i++) {
-      g0 = g0 + (centor_int + i) * mas[centor_int + i];
-      g0 = g0 + (centor_int - i) * mas[centor_int - i];
-      
-      g1 = g1 + mas[centor_int + i];
-      g1 = g1 + mas[centor_int - i];
-  }
-  
- return g0 / g1;
-}
-
-
-
-
-
- 
- 
-float BR4_F (float *mas, int centor_int)
-{
-  float ampl;
-  float g1, g0;
-  delta=0;
-
-  float massi [128]={0};
-  for (int i = -3; i <= 3; i++)
-  massi[centor_int+i] = filt_a * mas[centor_int-0+i] + filt_b * ( mas[centor_int-1+i] +  mas[centor_int+1+i]) +
-      filt_c * (mas[centor_int-2+i] +  mas[centor_int+2+i]);
-   
-  if (massi[centor_int+1] >= massi[centor_int-1]) {
-    g0 = massi[centor_int-2] + massi[centor_int-1] - massi[centor_int+1] - massi[centor_int+2];
-    g1 = massi[centor_int-1] + massi[centor_int] - massi[centor_int+2] - massi[centor_int+3];
-  }
-  else {
-    g0 = massi[centor_int-3] + massi[centor_int-2] - massi[centor_int] - massi[centor_int+1];
-    g1 = massi[centor_int-2] + massi[centor_int-1] - massi[centor_int+1] - massi[centor_int+2];
-    centor_int = centor_int - 1;
-  }    
-  if (g0==g1) 
-    g0++;
-  
-   
-  delta+=100*g0/(g0-g1)+100; 
-  if(delta>=0 && delta<200) ampl=delta_cor[delta];
-  else ampl=0.;
-
-  ampl=0;
-
-  return centor_int+g0/(g0-g1) - ampl;
-  
-
-}
-
- 
-
-
-
-
- 
- 
-float BR6 (float *mas, int centor_int)
-{
-  float g1, g0, ampl;
-  delta=0;
-  ampl=0;
-  
-  if (mas[centor_int+1] >= mas[centor_int-1]) {
-    g0 = mas[centor_int-3] + mas[centor_int-2] + mas[centor_int-1] - mas[centor_int+1] - mas[centor_int+2] - mas[centor_int+3];
-    g1 = mas[centor_int-2] + mas[centor_int-1] + mas[centor_int] - mas[centor_int+2] - mas[centor_int+3] - mas[centor_int+4];
-  }
-  else {
-    g0 = mas[centor_int-4] + mas[centor_int-3] + mas[centor_int-2] - mas[centor_int] - mas[centor_int+1] - mas[centor_int+2];
-    g1 = mas[centor_int-3] + mas[centor_int-2] + mas[centor_int-1] - mas[centor_int+1] - mas[centor_int+2] - mas[centor_int+3];
-    centor_int = centor_int - 1;
-    delta=-100;
-  }    
-  if (g0==g1) g0++;
-
-  
-  delta+=100*g0/(g0-g1)+100; 
-  if(delta>=0 && delta<200) ampl=delta_cor[delta];
-  else ampl=0.;
-
- 
-  
-  return centor_int+g0/(g0-g1)-ampl;
-}
- 
-
-
-
-
- 
- 
-float BR6_F (float *mas, int centor_int)
-{
-  float g1, g0, ampl;
-  delta=0;
-  ampl=0;
-  
-  float massi [128]={0};
-  for (int i = -4; i <= 4; i++)
-  massi[centor_int+i] = filt_a * mas[centor_int-0+i] + filt_b * ( mas[centor_int-1+i] +  mas[centor_int+1+i]) +
-      filt_c * (mas[centor_int-2+i] +  mas[centor_int+2+i]);
-  
-  if (massi[centor_int+1] >= massi[centor_int-1]) {
-    g0 = massi[centor_int-3] + massi[centor_int-2] + massi[centor_int-1] - massi[centor_int+1] - massi[centor_int+2] - massi[centor_int+3];
-    g1 = massi[centor_int-2] + massi[centor_int-1] + massi[centor_int] - massi[centor_int+2] - massi[centor_int+3] - massi[centor_int+4];
-  }
-  else {
-    g0 = massi[centor_int-4] + massi[centor_int-3] + massi[centor_int-2] - massi[centor_int] - massi[centor_int+1] - massi[centor_int+2];
-    g1 = massi[centor_int-3] + massi[centor_int-2] + massi[centor_int-1] - massi[centor_int+1] - massi[centor_int+2] - massi[centor_int+3];
-    centor_int = centor_int - 1;
-  }    
-  if (g0==g1) 
-    g0++;
-
-  
-  delta+=100*g0/(g0-g1)+100; 
-  if(delta>=0 && delta<200) ampl=delta_cor[delta];
-  else ampl=0.;
-
- 
-  
-  return centor_int+g0/(g0-g1)-ampl;
-}
- 
-float BR8 (float *mas, int centor_int)
-{
-  float g1, g0, ampl;
-  delta=0;
-  ampl=0;
-  
-  if (mas[centor_int+1] >= mas[centor_int-1]) {
-    g0 = mas[centor_int-4] + mas[centor_int-3] + mas[centor_int-2] + mas[centor_int-1] - mas[centor_int+1] - mas[centor_int+2] - mas[centor_int+3] - mas[centor_int+4];
-    g1 = mas[centor_int-3] + mas[centor_int-2] + mas[centor_int-1] + mas[centor_int] - mas[centor_int+2] - mas[centor_int+3] - mas[centor_int+4] - mas[centor_int+5];
-  }
-  else {
-    g0 = mas[centor_int-5] + mas[centor_int-4] + mas[centor_int-3] + mas[centor_int-2] - mas[centor_int] - mas[centor_int+1] - mas[centor_int+2] - mas[centor_int+3];
-    g1 = mas[centor_int-4] + mas[centor_int-3] + mas[centor_int-2] + mas[centor_int-1] - mas[centor_int+1] - mas[centor_int+2] - mas[centor_int+3] - mas[centor_int+4];
-    centor_int = centor_int - 1;
-    delta=-100;    
-  }    
-  if (g0==g1) 
-    g0++;
-  
-  
-  delta+=100*g0/(g0-g1)+100; 
-  if(delta>=0 && delta<200) ampl=delta_cor[delta];
-  else ampl=0.;
-
- 
-  
-  return centor_int+g0/(g0-g1)-ampl;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -57306,7 +57744,8 @@ int main(void)
 
   
   SystemClock_Config();
-
+  HAL_ResumeTick();
+    
   
   SCB_EnableICache();
   SCB_EnableDCache();
@@ -57321,6 +57760,11 @@ int main(void)
   MX_I2C3_Init();
 
   init_vars();                                                                  
+
+  
+ 
+  if (eMBInit(MB_RTU, 1U, 1, 115200U, MB_PAR_EVEN, 1) != MB_ENOERR ||
+      eMBEnable() != MB_ENOERR) Error_Handler();
 
   (*((volatile uint32_t*)0xE000EDFC)) |= (1UL<<24);                                                      
   (*((volatile uint32_t*)0xE0001000)) |= (1UL<<0);
@@ -57370,8 +57814,11 @@ int main(void)
       }
 
 
+      
+ 
+      snapshot_publish(cur_ang_E, (uint16_t)sector, errorflag,
+                       encoder_state, HAL_GetTick());
       dac_ctrl();                                                               
-
 
       SCB_InvalidateDCache_by_Addr((uint32_t *)aADCxConvertedData,((2+31)/32)*32);
       Vsense=(aADCxConvertedData[0]*3.3f)/4095.0f;                              
@@ -57384,6 +57831,9 @@ int main(void)
       adc_rdy=0;                                                                
 
     }
+
+     
+    if (eMBPoll() != MB_ENOERR) Error_Handler();
 
   }
 

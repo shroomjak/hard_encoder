@@ -1477,6 +1477,9 @@
                 <name>$PROJ_DIR$\..\Inc\main.h</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\Inc\port.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\Inc\stm32f7xx_hal_conf.h</name>
             </file>
             <file>
@@ -1499,24 +1502,6 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Src\system_stm32f7xx.c</name>
-            </file>
-        </group>
-        <group>
-            <name>FLASH</name>
-            <file>
-                <name>$PROJ_DIR$\..\Drivers\FLASH\cmd_defs.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\Drivers\FLASH\spi_driver.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\Drivers\FLASH\spi_driver.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\Drivers\FLASH\standardflash.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\Drivers\FLASH\standardflash.h</name>
             </file>
         </group>
         <group>
@@ -1609,7 +1594,7 @@
                 <name>$PROJ_DIR$\..\Drivers\STM32F7xx_HAL_Driver\Src\stm32f7xx_ll_tim.c</name>
             </file>
             <file>
-                <name>C:\Users\ilya2\Downloads\stm32f7xx_ll_usart.c</name>
+                <name>$PROJ_DIR$\..\Drivers\STM32F7xx_HAL_Driver\Src\stm32f7xx_ll_usart.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Drivers\STM32F7xx_HAL_Driver\Src\stm32f7xx_ll_utils.c</name>
@@ -1618,5 +1603,35 @@
                 <name>taos</name>
             </configuration>
         </group>
+    </group>
+    <group>
+        <name>Modbus RTU</name>
+        <file>
+            <name>$PROJ_DIR$\..\ThirdParty\FreeModbus\mb.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\ThirdParty\FreeModbus\rtu\mbcrc.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\ThirdParty\FreeModbus\functions\mbfuncholding.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\ThirdParty\FreeModbus\functions\mbfuncinput.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\ThirdParty\FreeModbus\rtu\mbrtu.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\ThirdParty\FreeModbus\functions\mbutils.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Src\modbus_port.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Src\modbus_registers.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Src\snapshot_registers.c</name>
+        </file>
     </group>
 </project>

@@ -13,6 +13,10 @@ C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Drivers\CMSIS\DSP\Source\C
 -I
 C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM/../Inc
 -I
+C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM/../ThirdParty/FreeModbus/include
+-I
+C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM/../ThirdParty/FreeModbus/rtu
+-I
 C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM/../Drivers/STM32F7xx_HAL_Driver/Inc
 -I
 C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\EWARM/../Drivers/CMSIS/Device/ST/STM32F7xx/Include
@@ -30,6 +34,10 @@ C:\Program Files\IAR Systems\Embedded Workbench 9.2\arm\inc
 C:\Program Files\IAR Systems\Embedded Workbench 9.2\arm\inc\c
 -I
 C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Inc
+-I
+C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\ThirdParty\FreeModbus\include
+-I
+C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\ThirdParty\FreeModbus\rtu
 -I
 C:\Users\ilya2\OneDrive\Documents\GitHub\hard_encoder\Drivers\STM32F7xx_HAL_Driver\Inc
 -I
