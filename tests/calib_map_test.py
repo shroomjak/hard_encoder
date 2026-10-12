@@ -186,6 +186,24 @@ def main() -> int:
         label = f"MB_CAL_{py.CMD[code][0]}"
         check(label in t or f"0x{code:02X}" in t, f"calib_test.c не проверяет команду 0x{code:02X}")
 
+    # --- порядок запуска и скорости: инструмент и документы ---
+    cal_doc = read("docs/calibration_modbus.md")
+    check(list(py.RUN_ORDER) == [0x14, 0x13, 0x11, 0x12],
+          f"порядок запуска в инструменте странный: {py.RUN_ORDER}")
+    check("`0x14` → `0x13` → `0x11` → `0x12` → `0x10`" in cal_doc,
+          "в процедуре порядок команд описан иначе, чем в инструменте")
+    check(set(py.RUN_INFO) == set(py.CMD) - {0x10},
+          "для каждой пусковой команды (кроме стоп 0x10) должно быть описание "
+          "скорости и ожидания")
+    for code, (speed, revs, timeout) in sorted(py.RUN_INFO.items()):
+        check(speed in cal_doc, f"скорость {speed} об/мин для 0x{code:02X} не в процедуре")
+        check(speed in doc, f"скорость {speed} об/мин для 0x{code:02X} не в README")
+        check(revs.split("…")[0] in cal_doc, f"ориентир {revs} оборотов для 0x{code:02X} не в процедуре")
+        check(60.0 <= timeout <= 1800.0, f"ожидание 0x{code:02X} = {timeout} с вне здравого смысла")
+    check(re.search(r"втор\w*\s+круг", " ".join(cal_doc.split())) and
+          re.search(r"Повторить\s+`0x14`,\s+затем `0x13`", " ".join(cal_doc.split())),
+          "в процедуре должен быть второй круг: повтор 0x14 и 0x13 после ang_tab")
+
     # --- README ---
     for code in sorted(py.CMD):
         check(f"0x{code:02X}" in doc, f"в README.md нет упоминания команды 0x{code:02X}")

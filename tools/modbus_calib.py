@@ -32,6 +32,15 @@ CMD = {
     0x13: ("OFFSET", "offset_cal — перебор точки съёма", 0x50),
     0x14: ("BUFK", "angk_cal — выравнивание пикселей", 0x70),
 }
+# Порядок запуска — обратный нумерации кодов: он задан зависимостями в main.c
+# (ang_tab измеряется в стробе от offset и по границам, выправленным buf_k; а
+# min_max, который минимизируют offset_cal и angk_cal, считается по ang_tab).
+RUN_ORDER = (0x14, 0x13, 0x11, 0x12)     # 0x10 — стоп, отдельно
+# код: (скорость об/мин, ориентир по оборотам, верхняя граница ожидания, с)
+RUN_INFO = {0x14: ("10…40", "50…70", 900.0),
+            0x13: ("10…40", "12…68", 600.0),
+            0x11: ("5…20", "5…10", 300.0),
+            0x12: ("5…20", "5…10", 300.0)}
 DONE = {  # код команды -> состояние «готово»
     0x11: (0x20, "проход 1 готов, ждём 0x12"),
     0x12: (0x40, "ang_tab применена и записана"),
@@ -230,7 +239,8 @@ def mode_map(_: argparse.Namespace) -> int:
     print(f"   0  400001  SNAP — зафиксировать снимок кадра")
     print(f"   1  400002  CAL_CMD — код команды")
     print(f"   2  400003  CAL_PAGE — [15:8] таблица, [7:0] первый элемент")
-    print("\nКоманды:")
+    print("\nКоманды (порядок запуска: " +
+          " → ".join(f"0x{c:02X}" for c in RUN_ORDER) + " → 0x10):")
     for c in sorted(CMD):
         name, desc, state = CMD[c]
         print(f"   0x{c:02X}  {name:<12} {desc}; сразу STATE=0x{state:02X}")
@@ -331,31 +341,47 @@ def wait_ready(bus: Bus, code: int, timeout: float, interval: float) -> None:
         time.sleep(interval)
 
 
+def run_steps(bus: Bus, a: argparse.Namespace, steps) -> None:
+    for code in steps:
+        name, desc, _ = CMD[code]
+        speed, revs, timeout = RUN_INFO[code]
+        print(f"\n0x{code:02X} {name}: {desc}")
+        print(f"   обороты {speed} об/мин, ориентир {revs} оборотов")
+        s = status(bus)
+        print(f"   до:     MINMAX={s['MINMAX']:.2f}″, PIX_MIN_MAX={s['PIX_MIN_MAX']}, "
+              f"offset={s['OFFSET_X256'] / 256:.2f} пикс.")
+        if code in (0x11, 0x12):
+            print(f"   обороты: вправо {s['REV_RIGHT']}, влево {s['REV_LEFT']} — "
+                  f"проверьте направление вращения")
+        if not a.yes:
+            input("   Enter — отправить, Ctrl-C — выйти: ")
+        bus.write(1, code)
+        wait_ready(bus, code, timeout, max(0.2, a.interval))
+        while (status(bus)["EEPROM"] & 1) == 0:   # ждём конца записи
+            time.sleep(0.1)
+        s = status(bus)
+        print(f"   после:  MINMAX={s['MINMAX']:.2f}″, PIX_MIN_MAX={s['PIX_MIN_MAX']}, "
+              f"offset={s['OFFSET_X256'] / 256:.2f} пикс.")
+
+
 def mode_run(a: argparse.Namespace) -> int:
-    order = [0x14, 0x13, 0x11, 0x12]
+    order = RUN_ORDER
     if a.only:
         only = int(a.only, 16)
-        if only not in order:
+        if only not in RUN_ORDER:
             print("--only: 0x11, 0x12, 0x13 или 0x14", file=sys.stderr)
             return 2
-        order = [only]
+        order = (only,)
     bus = open_bus(a)
     try:
-        for code in order:
-            name, desc, running = CMD[code]
-            print(f"\n0x{code:02X} {name}: {desc}")
-            if code in (0x11, 0x12):
-                s = status(bus)
-                print(f"   обороты: вправо {s['REV_RIGHT']}, влево {s['REV_LEFT']} — "
-                      f"проверьте направление вращения")
-            if not a.yes:
-                input("   Enter — отправить, Ctrl-C — выйти: ")
-            bus.write(1, code)
-            wait_ready(bus, code, 420.0 if code in (0x14, 0x13) else 120.0,
-                       max(0.2, a.interval))
-            while (status(bus)["EEPROM"] & 1) == 0:   # ждём конца записи
-                time.sleep(0.1)
+        run_steps(bus, a, order)
         if not a.only:
+            if a.twice:
+                print("\nвторой круг: ang_tab уже записана, уточняем buf_k и offset")
+                run_steps(bus, a, (0x14, 0x13))
+            else:
+                print("\nповторите 0x14 и 0x13 (--twice), если MINMAX после ang_tab не "
+                      "улучшился: docs/calibration_modbus.md, шаг 9")
             bus.write(1, 0x10)
             print("\n0x10 STOP — калибровка остановлена, режим штатный")
         show(status(bus))
@@ -469,6 +495,8 @@ def main(argv=None) -> int:
     sub.choices["run"].add_argument("--only", help="одна команда: 0x11/0x12/0x13/0x14")
     sub.choices["run"].add_argument("--yes", action="store_true",
                                     help="без пауз на подтверждение")
+    sub.choices["run"].add_argument("--twice", action="store_true",
+                                    help="после ang_tab повторить 0x14 и 0x13")
     sub.choices["dump"].add_argument("--table", choices=tuple(TABLES), default="ang_tab")
     sub.choices["dump"].add_argument("--csv")
     sub.choices["diff"].add_argument("before")
