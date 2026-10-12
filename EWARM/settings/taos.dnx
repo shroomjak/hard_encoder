@@ -13,7 +13,7 @@
         <MemConfigValue>C:\Program Files\IAR Systems\Embedded Workbench 9.2\arm\config\debugger\ST\STM32F722RC.ddf</MemConfigValue>
     </PlDriver>
     <DebugChecksum>
-        <Checksum>2779596421</Checksum>
+        <Checksum>3698924322</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -102,6 +102,9 @@
         <ShowSource>0</ShowSource>
         <HideCovered>0</HideCovered>
     </CodeCoverage>
+    <watch_formats>
+        <Fmt0>{W}42:rem_sec	3	0</Fmt0>
+    </watch_formats>
     <Trace2>
         <Enabled>0</Enabled>
         <ShowSource>0</ShowSource>

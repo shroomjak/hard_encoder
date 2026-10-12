@@ -371030,7 +371030,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@31@macro@MODBUS_BOARD_H",
+    "ID": "c:modbus_board.h@32@macro@MODBUS_BOARD_H",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MODBUS_BOARD_H",
@@ -371044,13 +371044,13 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@624@macro@MB_SLAVE_ADDRESS",
+    "ID": "c:modbus_board.h@58@macro@MB_SLAVE_ADDRESS",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_SLAVE_ADDRESS",
     "location": {
       "column": "9",
-      "line": "12",
+      "line": "4",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\modbus_board.h"
     },
     "name": "MB_SLAVE_ADDRESS",
@@ -371058,13 +371058,13 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@862@macro@MB_BAUD",
+    "ID": "c:modbus_board.h@301@macro@MB_BAUD",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_BAUD",
     "location": {
       "column": "9",
-      "line": "17",
+      "line": "9",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\modbus_board.h"
     },
     "name": "MB_BAUD",
@@ -371072,13 +371072,13 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@886@macro@MB_TX_PIN",
+    "ID": "c:modbus_board.h@326@macro@MB_TX_PIN",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_TX_PIN",
     "location": {
       "column": "9",
-      "line": "18",
+      "line": "10",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\modbus_board.h"
     },
     "name": "MB_TX_PIN",
@@ -371086,13 +371086,13 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@918@macro@MB_RX_PIN",
+    "ID": "c:modbus_board.h@359@macro@MB_RX_PIN",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_RX_PIN",
     "location": {
       "column": "9",
-      "line": "19",
+      "line": "11",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\modbus_board.h"
     },
     "name": "MB_RX_PIN",
@@ -371100,13 +371100,13 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@950@macro@MB_DE_PIN",
+    "ID": "c:modbus_board.h@392@macro@MB_DE_PIN",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_DE_PIN",
     "location": {
       "column": "9",
-      "line": "20",
+      "line": "12",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\modbus_board.h"
     },
     "name": "MB_DE_PIN",
@@ -371114,13 +371114,13 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@982@macro@MB_NRE_PIN",
+    "ID": "c:modbus_board.h@425@macro@MB_NRE_PIN",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_NRE_PIN",
     "location": {
       "column": "9",
-      "line": "21",
+      "line": "13",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\modbus_board.h"
     },
     "name": "MB_NRE_PIN",
@@ -371128,13 +371128,13 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@1015@macro@MB_TX_PORT",
+    "ID": "c:modbus_board.h@459@macro@MB_TX_PORT",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_TX_PORT",
     "location": {
       "column": "9",
-      "line": "22",
+      "line": "14",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\modbus_board.h"
     },
     "name": "MB_TX_PORT",
@@ -371142,13 +371142,13 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@1040@macro@MB_RX_PORT",
+    "ID": "c:modbus_board.h@485@macro@MB_RX_PORT",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_RX_PORT",
     "location": {
       "column": "9",
-      "line": "23",
+      "line": "15",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\modbus_board.h"
     },
     "name": "MB_RX_PORT",
@@ -371156,13 +371156,13 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@1065@macro@MB_DE_PORT",
+    "ID": "c:modbus_board.h@511@macro@MB_DE_PORT",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_DE_PORT",
     "location": {
       "column": "9",
-      "line": "24",
+      "line": "16",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\modbus_board.h"
     },
     "name": "MB_DE_PORT",
@@ -371170,13 +371170,13 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@1090@macro@MB_NRE_PORT",
+    "ID": "c:modbus_board.h@537@macro@MB_NRE_PORT",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_NRE_PORT",
     "location": {
       "column": "9",
-      "line": "25",
+      "line": "17",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\modbus_board.h"
     },
     "name": "MB_NRE_PORT",
@@ -395418,7 +395418,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_port.c@2433@macro@EVENT_CAPACITY",
+    "ID": "c:modbus_port.c@2465@macro@EVENT_CAPACITY",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "EVENT_CAPACITY",
@@ -395502,7 +395502,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_port.c@3057@F@xMBPortEventPost@saved",
+    "ID": "c:modbus_port.c@3104@F@xMBPortEventPost@saved",
     "What": "Variable",
     "defdec": "Def",
     "display": "saved",
@@ -395516,7 +395516,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_port.c@3116@F@xMBPortEventPost@next",
+    "ID": "c:modbus_port.c@3165@F@xMBPortEventPost@next",
     "What": "Variable",
     "defdec": "Def",
     "display": "next",
@@ -395544,7 +395544,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_port.c@3515@F@xMBPortEventGet@saved",
+    "ID": "c:modbus_port.c@3575@F@xMBPortEventGet@saved",
     "What": "Variable",
     "defdec": "Def",
     "display": "saved",
@@ -395656,7 +395656,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_port.c@9053@F@xMBPortTimersInit@tim_clk",
+    "ID": "c:modbus_port.c@9218@F@xMBPortTimersInit@tim_clk",
     "What": "Variable",
     "defdec": "Def",
     "display": "tim_clk",

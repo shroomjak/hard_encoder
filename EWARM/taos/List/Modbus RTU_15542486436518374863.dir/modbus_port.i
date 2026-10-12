@@ -6269,6 +6269,9 @@ typedef enum
 
 
 
+
+
+
  
 
 
@@ -42923,7 +42926,7 @@ static inline uint32_t LL_USART_IsEnabled(const USART_TypeDef *USARTx)
  
 static inline void LL_USART_EnableDirectionRx(USART_TypeDef *USARTx)
 {
-  ATOMIC_SET_BIT(USARTx->CR1, (0x1UL << (2U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) | ((0x1UL << (2U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -42934,7 +42937,7 @@ static inline void LL_USART_EnableDirectionRx(USART_TypeDef *USARTx)
  
 static inline void LL_USART_DisableDirectionRx(USART_TypeDef *USARTx)
 {
-  ATOMIC_CLEAR_BIT(USARTx->CR1, (0x1UL << (2U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) & ~((0x1UL << (2U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -42945,7 +42948,7 @@ static inline void LL_USART_DisableDirectionRx(USART_TypeDef *USARTx)
  
 static inline void LL_USART_EnableDirectionTx(USART_TypeDef *USARTx)
 {
-  ATOMIC_SET_BIT(USARTx->CR1, (0x1UL << (3U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) | ((0x1UL << (3U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -42956,7 +42959,7 @@ static inline void LL_USART_EnableDirectionTx(USART_TypeDef *USARTx)
  
 static inline void LL_USART_DisableDirectionTx(USART_TypeDef *USARTx)
 {
-  ATOMIC_CLEAR_BIT(USARTx->CR1, (0x1UL << (3U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) & ~((0x1UL << (3U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -42974,7 +42977,7 @@ static inline void LL_USART_DisableDirectionTx(USART_TypeDef *USARTx)
  
 static inline void LL_USART_SetTransferDirection(USART_TypeDef *USARTx, uint32_t TransferDirection)
 {
-  ATOMIC_MODIFY_REG(USARTx->CR1, (0x1UL << (2U)) | (0x1UL << (3U)), TransferDirection);
+  do { uint32_t atomic_value; do { atomic_value = (__iar_builtin_LDREX(&(USARTx->CR1)) & ~((0x1UL << (2U)) | (0x1UL << (3U)))) | (TransferDirection); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -43093,7 +43096,7 @@ static inline uint32_t LL_USART_GetDataWidth(const USART_TypeDef *USARTx)
  
 static inline void LL_USART_EnableMuteMode(USART_TypeDef *USARTx)
 {
-  ATOMIC_SET_BIT(USARTx->CR1, (0x1UL << (13U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) | ((0x1UL << (13U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -43104,7 +43107,7 @@ static inline void LL_USART_EnableMuteMode(USART_TypeDef *USARTx)
  
 static inline void LL_USART_DisableMuteMode(USART_TypeDef *USARTx)
 {
-  ATOMIC_CLEAR_BIT(USARTx->CR1, (0x1UL << (13U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) & ~((0x1UL << (13U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45184,7 +45187,7 @@ static inline void LL_USART_ClearFlag_CM(USART_TypeDef *USARTx)
  
 static inline void LL_USART_EnableIT_IDLE(USART_TypeDef *USARTx)
 {
-  ATOMIC_SET_BIT(USARTx->CR1, (0x1UL << (4U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) | ((0x1UL << (4U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45195,7 +45198,7 @@ static inline void LL_USART_EnableIT_IDLE(USART_TypeDef *USARTx)
  
 static inline void LL_USART_EnableIT_RXNE(USART_TypeDef *USARTx)
 {
-  ATOMIC_SET_BIT(USARTx->CR1, (0x1UL << (5U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) | ((0x1UL << (5U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45206,7 +45209,7 @@ static inline void LL_USART_EnableIT_RXNE(USART_TypeDef *USARTx)
  
 static inline void LL_USART_EnableIT_TC(USART_TypeDef *USARTx)
 {
-  ATOMIC_SET_BIT(USARTx->CR1, (0x1UL << (6U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) | ((0x1UL << (6U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45217,7 +45220,7 @@ static inline void LL_USART_EnableIT_TC(USART_TypeDef *USARTx)
  
 static inline void LL_USART_EnableIT_TXE(USART_TypeDef *USARTx)
 {
-  ATOMIC_SET_BIT(USARTx->CR1, (0x1UL << (7U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) | ((0x1UL << (7U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45228,7 +45231,7 @@ static inline void LL_USART_EnableIT_TXE(USART_TypeDef *USARTx)
  
 static inline void LL_USART_EnableIT_PE(USART_TypeDef *USARTx)
 {
-  ATOMIC_SET_BIT(USARTx->CR1, (0x1UL << (8U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) | ((0x1UL << (8U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45239,7 +45242,7 @@ static inline void LL_USART_EnableIT_PE(USART_TypeDef *USARTx)
  
 static inline void LL_USART_EnableIT_CM(USART_TypeDef *USARTx)
 {
-  ATOMIC_SET_BIT(USARTx->CR1, (0x1UL << (14U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) | ((0x1UL << (14U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45250,7 +45253,7 @@ static inline void LL_USART_EnableIT_CM(USART_TypeDef *USARTx)
  
 static inline void LL_USART_EnableIT_RTO(USART_TypeDef *USARTx)
 {
-  ATOMIC_SET_BIT(USARTx->CR1, (0x1UL << (26U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) | ((0x1UL << (26U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45263,7 +45266,7 @@ static inline void LL_USART_EnableIT_RTO(USART_TypeDef *USARTx)
  
 static inline void LL_USART_EnableIT_EOB(USART_TypeDef *USARTx)
 {
-  ATOMIC_SET_BIT(USARTx->CR1, (0x1UL << (27U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) | ((0x1UL << (27U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45291,7 +45294,7 @@ static inline void LL_USART_EnableIT_LBD(USART_TypeDef *USARTx)
  
 static inline void LL_USART_EnableIT_ERROR(USART_TypeDef *USARTx)
 {
-  ATOMIC_SET_BIT(USARTx->CR3, (0x1UL << (0U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR3)) | ((0x1UL << (0U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR3)) != 0U); } while (0);
 }
 
 
@@ -45304,7 +45307,7 @@ static inline void LL_USART_EnableIT_ERROR(USART_TypeDef *USARTx)
  
 static inline void LL_USART_EnableIT_CTS(USART_TypeDef *USARTx)
 {
-  ATOMIC_SET_BIT(USARTx->CR3, (0x1UL << (10U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR3)) | ((0x1UL << (10U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR3)) != 0U); } while (0);
 }
 
  
@@ -45318,7 +45321,7 @@ static inline void LL_USART_EnableIT_CTS(USART_TypeDef *USARTx)
  
 static inline void LL_USART_EnableIT_TCBGT(USART_TypeDef *USARTx)
 {
-  ATOMIC_SET_BIT(USARTx->CR3, (0x1UL << (24U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR3)) | ((0x1UL << (24U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR3)) != 0U); } while (0);
 }
 
 
@@ -45329,7 +45332,7 @@ static inline void LL_USART_EnableIT_TCBGT(USART_TypeDef *USARTx)
  
 static inline void LL_USART_DisableIT_IDLE(USART_TypeDef *USARTx)
 {
-  ATOMIC_CLEAR_BIT(USARTx->CR1, (0x1UL << (4U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) & ~((0x1UL << (4U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45340,7 +45343,7 @@ static inline void LL_USART_DisableIT_IDLE(USART_TypeDef *USARTx)
  
 static inline void LL_USART_DisableIT_RXNE(USART_TypeDef *USARTx)
 {
-  ATOMIC_CLEAR_BIT(USARTx->CR1, (0x1UL << (5U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) & ~((0x1UL << (5U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45351,7 +45354,7 @@ static inline void LL_USART_DisableIT_RXNE(USART_TypeDef *USARTx)
  
 static inline void LL_USART_DisableIT_TC(USART_TypeDef *USARTx)
 {
-  ATOMIC_CLEAR_BIT(USARTx->CR1, (0x1UL << (6U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) & ~((0x1UL << (6U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45362,7 +45365,7 @@ static inline void LL_USART_DisableIT_TC(USART_TypeDef *USARTx)
  
 static inline void LL_USART_DisableIT_TXE(USART_TypeDef *USARTx)
 {
-  ATOMIC_CLEAR_BIT(USARTx->CR1, (0x1UL << (7U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) & ~((0x1UL << (7U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45373,7 +45376,7 @@ static inline void LL_USART_DisableIT_TXE(USART_TypeDef *USARTx)
  
 static inline void LL_USART_DisableIT_PE(USART_TypeDef *USARTx)
 {
-  ATOMIC_CLEAR_BIT(USARTx->CR1, (0x1UL << (8U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) & ~((0x1UL << (8U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45384,7 +45387,7 @@ static inline void LL_USART_DisableIT_PE(USART_TypeDef *USARTx)
  
 static inline void LL_USART_DisableIT_CM(USART_TypeDef *USARTx)
 {
-  ATOMIC_CLEAR_BIT(USARTx->CR1, (0x1UL << (14U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) & ~((0x1UL << (14U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45395,7 +45398,7 @@ static inline void LL_USART_DisableIT_CM(USART_TypeDef *USARTx)
  
 static inline void LL_USART_DisableIT_RTO(USART_TypeDef *USARTx)
 {
-  ATOMIC_CLEAR_BIT(USARTx->CR1, (0x1UL << (26U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) & ~((0x1UL << (26U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45408,7 +45411,7 @@ static inline void LL_USART_DisableIT_RTO(USART_TypeDef *USARTx)
  
 static inline void LL_USART_DisableIT_EOB(USART_TypeDef *USARTx)
 {
-  ATOMIC_CLEAR_BIT(USARTx->CR1, (0x1UL << (27U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR1)) & ~((0x1UL << (27U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR1)) != 0U); } while (0);
 }
 
 
@@ -45436,7 +45439,7 @@ static inline void LL_USART_DisableIT_LBD(USART_TypeDef *USARTx)
  
 static inline void LL_USART_DisableIT_ERROR(USART_TypeDef *USARTx)
 {
-  ATOMIC_CLEAR_BIT(USARTx->CR3, (0x1UL << (0U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR3)) & ~((0x1UL << (0U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR3)) != 0U); } while (0);
 }
 
 
@@ -45449,7 +45452,7 @@ static inline void LL_USART_DisableIT_ERROR(USART_TypeDef *USARTx)
  
 static inline void LL_USART_DisableIT_CTS(USART_TypeDef *USARTx)
 {
-  ATOMIC_CLEAR_BIT(USARTx->CR3, (0x1UL << (10U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR3)) & ~((0x1UL << (10U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR3)) != 0U); } while (0);
 }
 
  
@@ -45463,7 +45466,7 @@ static inline void LL_USART_DisableIT_CTS(USART_TypeDef *USARTx)
  
 static inline void LL_USART_DisableIT_TCBGT(USART_TypeDef *USARTx)
 {
-  ATOMIC_CLEAR_BIT(USARTx->CR3, (0x1UL << (24U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR3)) & ~((0x1UL << (24U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR3)) != 0U); } while (0);
 }
 
 
@@ -45623,7 +45626,7 @@ static inline uint32_t LL_USART_IsEnabledIT_TCBGT(const USART_TypeDef *USARTx)
  
 static inline void LL_USART_EnableDMAReq_RX(USART_TypeDef *USARTx)
 {
-  ATOMIC_SET_BIT(USARTx->CR3, (0x1UL << (6U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR3)) | ((0x1UL << (6U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR3)) != 0U); } while (0);
 }
 
 
@@ -45634,7 +45637,7 @@ static inline void LL_USART_EnableDMAReq_RX(USART_TypeDef *USARTx)
  
 static inline void LL_USART_DisableDMAReq_RX(USART_TypeDef *USARTx)
 {
-  ATOMIC_CLEAR_BIT(USARTx->CR3, (0x1UL << (6U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR3)) & ~((0x1UL << (6U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR3)) != 0U); } while (0);
 }
 
 
@@ -45656,7 +45659,7 @@ static inline uint32_t LL_USART_IsEnabledDMAReq_RX(const USART_TypeDef *USARTx)
  
 static inline void LL_USART_EnableDMAReq_TX(USART_TypeDef *USARTx)
 {
-  ATOMIC_SET_BIT(USARTx->CR3, (0x1UL << (7U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR3)) | ((0x1UL << (7U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR3)) != 0U); } while (0);
 }
 
 
@@ -45667,7 +45670,7 @@ static inline void LL_USART_EnableDMAReq_TX(USART_TypeDef *USARTx)
  
 static inline void LL_USART_DisableDMAReq_TX(USART_TypeDef *USARTx)
 {
-  ATOMIC_CLEAR_BIT(USARTx->CR3, (0x1UL << (7U)));
+  do { uint32_t atomic_value; do { atomic_value = __iar_builtin_LDREX(&(USARTx->CR3)) & ~((0x1UL << (7U))); } while (__iar_builtin_STREX(atomic_value, &(USARTx->CR3)) != 0U); } while (0);
 }
 
 
@@ -45949,14 +45952,6 @@ void eeprom_write_byte(uint16_t eeprom_address, unsigned char value);
  
 
  
-
-
-
- 
-
-
-
-
 
 
 

@@ -1113,6 +1113,9 @@
                 <name>$PROJ_DIR$\..\Inc\main.h</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\Inc\modbus_board.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\Inc\port.h</name>
             </file>
             <file>

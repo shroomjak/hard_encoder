@@ -37,8 +37,8 @@
  * Добавляя головки, изменить и массив, и HEAD_COUNT. */
 #define REG_COUNT 11       /* полная карта входных регистров 0..10 */
 #define STATUS_COUNT 2     /* только seq и ready */
-#define HEAD_COUNT 1
-static const uint8_t head_ids[HEAD_COUNT] = {1};
+#define HEAD_COUNT 2
+static const uint8_t head_ids[HEAD_COUNT] = {1, 2};
 static const char *TAG = "encoder";
 static void *master;
 
@@ -62,8 +62,47 @@ static esp_err_t request(uint8_t id, uint8_t function, uint16_t first,
         .slave_addr = id, .command = function,
         .reg_start = first, .reg_size = count
     };
-    return mbc_master_send_request(master, &req, words);
+    esp_err_t err = mbc_master_send_request(master, &req, words);
+
+    /* Запас по времени на шине */
+    vTaskDelay(pdMS_TO_TICKS(20));
+
+    return err;
 }
+
+/* Диагностика головки, которая получила SNAP, но вернула ready=0.
+ * Читаем все поля зафиксированного кадра, чтобы увидеть причину:
+ *   sample=0          — ещё не обработан ни один кадр АЦП;
+ *   error!=0          — декодирование кадра не удалось;
+ *   sector>=144       — недопустимый сектор;
+ *   иначе             — угол вне [0,360) или NaN.
+ * Угол при ready=0 не выводим: при невалидном кадре он не обновляется. */
+static void log_not_ready(uint8_t id, uint16_t seq)
+{
+    uint16_t r[REG_COUNT] = {0};
+    esp_err_t err = request(id, 0x04, 0, REG_COUNT, r);
+    if (err != ESP_OK) {
+        ESP_LOGW(TAG, "DIAG id=%u seq=%u: read failed: %s",
+                 (unsigned)id, (unsigned)seq, esp_err_to_name(err));
+        return;
+    }
+    if (r[0] != seq || r[1] != 0) {
+        ESP_LOGW(TAG, "DIAG id=%u: snapshot changed (expected=%u got=%u ready=%u)",
+                 (unsigned)id, (unsigned)seq, (unsigned)r[0], (unsigned)r[1]);
+        return;
+    }
+    uint32_t sample = ((uint32_t)r[7] << 16) | r[8];
+    uint32_t time_ms = ((uint32_t)r[9] << 16) | r[10];
+    const char *reason = sample == 0 ? "no frame processed yet"
+                       : r[5] != 0   ? "decode error (errorflag)"
+                       : r[4] >= 144 ? "invalid sector"
+                                     : "angle outside [0,360) or NaN";
+    ESP_LOGW(TAG, "DIAG id=%u seq=%u sector=%u error=%u encoder_state=0x%02x "
+             "sample=%lu tick_ms=%lu -> %s",
+             (unsigned)id, (unsigned)seq, (unsigned)r[4], (unsigned)r[5],
+             (unsigned)r[6], (unsigned long)sample, (unsigned long)time_ms, reason);
+}
+
 
 /* STATUS адресной головки: FC04 читает регистры 0 и 1. ACK означает
  * одновременно совпадение seq и ready=1; один только успешный ответ Modbus
@@ -77,6 +116,8 @@ static bool status_ack(uint8_t id, uint16_t seq)
         ESP_LOGW(TAG, "STATUS id=%u seq=%u error=%s got=%u ready=%u",
                  (unsigned)id, (unsigned)seq, esp_err_to_name(err),
                  (unsigned)status[0], (unsigned)status[1]);
+        if (err == ESP_OK && status[0] == seq && status[1] != 1)
+            log_not_ready(id, seq);
         return false;
     }
     ESP_LOGI(TAG, "ACK id=%u seq=%u", (unsigned)id, (unsigned)seq);
@@ -152,7 +193,7 @@ void app_main(void)
         .ser_opts.baudrate = MB_BAUD,
         .ser_opts.parity = UART_PARITY_EVEN,
         .ser_opts.uid = 0,
-        .ser_opts.response_tout_ms = 400,
+        .ser_opts.response_tout_ms = CONFIG_FMB_MASTER_TIMEOUT_MS_RESPOND ,
         .ser_opts.data_bits = UART_DATA_8_BITS,
         .ser_opts.stop_bits = UART_STOP_BITS_1
     };
