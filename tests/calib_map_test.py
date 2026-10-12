@@ -204,6 +204,44 @@ def main() -> int:
           re.search(r"Повторить\s+`0x14`,\s+затем `0x13`", " ".join(cal_doc.split())),
           "в процедуре должен быть второй круг: повтор 0x14 и 0x13 после ang_tab")
 
+    # --- адрес головки (slave id): выбор, границы, поиск на линии ---
+    tool = read("tools/modbus_calib.py")
+    check('"-s", "--slave"' in tool,
+          "в инструменте должен быть явный выбор адреса ключом -s/--slave")
+    check(re.search(r"def check_slave\(slave: int\)[^\n]*\n(?:.*\n)*?\s+if not 1 "
+                    r"<= slave <= 247", tool) is not None,
+          "адрес должен проверяться одной функцией check_slave()")
+    check(tool.count("check_slave(a.slave)") >= 2,
+          "проверка адреса должна быть и перед обменом по шине, и в режиме frames")
+    check(hasattr(py, "mode_scan") and py.HELP.get("scan"),
+          "режим scan (перебор адресов на линии) должен быть в инструменте")
+    check("--from" in tool and "--to" in tool and "probe" in tool,
+          "scan должен перебирать диапазон адресов одним запросом на адрес")
+    check("scan" in doc or "scan" in cal_doc,
+          "в документах должно быть написано, как узнать адрес головки")
+
+    # --- разбор статуса: числа должны соответствовать прошивочным ---
+    regs = [0x50, 37, 144, 2, 65, 64, 17536, 100, 0xFFF4,
+            0xFFFF, 0xFFFD, 4, 11, 2, 5, 0x056F, 0x1234, 0x0001, 0x0000, 0b1111]
+    d = py.decode(regs)
+    check(d["STATE"] == 0x50 and d["RDY1"] == 37 and d["RDY2"] == 144,
+          "одиночные слова разбираются неверно")
+    check(d["PIX_MIN_MAX"] == -12, "PIX_MIN_MAX должен быть знаковым")
+    check(abs(d["OFFSET_X256"] / 256 - 68.5) < 1e-9, "offset×256 должен делиться на 256")
+    check(abs(d["ANGLE"] - 0x056F1234 / 1e6) < 1e-9, "угол собирается из двух слов старшим вперёд")
+    check(abs(d["MINMAX"] + 3 * 3.6e-3) < 1e-12,
+          "min_max: знаковые микроградусы должны печататься в угловых секундах")
+    check(d["FRAMES"] == 0x00010000 and d["EEPROM"] == 0b1111,
+          "счётчик кадров и биты EEPROM разобраны неверно")
+    import contextlib
+    import io
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        py.show(d)
+    check("STATE=0x50" in buf.getvalue() and "min_max = -0.011″" in buf.getvalue(),
+          "показ состояния должен печататься на разобранных ключах (после смены "
+          "имён ключей в decode show обязан обновиться)")
+
     # --- README ---
     for code in sorted(py.CMD):
         check(f"0x{code:02X}" in doc, f"в README.md нет упоминания команды 0x{code:02X}")
