@@ -1,223 +1,207 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Сличение карты регистров: Inc/modbus_calib.h ↔ tools/modbus_calib.py.
+"""Карта канала калибровки должна быть одна, а не три.
 
-Карта принадлежит прошивке (Inc/modbus_calib.h), а утилита и документация держат
-свои копии. Тест ловит рассинхрон имён, порядка, адресов и номеров битов — то
-есть ситуацию, когда оператор по инструкции читает не тот регистр.
-
-Запуск: python3 tests/calib_map_test.py
+Сверяет Inc/modbus_calib.h, Src/modbus_calib.c, Src/modbus_registers.c,
+Src/main.c, tests/host/calib_test.c, tools/modbus_calib.py и README.md:
+адреса holding-регистров и окна, коды команд и состояния до/после, перечень и
+порядок регистров статуса, биты EEPROM, идентификаторы и размеры таблиц.
+Несовпадение — провал: расхождение карты в прошивке и в инструменте означает
+команду, ушедшую в чужой регистр.
 """
 from __future__ import annotations
 
+import pathlib
 import re
 import sys
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "tools"))
-
-import modbus_calib as tool  # noqa: E402
-
-HEADER = ROOT / "Inc" / "modbus_calib.h"
+ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
-def strip_comments(text: str) -> str:
+def read(path: str, encoding: str = "utf-8") -> str:
+    p = ROOT / path
+    if not p.exists():
+        print(f"нет файла {path}", file=sys.stderr)
+        sys.exit(2)
+    return p.read_bytes().decode(encoding)
+
+
+def strip(text: str) -> str:
+    """Без комментариев — чтобы искать по коду, а не по пояснениям."""
     text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
     return re.sub(r"//[^\n]*", " ", text)
 
 
-class Header:
-    """Константы заголовка: #define (не функции-макросы) и члены enum'ов."""
+def defines(text: str) -> dict:
+    """#define ИМЯ <число> (суффиксы u/U допускаются, комментарии убраны)."""
+    out = {}
+    for name, value in re.findall(r"#define\s+([A-Za-z_]\w*)[ \t]+([^\n]+)", text):
+        m = re.fullmatch(r"(0[xX][0-9a-fA-F]+|\d+)[uUlL]*", value.strip())
+        if m:
+            out[name] = int(m.group(1), 0)
+    return out
 
-    def __init__(self, text: str):
-        self.text = text
-        self.defines: dict[str, str] = {}
-        for m in re.finditer(r"#define[ \t]+([A-Za-z_]\w*)(\([^)]*\))?[ \t]*([^\n]*)", text):
-            name, params, expr = m.group(1), m.group(2), m.group(3).strip()
-            if params:                       # функции-макросы не считаем
-                continue
-            if not re.fullmatch(r"[\w\s+\-*/().]+", expr):
-                continue                     # строки, void* и прочее — не константы
-            self.defines[name] = expr
-        self.enums: dict[str, int] = {}
-        for block in re.findall(r"enum\s*\{([^}]*)\}", text, flags=re.S):
-            value = -1
-            for item in block.split(","):
-                item = item.strip()
-                if not item:
-                    continue
-                if "=" in item:
-                    name, expr = item.split("=", 1)
-                    value = self.value(expr)
-                else:
-                    name, value = item, value + 1
-                self.enums[name.strip()] = value
 
-    def resolve(self, name: str) -> int:
-        """Число по имени константы: сначала enum'ы, затем #define (рекурсивно)."""
-        if name in self.enums:
-            return self.enums[name]
-        if name in self.defines:
-            return self.value(self.defines[name])
-        raise SystemExit(f"неизвестная константа {name}")
+def enum_names(text: str) -> list:
+    """Имена членов первого enum в файле, в порядке объявления."""
+    m = re.search(r"enum\s*\w*\s*\{(.*?)\}", text, re.S)
+    if m is None:
+        return []
+    out = []
+    for item in m.group(1).split(","):
+        mm = re.match(r"\s*([A-Za-z_]\w*)", item)
+        if mm:
+            out.append(mm.group(1))
+    return out
 
-    def value(self, expr: str) -> int:
-        """Вычисляет константное выражение заголовка (числа, скобки, имена)."""
-        expr = re.sub(r"\b(0[xX][0-9a-fA-F]+|\d+)[uUlL]+\b", r"\1", expr.strip())
-        names = [n for n in re.findall(r"(?<![\w.])[A-Za-z_]\w*", expr)
-                 if n not in ("int", "u", "l")]
-        py = expr
-        for n in dict.fromkeys(names):
-            py = re.sub(r"(?<![\w.])" + n + r"\b", str(self.resolve(n)), py)
-        if not re.fullmatch(r"[0-9a-fA-FxXeE+\-*/() _]+", py):
-            raise SystemExit(f"не вычисляемое выражение: {expr!r} -> {py!r}")
-        return int(eval(py, {"__builtins__": {}}, {}))
 
-    def define(self, name: str) -> int:
-        if name not in self.defines:
-            raise SystemExit(f"в заголовке нет #define {name}")
-        return self.value(self.defines[name])
-
-    def defines_with_prefix(self, prefix: str) -> dict[str, int]:
-        return {n: self.value(e) for n, e in self.defines.items()
-                if n.startswith(prefix)}
-
-    def enum_names(self, start: str, stop: str) -> list[str]:
-        """Имена членов enum'а от start до stop (не включая stop)."""
-        i, j = self.text.index(start), self.text.index(stop, self.text.index(start))
-        body = self.text[i:j]
-        names = []
-        for m in re.finditer(r"\b([A-Za-z_]\w*)\b\s*(?:=[^,\n]*)?,?", body):
-            n = m.group(1)
-            if n in ("enum", "MB_CAL_INPUT_FIRST"):
-                continue
-            if n not in names:
-                names.append(n)
-        return names
+def case_body(text: str, label: str) -> str:
+    """Тело `case label:` до следующего case/default. Пусто — если case нет."""
+    m = re.search(r"case " + label + r":(.*?)(?:\n\s*(?:case |default:|\}))", text, re.S)
+    return m.group(1) if m else ""
 
 
 def main() -> int:
+    h = read("Inc/modbus_calib.h")
+    c = read("Src/modbus_calib.c")
+    r = read("Src/modbus_registers.c")
+    m = read("Src/main.c", "cp1251")
+    t = read("tests/host/calib_test.c")
+    doc = read("README.md")
+    hs, cs, rs = strip(h), strip(c), strip(r)
+    D = defines(hs)
 
-    if not HEADER.exists():
-        raise SystemExit(f"нет файла {HEADER}")
-    text = strip_comments(HEADER.read_text(encoding="utf-8"))
-    H = Header(text)
-    errors: list[str] = []
+    sys.path.insert(0, str(ROOT / "tools"))
+    import modbus_calib as py
 
-    # --- holding-регистры --------------------------------------------------
-    holding = H.defines_with_prefix("MB_H_REG_")
-    for name, addr in tool.HOLDING.items():
-        key = "MB_H_REG_" + name
-        if holding.get(key) != addr:
-            errors.append(f"holding {name}: прошивка {holding.get(key)}, утилита {addr}")
-    if holding.get("MB_H_REG_COUNT") != tool.HOLDING_COUNT:
-        errors.append(f"MB_H_REG_COUNT: прошивка {holding.get('MB_H_REG_COUNT')}, "
-                      f"утилита {tool.HOLDING_COUNT}")
+    errors = []
+    n = 0
 
-    # --- ключ, режим, коды команд ------------------------------------------
-    if H.define("MB_CAL_KEY_UNLOCK") != tool.KEY_UNLOCK:
-        errors.append("расхождение по MB_CAL_KEY_UNLOCK")
-    for prefix, value in (("MB_CAL_CFG_RELAX", tool.CFG_RELAX),
-                          ("MB_CAL_CFG_KEEP", tool.CFG_KEEP)):
-        if H.define(prefix) != value:
-            errors.append(f"расхождение по {prefix}")
-    cmd_codes = {v for k, v in H.defines_with_prefix("MB_CAL_CMD_").items()
-                 if re.fullmatch(r"MB_CAL_CMD_(STOP|ANGTAB_RIGHT|ANGTAB_LEFT|OFFSET|BUFK)", k)}
-    if cmd_codes != set(tool.COMMANDS):
-        errors.append(f"набор кодов команд: прошивка {sorted(cmd_codes)}, "
-                      f"утилита {sorted(tool.COMMANDS)}")
+    def check(cond, msg):
+        nonlocal n
+        n += 1
+        if not cond:
+            errors.append(msg)
 
-    # --- живой блок: имена и порядок ---------------------------------------
-    names = [n[len("CAL_R_"):] for n in
-             H.enum_names("CAL_R_BLOCK_ID", "CAL_R_INPUT_END")]
-    tool_names = [n for n, _, _ in tool.LIVE_REGS]
-    if names != tool_names:
-        for i, (a, b) in enumerate(zip(names, tool_names)):
-            if a != b:
-                errors.append(f"порядок CAL_R_* разошёлся с первого расхождения "
-                              f"(индекс {i}): прошивка {a}, утилита {b}")
-                break
-        else:
-            errors.append(f"число живых регистров: прошивка {len(names)}, "
-                          f"утилита {len(tool_names)}")
+    for req in ("MB_H_SNAP", "MB_H_CAL_CMD", "MB_H_CAL_PAGE", "MB_H_COUNT",
+                "MB_CAL_FIRST", "MB_CAL_WINDOW", "MB_CAL_WINDOW_FLOATS",
+                "MB_CAL_TOTAL", "MB_CAL_T_ANGTAB", "MB_CAL_T_BUFK",
+                "MB_CAL_T_COUNT", "MB_E_WRITTEN", "MB_E_ANGTAB", "MB_E_BUFK",
+                "MB_E_OFFSET", "MB_CAL_STOP", "MB_CAL_ANGTAB_RIGHT",
+                "MB_CAL_ANGTAB_LEFT", "MB_CAL_OFFSET", "MB_CAL_BUFK"):
+        check(req in D, f"в Inc/modbus_calib.h нет #{req}")
 
-    if H.define("MB_CAL_INPUT_FIRST") != tool.INPUT_FIRST:
-        errors.append("расхождение по MB_CAL_INPUT_FIRST")
-    live_count = len(names)
-    if H.define("MB_CAL_INPUT_COUNT") != live_count:
-        errors.append("MB_CAL_INPUT_COUNT не равен числу элементов enum")
-    if tool.WINDOW_FIRST != tool.INPUT_FIRST + live_count:
-        errors.append("утилита: окно стоит не сразу за живым блоком")
-    for name, want in (("MB_CAL_WINDOW_FLOATS", tool.WINDOW_FLOATS),
-                       ("MB_CAL_WINDOW_FIRST", tool.WINDOW_FIRST),
-                       ("MB_CAL_WINDOW_COUNT", tool.WINDOW_COUNT),
-                       ("MB_CAL_WINDOW_LAST", tool.WINDOW_LAST),
-                       ("MB_CAL_INPUT_TOTAL", tool.INPUT_TOTAL)):
-        got = H.define(name)
-        if got != want:
-            errors.append(f"{name}: прошивка {got}, утилита {want}")
-    if H.define("MB_CAL_BLOCK_ID_VALUE") != 0xCA10:
-        errors.append("расхождение по маркеру блока")
+    # --- запись, FC06 ---
+    check((D["MB_H_SNAP"], D["MB_H_CAL_CMD"], D["MB_H_CAL_PAGE"]) == (0, 1, 2),
+          "адреса holding-регистров на проводе должны быть 0, 1, 2")
+    check(D["MB_H_COUNT"] == 3, "REG_HOLDING_COUNT должен быть 3: SNAP, CAL_CMD, CAL_PAGE")
+    check("MB_H_SNAP" in rs and "MB_H_COUNT" in rs,
+          "modbus_registers.c должен отсекать запись вне MB_H_SNAP…MB_H_COUNT")
+    check("MB_H_CAL_CMD" in cs and "MB_H_CAL_PAGE" in cs,
+          "modbus_calib.c должен разбирать CAL_CMD и CAL_PAGE по константам из заголовка")
+    check("count != 1" in rs, "FC06 должен принимать ровно один регистр (FC16 выключен)")
+    check("mb_cal_write" in rs and "snapshot_latch" in rs,
+          "modbus_registers.c должен передавать запись в mb_cal_write/snapshot_latch")
 
-    # --- биты флагов и предупреждений ---------------------------------------
-    for prefix, table, label in (("CAL_F_", tool.FLAGS_BITS, "FLAGS"),
-                                 ("CAL_D_", tool.DIAG_BITS, "DIAG")):
-        bits = H.defines_with_prefix(prefix)
-        want = {prefix + n: b for b, n, _ in table}
-        if bits != want:
-            bad = [k for k in set(bits) | set(want) if bits.get(k) != want.get(k)]
-            errors.append(f"биты {label} расходятся: {sorted(bad)}")
+    # --- коды команд: запуск и завершение ---
+    codes = {name: value for name, value in D.items() if re.match(r"MB_CAL_(STOP|ANG|OFF|BUF)", name)}
+    check(sorted(codes.values()) == [0x10, 0x11, 0x12, 0x13, 0x14],
+          f"коды команд должны идти подряд от 0x10: {sorted(codes.values())}")
+    check(sorted(py.CMD) == sorted(codes.values()),
+          f"коды команд разошлись: инструмент {sorted(py.CMD)}, прошивка {sorted(codes.values())}")
+    for k, v in py.CMD.items():
+        name = codes.get(f"MB_CAL_{v[0]}")
+        check(name == k, f"код 0x{k:02X}: в заголовке MB_CAL_{v[0]} = {name}")
+        body = case_body(cs, f"MB_CAL_{v[0]}")
+        check(bool(body), f"в modbus_calib.c нет case MB_CAL_{v[0]}")
+        st = re.search(r"encoder_state\s*=\s*(0x[0-9A-Fa-f]+)", body)
+        check(st is not None and int(st.group(1), 16) == v[2],
+              f"после 0x{k:02X} прошивка не ставит STATE=0x{v[2]:02X}")
+        if k in py.DONE:                              # конечное состояние — в main.c
+            state = py.DONE[k][0]
+            check(re.search(r"encoder_state\s*=\s*0x%02X\s*;" % state, strip(m)) is not None,
+                  f"main.c не переходит в STATE=0x{state:02X} (итог команды 0x{k:02X})")
+    check("default:\n        return -2" in c or "return -2" in cs,
+          "неизвестный код команды должен возвращать -2 (исключение 0x04)")
 
-    # --- таблицы и состояния -------------------------------------------------
-    # Имена идентификаторов таблиц в C — отдельная сверка: в CLI утилиты имена
-    # читаемые («pix_dif_tab1»), в прошивке — компактные (CAL_T_PIXDIF1).
-    table_macro = {"ang_tab": "CAL_T_ANG_TAB", "buf_k": "CAL_T_BUF_K",
-                   "pix_dif_tab1": "CAL_T_PIXDIF1", "pix_dif_tab2": "CAL_T_PIXDIF2",
-                   "offset_minmax": "CAL_T_OFFSET_MINMAX"}
-    tables = H.defines_with_prefix("CAL_T_")
-    want_tables = {macro: tool.TABLES[name][0] for name, macro in table_macro.items()}
-    want_tables["CAL_T_COUNT"] = len(tool.TABLES)
-    if tables != want_tables:
-        errors.append(f"идентификаторы таблиц: прошивка {tables}, утилита {want_tables}")
+    # --- живой статус: перечень, порядок, размер ---
+    regs = enum_names(hs)
+    check(regs[:1] == ["MB_R_STATE"], f"первым в перечне должен идти MB_R_STATE, а не {regs[:1]}")
+    check(regs == ["MB_R_" + x for x, _, _ in py.REGS],
+          "REGS в инструменте разошёлся с перечнем mb_cal_reg_e в заголовке")
+    check(len(regs) == 20, f"регистров статуса {len(regs)}, ожидалось 20")
+    check((py.FIRST, py.WINDOW, py.WINDOW_FLOATS, py.TOTAL) ==
+          (D["MB_CAL_FIRST"], D["MB_CAL_WINDOW"], D["MB_CAL_WINDOW_FLOATS"],
+           D["MB_CAL_TOTAL"]),
+          "адреса статуса и окна в инструменте не совпадают с заголовком")
+    check(D["MB_CAL_FIRST"] == 11, "регистры 0…10 отданы снимку, калибровка начинается с 11")
+    check(D["MB_CAL_WINDOW"] == D["MB_CAL_FIRST"] + len(regs),
+          "окно выгрузки должно начинаться сразу за блоком статуса")
+    check(D["MB_CAL_TOTAL"] == D["MB_CAL_WINDOW"] + 2 * D["MB_CAL_WINDOW_FLOATS"],
+          "MB_CAL_TOTAL не равен окну плюс блок статуса")
+    check(f"case {regs[-1]}" in cs, f"modbus_calib.c не отдаёт последний регистр {regs[-1]}")
+    for name in regs:
+        check(f"case {name}" in cs, f"modbus_calib.c не отдаёт {name}")
+    check("MB_CAL_TOTAL" in rs and "MB_ENOREG" in rs,
+          "modbus_registers.c должен ограничивать FC04 константой MB_CAL_TOTAL")
 
-    # Длины таблиц в утилите обязаны совпадать с константами encoder_vars.h
-    # (иначе dump читает не то количество страниц).
-    ev = Header(strip_comments((ROOT / "Inc" / "encoder_vars.h").read_text(encoding="utf-8")))
-    sizes = {"ang_tab": ev.define("BIT_TAB_SIZE"), "buf_k": ev.define("ENCODER_PIXELS"),
-             "pix_dif_tab1": ev.define("BIT_TAB_SIZE"),
-             "pix_dif_tab2": ev.define("BIT_TAB_SIZE"),
-             "offset_minmax": ev.define("ENCODER_PIXELS")}
-    for name, (_, length, _) in tool.TABLES.items():
-        pages = -(-length // tool.WINDOW_FLOATS)
-        if sizes[name] != length:
-            errors.append(f"длина таблицы {name}: утилита {length}, "
-                          f"encoder_vars.h {sizes[name]}")
-        if pages * tool.WINDOW_FLOATS < length:
-            errors.append(f"{name}: страниц {pages} не хватает на {length} элементов")
-    states = H.defines_with_prefix("MB_CAL_STATE_")
-    for code, (name, desc, running) in tool.COMMANDS.items():
-        want_state = states.get(f"MB_CAL_STATE_{name}")
-        if want_state is not None and want_state != running:
-            errors.append(f"STATE для {name}: прошивка 0x{want_state:02X}, "
-                          f"утилита 0x{running:02X}")
-    for code, targets, _ in tool.SEQUENCE:
-        name = tool.COMMANDS[code][0]
-        for t in targets:
-            if not any(v == t for k, v in states.items() if "RDY" in k):
-                errors.append(f"утилита ждёт 0x{t:02X} после 0x{name[2:]} — "
-                              f"такого кода нет среди MB_CAL_STATE_*")
+    # --- биты EEPROM ---
+    check(sorted(D[f"MB_E_{x}"] for x in ("WRITTEN", "ANGTAB", "BUFK", "OFFSET")) == [0, 1, 2, 3],
+          "биты EEPROM в заголовке должны быть 0…3")
+    used = sorted(D[x] for x in re.findall(r"<<\s*(MB_E_\w+)", cs))
+    check(used == [0, 1, 2, 3], f"в modbus_calib.c собрана другая маска: {used}")
+    check(sorted(b for b, _ in py.EEPROM_BITS) == [0, 1, 2, 3],
+          "расшифровка битов EEPROM в инструменте разошлась с прошивкой")
+
+    # --- таблицы для выгрузки ---
+    check(D["MB_CAL_T_ANGTAB"] == py.TABLES["ang_tab"][0] and
+          D["MB_CAL_T_BUFK"] == py.TABLES["buf_k"][0],
+          "идентификаторы таблиц разошлись между прошивкой и инструментом")
+    check(D["MB_CAL_T_COUNT"] == len(py.TABLES),
+          "число таблиц в заголовке и в инструменте разное")
+    sizes = dict(re.findall(r"#define\s+(BIT_TAB_SIZE|ENCODER_PIXELS)\s+(\d+)",
+                            read("Inc/encoder_vars.h")))
+    check(int(sizes["BIT_TAB_SIZE"]) == py.TABLES["ang_tab"][1],
+          "ang_tab: размер разошёлся с BIT_TAB_SIZE")
+    check(int(sizes["ENCODER_PIXELS"]) == py.TABLES["buf_k"][1],
+          "buf_k: размер разошёлся с ENCODER_PIXELS")
+    check("MB_CAL_T_ANGTAB" in cs and "MB_CAL_T_BUFK" in cs,
+          "modbus_calib.c должен выбирать таблицу по константам из заголовка")
+    check("MB_CAL_WINDOW_FLOATS" in cs,
+          "размер страницы должен браться из заголовка, а не из литерала")
+
+    # --- порядок слов в окне: старший первым ---
+    check("(uint16_t)(bits >> 16)" in cs,
+          "в окне старшее слово float должно идти первым (чётный индекс)")
+    check(re.search(r"\*buf\+\+ = \(UCHAR\)\(value >> 8\);\s*\n\s*\*buf\+\+ = \(UCHAR\)value;",
+                    rs) is not None,
+          "modbus_registers.c должен выкладывать регистры старшим байтом вперёд")
+
+    # --- тест на хосте должен мерить те же границы ---
+    check("UCHAR raw[2 * MB_CAL_TOTAL]" in t and "regs[MB_CAL_TOTAL]" in t,
+          "calib_test.c должен читать FC04 до MB_CAL_TOTAL включительно")
+    for name in regs:
+        check(name in t or name.endswith("_LO"), f"calib_test.c не проверяет {name}")
+    for code in sorted(py.CMD):
+        label = f"MB_CAL_{py.CMD[code][0]}"
+        check(label in t or f"0x{code:02X}" in t, f"calib_test.c не проверяет команду 0x{code:02X}")
+
+    # --- README ---
+    for code in sorted(py.CMD):
+        check(f"0x{code:02X}" in doc, f"в README.md нет упоминания команды 0x{code:02X}")
+    check(str(D["MB_CAL_TOTAL"]) in doc, f"в README.md не указан размер FC04 ({D['MB_CAL_TOTAL']})")
+    for name in ("calibration_modbus.md", "modbus_rtu.md"):
+        check(name in doc, f"в README.md нет ссылки на {name}")
+    check("0x10" in doc and "11…30" in doc and "31…62" in doc,
+          "в README.md должны быть команды 0x10…0x14 и блоки регистров 11…30, 31…62")
 
     if errors:
-        print("КАРТА РАСХОДИТСЯ:")
+        print("карта канала калибровки разошлась с определением:")
         for e in errors:
-            print("  !", e)
+            print("  " + e)
         return 1
-    print(f"Карта совпадает: живых регистров {live_count} "
-          f"(адреса {tool.INPUT_FIRST}…{tool.WINDOW_FIRST - 1}), "
-          f"окно выгрузки {tool.WINDOW_COUNT} регистра "
-          f"({tool.WINDOW_FIRST}…{tool.WINDOW_LAST}), "
-          f"holding-регистров {tool.HOLDING_COUNT}, всего FC04 {tool.INPUT_TOTAL}")
+    print(f"карта калибровки совпадает в прошивке, тесте, инструменте и README — "
+          f"проверено проверок: {n}")
     return 0
 
 

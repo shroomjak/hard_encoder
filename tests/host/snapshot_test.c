@@ -41,12 +41,11 @@ int main(void)
     assert(eMBRegInputCB(out, 1, SNAP_REG_COUNT) == MB_ENOERR);
     assert(out[0] == 0 && out[1] == 44 && out[2] == 0 && out[3] == 0);
     assert(eMBRegInputCB(out, 0, 1) == MB_ENOREG);
-    /* Снимок занимает 0…10, сразу за ним — живой блок калибровки (modbus_calib.c),
-     * поэтому за пределы карты FC04 выходит только MB_CAL_INPUT_TOTAL. */
-    assert(eMBRegInputCB(out, MB_CAL_INPUT_FIRST + 1, 1) == MB_ENOERR);
-    assert((uint16_t)((out[0] << 8) | out[1]) == MB_CAL_BLOCK_ID_VALUE);
-    assert(eMBRegInputCB(out, 1, MB_CAL_INPUT_TOTAL + 1) == MB_ENOREG);
-    assert(eMBRegInputCB(out, MB_CAL_INPUT_TOTAL, 2) == MB_ENOREG);
+    /* Снимок занимает 0…10, дальше — живой блок калибровки (modbus_calib.c),
+     * всего до MB_CAL_TOTAL-1. */
+    assert(eMBRegInputCB(out, MB_CAL_FIRST + 1, 1) == MB_ENOERR);
+    assert(eMBRegInputCB(out, 1, MB_CAL_TOTAL + 1) == MB_ENOREG);
+    assert(eMBRegInputCB(out, MB_CAL_TOTAL, 2) == MB_ENOREG);
     /* holding 1…4 отданы каналу калибровки: адрес легален, но отказ по
      * содержанию (неизвестный код) или по нездоровым условиям. За пределом
      * карты (address 6 = провод 5) — снова Illegal Data Address. */

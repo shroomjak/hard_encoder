@@ -112,18 +112,18 @@ def main() -> int:
     dupes = sorted({n for n in names if names.count(n) > 1})
     if dupes:
         errors.append(f"дублируются в заголовке: {dupes}")
-    needed = set(re.findall(r"\b(start_calibrate|auto_cal|pix_rdy_num1|pix_rdy_num2|"
-                            r"ang_tab|pix_dif_tab1|pix_dif_tab2|pix_dif_num_avg|offset|"
-                            r"offset_avg_num|start_offset_cal|offset_phase|offset_cur|"
-                            r"offset_minmax|offset_found|offset_start|offset_end|"
-                            r"start_angk_cal|anglek_phase|anglek_cur|buf_k|buf_x3|"
-                            r"pix_min_max|min_max|avg_minmax_num|rev_left_cnt|"
-                            r"rev_right_cnt|rev_en|serrcnt1|serrcnt2|sector|cur_ang_E|"
-                            r"errorflag|cycles_max|Temperature|backlight_width_ticks|"
-                            r"backlight_width_en|ang_tab_rdy|buf_k_rdy|offset_rdy|"
-                            r"lasdac_rdy|i2c3_tx_wp|encoder_state)\b",
-                            (ROOT / "Src" / "modbus_calib.c").read_text(encoding="utf-8")))
-    missing = sorted(needed - set(names))
+    # Каждый идентификатор, который modbus_calib.c читает или пишет и который
+    # определён в main.c на уровне файла, обязан быть объявлен в encoder_vars.h.
+    used = set(re.findall(r"\b[A-Za-z_]\w*\b",
+                          (ROOT / "Src" / "modbus_calib.c").read_text(encoding="utf-8")))
+    defined_in_main = set(re.findall(
+        r"(?m)^[A-Za-z_][\w \t\*]*?[ \t]+(\w+)[ \t]*(?:\[[^\]]*\])?[ \t]*(?:=[^;\n]*)?[;{]",
+        mainc))
+    keywords = {"int", "void", "float", "double", "char", "unsigned", "signed", "long",
+                "static", "const", "return", "if", "for", "while", "switch", "case",
+                "else", "break", "sizeof", "uint8_t", "uint16_t", "uint32_t",
+                "int16_t", "int32_t"}
+    missing = sorted((used & defined_in_main) - set(names) - keywords)
     if missing:
         errors.append(f"modbus_calib.c использует необъявленные: {missing}")
 
