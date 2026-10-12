@@ -3,6 +3,7 @@
 #include <math.h>
 #include "mb.h"
 #include "snapshot_registers.h"
+#include "modbus_calib.h"
 
 static uint16_t reg(uint16_t address)
 {
@@ -40,8 +41,16 @@ int main(void)
     assert(eMBRegInputCB(out, 1, SNAP_REG_COUNT) == MB_ENOERR);
     assert(out[0] == 0 && out[1] == 44 && out[2] == 0 && out[3] == 0);
     assert(eMBRegInputCB(out, 0, 1) == MB_ENOREG);
-    assert(eMBRegInputCB(out, 11, 2) == MB_ENOREG);
-    assert(eMBRegHoldingCB(out, 2, 1, MB_REG_WRITE) == MB_ENOREG);
+    /* Снимок занимает 0…10, дальше — живой блок калибровки (modbus_calib.c),
+     * всего до MB_CAL_TOTAL-1. */
+    assert(eMBRegInputCB(out, MB_CAL_FIRST + 1, 1) == MB_ENOERR);
+    assert(eMBRegInputCB(out, 1, MB_CAL_TOTAL + 1) == MB_ENOREG);
+    assert(eMBRegInputCB(out, MB_CAL_TOTAL, 2) == MB_ENOREG);
+    /* holding 1…4 отданы каналу калибровки: адрес легален, но отказ по
+     * содержанию (неизвестный код) или по нездоровым условиям. За пределом
+     * карты (address 6 = провод 5) — снова Illegal Data Address. */
+    assert(eMBRegHoldingCB(out, 2, 1, MB_REG_WRITE) == MB_EIO);
+    assert(eMBRegHoldingCB(out, 6, 1, MB_REG_WRITE) == MB_ENOREG);
     assert(eMBRegHoldingCB(out, 1, 1, MB_REG_READ) == MB_ENOREG);
     snapshot_publish(0.0f / 0.0f, 20, 0, 0, 12370);
     snap(45);

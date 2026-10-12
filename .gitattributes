@@ -12,6 +12,16 @@ Inc/modbus_board.h text working-tree-encoding=UTF-8 eol=lf
 Inc/port.h text working-tree-encoding=UTF-8 eol=lf
 Inc/snapshot_registers.h text working-tree-encoding=UTF-8 eol=lf
 esp32_master/main/main.c text working-tree-encoding=UTF-8 eol=lf
+Src/modbus_calib.c text working-tree-encoding=UTF-8 eol=lf
+Inc/modbus_calib.h text working-tree-encoding=UTF-8 eol=lf
+Inc/encoder_vars.h text working-tree-encoding=UTF-8 eol=lf
+
+# Хостовые тесты и утилиты тоже UTF-8/LF: их не собирает IAR, а кириллические
+# комментарии в них нужны. Без этой строки *.c/*.h наследуют CP1251 ниже.
+tests/host/*.c text working-tree-encoding=UTF-8 eol=lf
+tests/**/*.py text eol=lf
+tools/*.py text eol=lf
+tests/host/*.sh text eol=lf
 
 # Документация в UTF-8.
 *.md text eol=lf

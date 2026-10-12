@@ -14,4 +14,8 @@ void snapshot_publish(float angle_deg, uint16_t sector, uint8_t error,
 void snapshot_latch(uint16_t seq);
 /* Прочитать один регистр ранее зафиксированного снимка. */
 uint16_t snapshot_register(uint16_t address);
+/* Счётчик обработанных кадров АЦП на текущий момент (не счётчик снимка):
+ * нужен живому блоку калибровки, чтобы отличать «прогресс встал» от
+ * «кадров вообще нет». См. Src/modbus_calib.c и docs/calibration_modbus.md. */
+uint32_t snapshot_publish_count(void);
 #endif

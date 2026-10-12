@@ -1,55 +1,68 @@
 /*
  * Прикладные обработчики регистров для FreeModbus slave.
  *
- * Стек из ThirdParty/FreeModbus уже проверил CRC, адрес устройства и
- * формат Modbus RTU. Здесь переводим стандартные функции Modbus в
- * действия датчика: запись FC06 вызывает SNAP, чтение FC04 выдаёт
- * сохранённые данные. Передача сырых строк или собственный протокол
- * поверх UART здесь не реализуются.
+ * Стек из ThirdParty/FreeModbus уже проверил CRC, адрес устройства и формат
+ * Modbus RTU. Здесь стандартные функции Modbus переводятся в действия датчика:
+ * запись FC06 фиксирует снимок кадра или запускает калибровку, чтение FC04
+ * выдаёт сохранённый снимок и живой статус калибровки.
  *
- * Важная особенность FreeModbus: адрес в callback = адрес на проводе + 1.
- * Например, регистр 0 в запросе FC06 приходит сюда как address=1.
- * Таблица всех допустимых адресов описана в docs/modbus_rtu.md.
+ * FreeModbus передаёт в callback адрес на 1 больше адреса на проводе: запись по
+ * адресу 0 приходит сюда как address=1. Сдвиг выполняется только здесь; все
+ * константы в заголовках Inc/ — адреса на проводе. Карта: docs/modbus_rtu.md и
+ * docs/calibration_modbus.md.
+ *
+ * Оба обработчика вызываются из eMBPoll() в главном цикле, а не из прерывания,
+ * поэтому не мешают обработке кадра АЦП и не конкурируют с конечными автоматами
+ * за переменные.
  */
 #include "mb.h"
 #include "snapshot_registers.h"
+#include "modbus_calib.h"
 
 /*
- * eMBRegHoldingCB — единственный разрешённый регистр записи:
- *   FC06, holding[0] = seq (16-битный номер снимка).
- * Два байта buf переданы стеком в порядке Modbus: старший первым.
- * Callback вызывается из eMBPoll() в главном цикле, поэтому он не
- * прерывает обработку кадра изображения в main.c. Вещательный адрес 0
- * обрабатывает тот же FreeModbus, но в отличие от адресного запроса
- * на broadcast ответ не передаётся.
- *
- * Неверные адрес, число регистров и режим чтения дают MB_ENOREG;
- * другие holding-регистры нельзя случайно использовать для калибровки.
+ * FC06: holding[0] = seq — SNAP; holding[1] = код команды калибровки;
+ * holding[2] = окно выгрузки таблиц. Других записей нет: ни у holding-регистров
+ * калибровки, ни у снимка побочных записей не предусмотрено (FC03 выключен).
  */
 eMBErrorCode eMBRegHoldingCB(UCHAR *buf, USHORT address, USHORT count, eMBRegisterMode mode)
 {
-    if (address != 1 || count != 1 || mode != MB_REG_WRITE) return MB_ENOREG;
-    snapshot_latch((uint16_t)((uint16_t)buf[0] << 8 | buf[1]));
-    return MB_ENOERR;
+    uint16_t value;
+
+    /* Один регистр и только запись: FC16 и FC03 в сборке выключены,
+     * вне MB_H_COUNT записывать нечего. */
+    if (mode != MB_REG_WRITE || count != 1 || address < 1 || address > MB_H_COUNT)
+        return MB_ENOREG;
+    value = (uint16_t)((uint16_t)buf[0] << 8 | buf[1]);
+
+    if (address == MB_H_SNAP + 1) {
+        snapshot_latch(value);
+        return MB_ENOERR;
+    }
+    switch (mb_cal_write((uint16_t)(address - 1), value)) {  /* CAL_CMD, CAL_PAGE */
+    case 0: return MB_ENOERR;
+    case -1: return MB_ENOREG;
+    default: return MB_EIO;   /* нет такого кода команды или таблицы */
+    }
 }
 
 /*
- * eMBRegInputCB — чтение зафиксированного снимка стандартной FC04.
- * STATUS запрашивает первые 2 регистра (seq, ready), READ — все 11.
- * Допустимы и меньшие диапазоны, но их адреса обязаны полностью
- * укладываться в 0..SNAP_REG_COUNT-1. Сначала проверяем диапазон с
- * расширенной арифметикой uint32_t, затем складываем каждый uint16_t
- * в ответ в сетевом порядке байтов: старший, младший.
+ * FC04: 0…10 — зафиксированный снимок кадра (snapshot_registers.c),
+ * MB_CAL_FIRST…MB_CAL_TOTAL-1 — живой статус калибровки и окно выгрузки таблиц
+ * (modbus_calib.c). Снимок обновляется только командой SNAP, блок калибровки —
+ * всегда актуален на момент запроса.
  *
- * Значения берутся из frozen в snapshot_registers.c, а не из текущего
- * результата main.c: после SNAP они не меняются при новых кадрах АЦП.
+ * Допустимы любые диапазоны внутри 0…MB_CAL_TOTAL-1; всё остальное —
+ * MB_ENOREG (исключение 0x02). 32-битные значения кладутся двумя регистрами:
+ * старшее слово первым.
  */
 eMBErrorCode eMBRegInputCB(UCHAR *buf, USHORT address, USHORT count)
 {
-    if (address < 1 || count == 0 || count > SNAP_REG_COUNT ||
-        (uint32_t)address + count > SNAP_REG_COUNT + 1) return MB_ENOREG;
+    if (address < 1 || count == 0 || count > MB_CAL_TOTAL ||
+        (uint32_t)address + count > MB_CAL_TOTAL + 1) return MB_ENOREG;
     for (USHORT i = 0; i < count; ++i) {
-        uint16_t value = snapshot_register(address - 1 + i);
+        uint16_t reg = (uint16_t)(address - 1 + i);
+        uint16_t value = (reg < SNAP_REG_COUNT) ? snapshot_register(reg)
+                                                : mb_cal_read(reg);
         *buf++ = (UCHAR)(value >> 8);
         *buf++ = (UCHAR)value;
     }

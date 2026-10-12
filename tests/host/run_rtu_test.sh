@@ -5,7 +5,8 @@ out=$(mktemp)
 trap 'rm -f "$out"' EXIT
 cc -std=c99 -Itests/host -IInc -IThirdParty/FreeModbus/include \
    -IThirdParty/FreeModbus/rtu \
-   Src/snapshot_registers.c Src/modbus_registers.c \
+   Src/snapshot_registers.c Src/modbus_registers.c Src/modbus_calib.c \
+   tests/host/encoder_vars_stub.c \
    ThirdParty/FreeModbus/mb.c ThirdParty/FreeModbus/rtu/mbrtu.c \
    ThirdParty/FreeModbus/rtu/mbcrc.c \
    ThirdParty/FreeModbus/functions/mbfuncholding.c \
