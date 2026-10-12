@@ -1,0 +1,55 @@
+menu "Encoder master: режим работы"
+
+    choice ENCODER_MODE
+        prompt "Режим прошивки"
+        default ENCODER_MODE_POLL
+        help
+            Рабочий и калибровочный режимы собираются раздельно: в рабочей прошивке
+            нет кода, который шлёт команды калибровки (CAL_CMD, CAL_PAGE).
+
+        config ENCODER_MODE_POLL
+            bool "Рабочий режим: опрос SNAP → STATUS → READ"
+
+        config ENCODER_MODE_CALIB
+            bool "Калибровка головки: 0x14, 0x13, 0x11, 0x12, 0x10"
+    endchoice
+
+    config ENCODER_CALIB_SLAVE
+        int "Адрес головки для калибровки (Modbus slave id, 1…247)"
+        depends on ENCODER_MODE_CALIB
+        range 1 247
+        default 1
+        help
+            Аналог -s/--slave у tools/modbus_calib.py. Адрес 0 (вещание) запрещён:
+            на него головки не отвечают, и результат команды не проверить.
+
+    config ENCODER_CALIB_CONFIRM
+        bool "Ждать подтверждения перед каждой командой"
+        depends on ENCODER_MODE_CALIB
+        default y
+        help
+            Enter — отправить команду, q + Enter — отправить 0x10 и выйти.
+            Аналог паузы «Enter — отправить, Ctrl-C — выйти» в утилите.
+
+    config ENCODER_CALIB_DUMP
+        bool "Выгружать ang_tab в консоль до и после калибровки (CSV)"
+        depends on ENCODER_MODE_CALIB
+        default y
+        help
+            Сохраняет копию таблицы до перезаписи (docs/calibration_modbus.md, шаг 2).
+            Вывод между строками «# ang_tab …» можно сохранить в файл и сравнить.
+
+    config ENCODER_CALIB_TWICE
+        bool "Второй круг: повторить 0x14 и 0x13 после ang_tab"
+        depends on ENCODER_MODE_CALIB
+        default n
+        help
+            Аналог --twice у утилиты: buf_k и offset уточняются по выправленной ang_tab.
+
+    config ENCODER_CALIB_POLL_MS
+        int "Период опроса STATE во время ожидания, мс"
+        depends on ENCODER_MODE_CALIB
+        range 200 5000
+        default 500
+
+endmenu

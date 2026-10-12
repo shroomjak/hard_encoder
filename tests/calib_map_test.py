@@ -3,7 +3,8 @@
 """Карта канала калибровки должна быть одна, а не три.
 
 Сверяет Inc/modbus_calib.h, Src/modbus_calib.c, Src/modbus_registers.c,
-Src/main.c, tests/host/calib_test.c, tools/modbus_calib.py и README.md:
+Src/main.c, tests/host/calib_test.c, tools/modbus_calib.py, режим калибровки
+esp32_master/main/calib_mode.c (и его Kconfig/CMake) и README.md:
 адреса holding-регистров и окна, коды команд и состояния до/после, перечень и
 порядок регистров статуса, биты EEPROM, идентификаторы и размеры таблиц.
 Несовпадение — провал: расхождение карты в прошивке и в инструменте означает
@@ -241,6 +242,69 @@ def main() -> int:
     check("STATE=0x50" in buf.getvalue() and "min_max = -0.011″" in buf.getvalue(),
           "показ состояния должен печататься на разобранных ключах (после смены "
           "имён ключей в decode show обязан обновиться)")
+
+    # --- режим калибровки ESP32 (esp32_master) — те же коды, порядок и ожидания, что в утилите ---
+    esp_src = read("esp32_master/main/calib_mode.c")
+    esp = strip(esp_src)
+    ED = defines(esp)
+    cmake = read("esp32_master/main/CMakeLists.txt")
+    kconf = read("esp32_master/main/Kconfig.projbuild")
+    poll_src = strip(read("esp32_master/main/poll_mode.c"))
+
+    check(ED.get("H_CAL_CMD") == D["MB_H_CAL_CMD"] and ED.get("H_CAL_PAGE") == D["MB_H_CAL_PAGE"],
+          "esp32 calib_mode.c: адреса CAL_CMD/CAL_PAGE не совпали с Inc/modbus_calib.h")
+    check((ED.get("CAL_FIRST"), ED.get("CAL_WINDOW"), ED.get("CAL_WINDOW_FLOATS")) ==
+          (D["MB_CAL_FIRST"], D["MB_CAL_WINDOW"], D["MB_CAL_WINDOW_FLOATS"]),
+          "esp32 calib_mode.c: блок статуса, окно или размер страницы не совпали с заголовком")
+    check(ED.get("CAL_STATUS_WORDS") == len(regs),
+          "esp32 calib_mode.c: число регистров статуса не совпало с заголовком")
+    check(ED.get("TABLE_ANGTAB") == py.TABLES["ang_tab"][0] and
+          ED.get("ANGTAB_LEN") == py.TABLES["ang_tab"][1],
+          "esp32 calib_mode.c: идентификатор или длина ang_tab не совпали с инструментом")
+    check(ED.get("CMD_STOP") == 0x10, "esp32: CMD_STOP должен быть 0x10")
+    for code, (name, _, _) in py.CMD.items():
+        check(ED.get(f"CMD_{name}") == code,
+              f"esp32 calib_mode.c: CMD_{name} != 0x{code:02X}")
+
+    # таблица команд: STATE после записи, готово, скорости, ориентиры, таймауты
+    rows = re.findall(r'\{CMD_(\w+),\s*"(\w+)",\s*"[^"]*",\s*(0x[0-9A-Fa-f]+),\s*(0x[0-9A-Fa-f]+),'
+                      r'\s*"[^"]*",\s*"([^"]+)",\s*"([^"]+)",\s*(\d+)\}', esp_src)
+    check(len(rows) == len(py.RUN_INFO),
+          f"в calib_mode.c таблица CMDS: {len(rows)} строк, ожидалось {len(py.RUN_INFO)}")
+    for macro, name, after, done, speed, revs, timeout in rows:
+        code = ED.get(f"CMD_{macro}")
+        check(code is not None and code in py.RUN_INFO and name == macro,
+              f"строка CMDS для {macro} не соответствует команде инструмента")
+        if code is None or code not in py.RUN_INFO:
+            continue
+        check(int(after, 16) == py.CMD[code][2],
+              f"0x{code:02X}: STATE сразу после записи в calib_mode.c не совпадает с инструментом")
+        check(int(done, 16) == py.DONE[code][0],
+              f"0x{code:02X}: STATE «готово» в calib_mode.c не совпадает с инструментом")
+        speed_py, revs_py, timeout_py = py.RUN_INFO[code]
+        check((speed, revs, int(timeout)) == (speed_py, revs_py, int(timeout_py)),
+              f"0x{code:02X}: скорость/ориентир/таймаут в calib_mode.c ({speed}, {revs}, {timeout}) "
+              f"не совпадают с инструментом ({speed_py}, {revs_py}, {timeout_py})")
+
+    # порядок запуска и второй круг
+    order = re.search(r"RUN_ORDER\[\]\s*=\s*\{([^}]*)\}", esp)
+    check(order is not None and [ED.get(x.strip()) for x in order.group(1).split(",")] == list(py.RUN_ORDER),
+          "порядок RUN_ORDER в calib_mode.c не совпадает с инструментом")
+    second = re.search(r"SECOND\[\]\s*=\s*\{([^}]*)\}", esp)
+    check(second is not None and [ED.get(x.strip()) for x in second.group(1).split(",")] == [0x14, 0x13],
+          "второй круг в calib_mode.c должен повторять 0x14, затем 0x13")
+    check(re.search(r"ANGTAB_RIGHT.*?ANGTAB_LEFT", esp, re.S) is not None,
+          "проходы ang_tab в calib_mode.c должны идти подряд: 0x11, затем 0x12")
+
+    # Kconfig: значения по умолчанию из утилиты; сборка выбирает один режим
+    check("default 500" in kconf and "ENCODER_CALIB_POLL_MS" in kconf,
+          "период опроса по умолчанию (500 мс = --interval 0.5) должен быть в Kconfig")
+    check("default 1" in kconf and "ENCODER_CALIB_SLAVE" in kconf,
+          "адрес головки по умолчанию (1, как -s 1 в утилите) должен быть в Kconfig")
+    check("CONFIG_ENCODER_MODE_CALIB" in cmake and "calib_mode.c" in cmake and "poll_mode.c" in cmake,
+          "CMake должен подключать только один режим: calib_mode.c или poll_mode.c")
+    check("H_CAL_CMD" not in poll_src and "CMD_BUFK" not in poll_src and "CAL_PAGE" not in poll_src,
+          "рабочий режим (poll_mode.c) не должен знать о командах калибровки")
 
     # --- README ---
     for code in sorted(py.CMD):

@@ -12,6 +12,12 @@ Inc/modbus_board.h text working-tree-encoding=UTF-8 eol=lf
 Inc/port.h text working-tree-encoding=UTF-8 eol=lf
 Inc/snapshot_registers.h text working-tree-encoding=UTF-8 eol=lf
 esp32_master/main/main.c text working-tree-encoding=UTF-8 eol=lf
+# Остальные файлы проекта ESP32 и его хостовые тесты — тоже UTF-8/LF
+# (без этого *.c/*.h наследуют CP1251 из правила выше).
+esp32_master/main/*.c text working-tree-encoding=UTF-8 eol=lf
+esp32_master/main/*.h text working-tree-encoding=UTF-8 eol=lf
+tests/host/esp32/**/*.c text working-tree-encoding=UTF-8 eol=lf
+tests/host/esp32/**/*.h text working-tree-encoding=UTF-8 eol=lf
 Src/modbus_calib.c text working-tree-encoding=UTF-8 eol=lf
 Inc/modbus_calib.h text working-tree-encoding=UTF-8 eol=lf
 Inc/encoder_vars.h text working-tree-encoding=UTF-8 eol=lf

@@ -23,8 +23,9 @@
 python3 tests/sector_decode_test.py
 python3 tests/modbus_snapshot_test.py
 python3 tests/encoder_vars_test.py    # extern-мост ↔ Src/main.c
-python3 tests/calib_map_test.py       # карта регистров ↔ tools/modbus_calib.py
+python3 tests/calib_map_test.py       # карта регистров ↔ режим калибровки ESP32 ↔ tools/modbus_calib.py
 sh tests/host/run_calib_test.sh       # команды калибровки: защита, откат, окно выгрузки
+sh tests/host/run_esp32_modes_test.sh # ESP32 master: рабочий опрос и калибровка, без ESP-IDF
 ```
 
 `tests/modbus_snapshot_test.py` собирает на хосте с заглушками `Src/modbus_slave.c`
@@ -77,17 +78,21 @@ STM32 использует vendored **FreeModbus** (BSD-3-Clause), ESP32 master 
 `Inc/modbus_calib.h`, `Src/modbus_calib.c`; порядок шагов, регистры и кадры —
 [`docs/calibration_modbus.md`](docs/calibration_modbus.md).
 
-Адрес головки задаётся ключом `-s`/`--slave` (1…247, вещание запрещено); если он
-неизвестен — `python3 tools/modbus_calib.py scan --port /dev/ttyUSB0` переберёт
-линию и покажет ответившие головки с их состоянием.
+Калибровка запускается **режимом «Калибровка головки»** прошивки ESP32 master
+(`esp32_master/`, выбор режима в `idf.py menuconfig` → «Encoder master: режим работы»).
+Рабочий опрос и калибровка собираются раздельно: на линии в каждый момент работает
+один master, и калибровочные команды не уходят во время опроса. Адрес калибруемой
+головки — `CONFIG_ENCODER_CALIB_SLAVE` (1…247, вещание запрещено). Порядок команд,
+скорости и ожидания те же, что были в `tools/modbus_calib.py`.
 
 Порядок отработки (по §3 документа о калибровке):
 
 1. **Сохранить изначальную таблицу отдельно, вдруг сломаю!** Завершённая калибровка
    перезаписывает `ang_tab` (а следом `offset` и `buf_k`) в EEPROM, и без копии вернуться к
    исходным таблицам будет нечем. Выгрузка по шине в CSV:
-   `python3 tools/modbus_calib.py dump -s <адрес> --table ang_tab --csv ang_tab_before.csv`,
-   сравнение после — `python3 tools/modbus_calib.py diff ang_tab_before.csv ang_tab_after.csv`.
+   режим калибровки выводит её в монитор автоматически (`CONFIG_ENCODER_CALIB_DUMP`) до
+   и после процедуры; сохраните CSV в файлы и сравните:
+   `python3 tools/modbus_calib.py diff ang_tab_before.csv ang_tab_after.csv`.
 2. Равномерное вращение от привода (не рукой), проверка направления по счётчикам оборотов.
 3. `0x14` `buf_k` (10…40 об/мин, 50…70 оборотов) → `0x13` `offset` (10…40 об/мин,
    12…68 оборотов: по 4 на пробу) → `0x11` проход 1 (угол растёт) → `0x12` проход 2
