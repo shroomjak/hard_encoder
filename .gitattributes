@@ -24,3 +24,7 @@ Inc/modbus_board.h text working-tree-encoding=UTF-8 eol=lf
 Inc/port.h text working-tree-encoding=UTF-8 eol=lf
 Inc/snapshot_registers.h text working-tree-encoding=UTF-8 eol=lf
 Inc/encoder_protocol.h text working-tree-encoding=UTF-8 eol=lf
+
+# Командный обработчик калибровки и его интерфейс — UTF-8.
+Src/encoder_calibration.c text working-tree-encoding=UTF-8 eol=lf
+Inc/encoder_calibration.h text working-tree-encoding=UTF-8 eol=lf

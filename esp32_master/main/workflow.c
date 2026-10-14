@@ -1,7 +1,8 @@
 /*
  * Автомат режимов master: поиск slave, рабочий poll и отдельный calib (UTF-8).
  *
- * scan/poll/calib → SCAN всех ID 1..247 → проверка выбранного списка.
+ * Только scan → SCAN всех ID 1..247 → IDLE с сохранённым списком.
+ * poll/calib используют явные ID или результат завершённого ручного scan.
  * poll → повторение SNAP/STATUS/READ до stop.
  * calib → CONFIRM → next → CALIB → CONFIRM следующего этапа/головки.
  * Шесть этапов: 14 → 13 → 11 → 12 → 14 → 13; затем STOP и проверка 00.
@@ -137,6 +138,8 @@ void workflow_init(workflow_t *w, workflow_io_t io)
 void workflow_command(workflow_t *w, const command_t *command)
 {
     if (command->kind == CMD_STOP) {
+        /* Частичный поиск нельзя использовать как полный список головок. */
+        if (w->state == WF_SCAN) w->found_count = 0;
         if (w->state == WF_CALIB || w->state == WF_CONFIRM) {
             /* В WF_CONFIRM при step=0 мы ещё не запускали эту головку.
              * В WF_CALIB даже первый этап уже активен и требует STOP. */
@@ -186,42 +189,41 @@ void workflow_command(workflow_t *w, const command_t *command)
         message(w, "Busy: type stop before starting another mode");
         return;
     }
-    w->pending = *command;
-    w->found_count = 0;
-    w->scan_id = 1;
-    w->state = WF_SCAN;
-    message(w, "Scanning ALL Modbus IDs 1..247 (about 2 minutes); stop cancels. No writes.");
-}
-
-/* Сначала выводим весь результат, затем проверяем явный список.
- * Отсутствующий ID отменяет запуск целиком: незаметно исключать головки нельзя.
- * Без явного списка берём found по возрастанию, иначе сохраняем порядок CLI. */
-static void finish_scan(workflow_t *w)
-{
-    message(w, "SCAN complete: %u responding head(s). Available IDs:", (unsigned)w->found_count);
-    /* Построчно: список до 247 адресов не усечётся в буфере журнала. */
-    for (size_t i = 0; i < w->found_count; ++i) message(w, "  id=%u", w->found[i]);
-    w->state = WF_IDLE;
-    if (w->pending.kind == CMD_SCAN || !w->found_count) return;
-    w->count = w->pending.count ? w->pending.count : w->found_count;
-    memcpy(w->ids, w->pending.count ? w->pending.ids : w->found, w->count);
-    for (size_t i = 0; i < w->count; ++i) {
-        bool found = false;
-        for (size_t j = 0; j < w->found_count; ++j) found |= w->ids[i] == w->found[j];
-        if (!found) {
-            message(w, "Requested id=%u not discovered; mode NOT started", w->ids[i]);
-            return;
-        }
+    if (command->kind == CMD_SCAN) {
+        /* Новый ручной поиск заменяет прежний список, stop его сбрасывает. */
+        w->found_count = 0;
+        w->scan_id = 1;
+        w->state = WF_SCAN;
+        message(w, "Scanning ALL Modbus IDs 1..247 (about 2 minutes); stop cancels. No writes.");
+        return;
     }
+    /* Явные ID не требуют scan и не сверяются с потенциально устаревшим
+     * списком. Доступность проверят STATUS в poll / LIVE перед командой calib.
+     * Без аргумента используем только завершённый ручной поиск. */
+    w->count = command->count ? command->count : w->found_count;
+    if (!w->count) {
+        message(w, "No scanned heads: specify IDs or run scan first; mode NOT started");
+        return;
+    }
+    memcpy(w->ids, command->count ? command->ids : w->found, w->count);
     message(w, "Selected %u head(s), in requested order:", (unsigned)w->count);
     for (size_t i = 0; i < w->count; ++i) message(w, "  id=%u", w->ids[i]);
-    if (w->pending.kind == CMD_POLL) {
+    if (command->kind == CMD_POLL) {
         w->state = WF_POLL;
     } else {
         message(w, "WARNING: calibration changes RAM and EEPROM. Back up tables first. Motor is MANUAL.");
         w->head = w->step = 0;
         confirm_step(w);
     }
+}
+
+/* Поиск только публикует список и возвращается в IDLE; режим не запускает. */
+static void finish_scan(workflow_t *w)
+{
+    message(w, "SCAN complete: %u responding head(s). Available IDs:", (unsigned)w->found_count);
+    /* Построчно: список до 247 адресов не усечётся в буфере журнала. */
+    for (size_t i = 0; i < w->found_count; ++i) message(w, "  id=%u", w->found[i]);
+    w->state = WF_IDLE;
 }
 
 /* Продвинуть текущий режим. IDLE и CONFIRM не создают трафика.

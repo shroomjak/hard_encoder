@@ -11,10 +11,10 @@ insert_final_newline = true
 charset = unset
 end_of_line = crlf
 
-[Src/{modbus_port,modbus_registers,snapshot_registers}.c]
+[Src/{modbus_port,modbus_registers,snapshot_registers,encoder_calibration}.c]
 charset = utf-8
 end_of_line = lf
 
-[Inc/{modbus_board,port,snapshot_registers,encoder_protocol}.h]
+[Inc/{modbus_board,port,snapshot_registers,encoder_protocol,encoder_calibration}.h]
 charset = utf-8
 end_of_line = lf

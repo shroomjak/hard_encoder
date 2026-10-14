@@ -19,7 +19,7 @@ typedef enum { CMD_SCAN, CMD_POLL, CMD_CALIB, CMD_NEXT, CMD_STOP } command_kind_
 typedef struct {
     command_kind_t kind;
     uint8_t ids[ENCODER_MAX_ID];
-    size_t count; /* 0 = все обнаруженные */
+    size_t count; /* 0 = все из завершённого ручного scan */
 } command_t;
 /* Строгий CSV десятичных ID, например "7,1,247": без пробелов и повторов.
  * Сохраняет kind и порядок ID. При ошибке возвращает false и обнуляет count;
@@ -44,8 +44,8 @@ typedef enum { WF_IDLE, WF_SCAN, WF_POLL, WF_CONFIRM, WF_CALIB } workflow_state_
 typedef struct {
     workflow_io_t io;
     workflow_state_t state;
-    command_t pending; /* Режим и список, отложенные до завершения поиска. */
-    uint8_t found[ENCODER_MAX_ID], ids[ENCODER_MAX_ID]; /* Найденные / выбранные ID. */
+    uint8_t found[ENCODER_MAX_ID], ids[ENCODER_MAX_ID]; /* Кэш scan / выбранные ID. */
+    /* Во время SCAN кэш частичный; stop сбрасывает found_count в 0. */
     size_t found_count, count, head, step; /* Длины списков; индексы head/step с нуля. */
     unsigned scan_id, failures; /* Следующий адрес поиска; ошибки LIVE подряд. */
     uint16_t seq, last_state; /* Номер SNAP; последний код для журнала. */
@@ -54,7 +54,8 @@ typedef struct {
 /* Инициализировать один раз при старте: повторный вызов сбросит seq и режим. */
 void workflow_init(workflow_t *w, workflow_io_t io);
 /* Обработать уже разобранную команду в том же контексте, что workflow_tick.
- * Новый scan/poll/calib принимается только в IDLE; для смены режима нужен stop. */
+ * Новый scan/poll/calib принимается только в IDLE; для смены режима нужен stop.
+ * poll/calib не запускают scan: явные ID или кэш завершённого ручного поиска. */
 void workflow_command(workflow_t *w, const command_t *command);
 /* Один шаг за вызов: один адрес поиска / полный цикл poll / проверка calib.
  * При завершении или ошибке calib шаг может дополнительно отправить STOP

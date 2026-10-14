@@ -7,6 +7,8 @@
  * головок и время задаёт тест: десятиминутный тайм-аут проверяется мгновенно.
  * Проверяем строгий CSV ID, полный поиск 1..247, принятие ready=0, порядок
  * выбранного списка, отсутствие головок, взаимоисключение режимов и stop.
+ * poll/calib не сканируют: явные ID работают без поиска, без аргумента нужен
+ * кэш завершённого scan; новый/прерванный поиск сбрасывает прежний список.
  * Для двух головок проверяем 14→13→11→12→14→13, next на каждом переходе,
  * ожидание EEPROM, финальный STOP, старую прошивку, неожиданное состояние,
  * потерю квитанции FC06 без повторного запуска, ошибки LIVE и тайм-аут,
@@ -26,7 +28,9 @@ static workflow_t w;
 static bool present[248], all_missing, legacy, fail_write, fail_read, fail_stop;
 static uint16_t states[248], ready[248];
 static uint32_t clock_ms;
-static unsigned scanned, writes, polls;
+static unsigned scanned, writes, polls, live_reads;
+static uint8_t polled_ids[ENCODER_MAX_ID];
+static size_t polled_count;
 static uint8_t write_ids[64];
 static uint16_t written[64];
 static char last_message[192];
@@ -45,7 +49,7 @@ static bool request(uint8_t id, uint8_t fn, uint16_t first, uint16_t count, uint
 {
     assert(id >= 1 && id <= 247); /* Never broadcast calibration or discovery. */
     if (fn == 4 && first == 0) {
-        assert(count == 2 && id == ++scanned);
+        assert(w.state == WF_SCAN && count == 2 && id == ++scanned);
         r[0] = 0; r[1] = 0; /* Discovery must accept not-ready heads. */
         return !all_missing && present[id];
     }
@@ -58,14 +62,17 @@ static bool request(uint8_t id, uint8_t fn, uint16_t first, uint16_t count, uint
         return !fail_write;
     }
     assert(fn == 4 && first == ENCODER_CAL_STATE && count == ENCODER_CAL_REG_COUNT);
-    if (fail_read) return false;
+    ++live_reads;
+    if (fail_read || all_missing || !present[id]) return false;
     r[0] = states[id]; r[1] = ready[id];
     r[2] = legacy ? 0 : ENCODER_CAL_MAGIC;
     return true;
 }
 static void poll(const uint8_t *ids, size_t count, uint16_t seq)
 {
-    assert(count == 2 && ids[0] == 247 && ids[1] == 1);
+    assert(count > 0 && count <= ENCODER_MAX_ID);
+    memcpy(polled_ids, ids, count);
+    polled_count = count;
     assert(seq == 42 + polls++);
 }
 static void log_message(const char *msg) { snprintf(last_message, sizeof last_message, "%s", msg); }
@@ -73,7 +80,7 @@ static uint32_t now(void) { return clock_ms; }
 static void reset(void)
 {
     all_missing = legacy = fail_write = fail_read = fail_stop = false;
-    scanned = writes = polls = 0; clock_ms = 0;
+    scanned = writes = polls = live_reads = 0; polled_count = 0; clock_ms = 0;
     memset(present, 0, sizeof present);
     memset(states, 0, sizeof states);
     for (unsigned i = 1; i <= 247; ++i) ready[i] = 1;
@@ -88,13 +95,17 @@ static void send(command_kind_t kind, const char *ids)
 }
 static void scan(void)
 {
+    scanned = 0;
+    send(CMD_SCAN, NULL);
+    assert(w.state == WF_SCAN);
     for (unsigned i = 0; i < 247; ++i) workflow_tick(&w);
-    assert(scanned == 247);
+    assert(scanned == 247 && w.state == WF_IDLE);
 }
 static void start_calib(void)
 {
-    reset(); send(CMD_CALIB, "247,1"); scan();
-    assert(w.state == WF_CONFIRM && writes == 0);
+    reset(); send(CMD_CALIB, "247,1");
+    assert(w.state == WF_CONFIRM && writes == 0 && scanned == 0 && live_reads == 0);
+    assert(w.count == 2 && w.ids[0] == 247 && w.ids[1] == 1);
 }
 static void parser_tests(void)
 {
@@ -111,20 +122,91 @@ static void parser_tests(void)
         n += (size_t)snprintf(all + n, sizeof all - n, "%s%u", i == 1 ? "" : ",", i);
     assert(parse_head_ids(all, &cmd) && cmd.count == 247);
 }
+static void selection_tests(void)
+{
+    /* Explicit IDs start immediately, in CLI order, without discovery. */
+    reset(); send(CMD_POLL, "247,1");
+    assert(w.state == WF_POLL && writes == 0 && scanned == 0);
+    workflow_tick(&w); workflow_tick(&w);
+    assert(polls == 2 && scanned == 0 && live_reads == 0);
+    assert(polled_count == 2 && polled_ids[0] == 247 && polled_ids[1] == 1);
+    send(CMD_CALIB, NULL); assert(w.state == WF_POLL);
+    send(CMD_SCAN, NULL); assert(w.state == WF_POLL); /* Modes cannot overlap. */
+    send(CMD_STOP, NULL); assert(w.state == WF_IDLE);
+    send(CMD_POLL, "247,1"); workflow_tick(&w);
+    assert(polls == 3 && scanned == 0); /* seq survives stop/restart. */
+    send(CMD_STOP, NULL);
+    send(CMD_POLL, NULL); assert(w.state == WF_IDLE); /* Explicit IDs are not a scan cache. */
+
+    /* Missing cache: refuse without any Modbus traffic, for both modes. */
+    reset(); send(CMD_POLL, NULL);
+    assert(w.state == WF_IDLE && strstr(last_message, "run scan first"));
+    send(CMD_CALIB, NULL);
+    assert(w.state == WF_IDLE && strstr(last_message, "run scan first"));
+    workflow_tick(&w);
+    assert(scanned == 0 && writes == 0 && polls == 0 && live_reads == 0);
+
+    /* Completed manual scan is read-only and does not start another mode. */
+    reset(); scan();
+    assert(w.found_count == 2 && writes == 0 && polls == 0 && live_reads == 0);
+    workflow_tick(&w); assert(scanned == 247);
+    send(CMD_POLL, NULL); workflow_tick(&w);
+    assert(w.state == WF_POLL && scanned == 247 && polls == 1);
+    assert(polled_count == 2 && polled_ids[0] == 1 && polled_ids[1] == 247);
+    send(CMD_STOP, NULL);
+    send(CMD_CALIB, NULL);
+    assert(w.state == WF_CONFIRM && w.count == 2 && w.ids[0] == 1 && w.ids[1] == 247);
+    workflow_tick(&w); assert(scanned == 247 && writes == 0);
+    send(CMD_STOP, NULL);
+    send(CMD_CALIB, "247,1");
+    assert(w.state == WF_CONFIRM && w.ids[0] == 247 && w.ids[1] == 1 && scanned == 247);
+    send(CMD_STOP, NULL);
+
+    /* Explicit ID need not appear in the cache (or be online). No filtering. */
+    send(CMD_POLL, "2"); workflow_tick(&w);
+    assert(w.state == WF_POLL && polled_count == 1 && polled_ids[0] == 2 && scanned == 247);
+    send(CMD_STOP, NULL);
+    send(CMD_CALIB, "2"); assert(w.state == WF_CONFIRM && scanned == 247);
+    send(CMD_NEXT, NULL); /* Offline head fails LIVE before any FC06. */
+    assert(w.state == WF_IDLE && writes == 0 && live_reads == 1);
+    present[2] = true; /* Newly connected ID is usable even with an older cache. */
+    send(CMD_CALIB, "2"); send(CMD_NEXT, NULL);
+    assert(w.state == WF_CALIB && writes == 1 && write_ids[0] == 2 && scanned == 247);
+    send(CMD_SCAN, NULL); assert(w.state == WF_CALIB && scanned == 247);
+    send(CMD_STOP, NULL);
+    assert(w.state == WF_IDLE && w.found_count == 2);
+
+    /* New scan replaces the cache; empty result cannot start poll/calib. */
+    all_missing = true; scan(); assert(w.found_count == 0);
+    send(CMD_POLL, NULL); assert(w.state == WF_IDLE);
+    send(CMD_CALIB, NULL); assert(w.state == WF_IDLE && scanned == 247);
+
+    /* Stopping a scan discards both partial results and the previous cache. */
+    reset(); scan(); scanned = 0; send(CMD_SCAN, NULL);
+    workflow_tick(&w); assert(w.found_count == 1);
+    send(CMD_POLL, "247,1"); assert(w.state == WF_SCAN);
+    send(CMD_STOP, NULL); workflow_tick(&w);
+    assert(scanned == 1 && w.state == WF_IDLE && w.found_count == 0);
+    send(CMD_POLL, NULL); assert(w.state == WF_IDLE);
+    send(CMD_CALIB, NULL); assert(w.state == WF_IDLE);
+    assert(scanned == 1 && polls == 0 && writes == 0 && live_reads == 0);
+    send(CMD_POLL, "247,1"); workflow_tick(&w);
+    assert(w.state == WF_POLL && polls == 1 && scanned == 1);
+
+    /* Cache is RAM-only: reinitializing requires explicit IDs or a new scan. */
+    reset(); scan(); workflow_init(&w, w.io);
+    send(CMD_POLL, NULL); assert(w.state == WF_IDLE && w.found_count == 0);
+
+    /* Full address range fits in the cache. */
+    reset(); memset(present, 1, sizeof present); scan();
+    send(CMD_POLL, NULL); workflow_tick(&w);
+    assert(polled_count == 247 && polled_ids[0] == 1 && polled_ids[246] == 247);
+    assert(scanned == 247);
+}
 int main(void)
 {
     parser_tests();
-    reset(); send(CMD_POLL, "247,1"); scan();
-    assert(w.state == WF_POLL && writes == 0);
-    workflow_tick(&w); workflow_tick(&w); assert(polls == 2);
-    send(CMD_CALIB, NULL); assert(w.state == WF_POLL); /* Reject overlapping modes. */
-    send(CMD_STOP, NULL); assert(w.state == WF_IDLE);
-    reset(); send(CMD_POLL, "2"); scan(); assert(w.state == WF_IDLE);
-    reset(); all_missing = true; send(CMD_CALIB, NULL); scan(); assert(w.state == WF_IDLE);
-    reset(); send(CMD_SCAN, NULL); scan(); assert(w.state == WF_IDLE && writes == 0);
-    reset(); send(CMD_CALIB, NULL); scan(); assert(w.ids[0] == 1 && w.ids[1] == 247);
-    reset(); send(CMD_SCAN, NULL); workflow_tick(&w); send(CMD_STOP, NULL);
-    workflow_tick(&w); assert(scanned == 1 && w.state == WF_IDLE);
+    selection_tests();
 
     /* Two heads, exact six-step sequence, confirmation at EVERY boundary. */
     static const uint16_t sequence[] = {0x14,0x13,0x11,0x12,0x14,0x13};
@@ -144,7 +226,7 @@ int main(void)
             assert(w.state == ((head == 1 && step == 5) ? WF_IDLE : WF_CONFIRM));
         }
     }
-    assert(writes == 14 && written[6] == 0x10 && written[13] == 0x10 && polls == 0);
+    assert(scanned == 0 && writes == 14 && written[6] == 0x10 && written[13] == 0x10 && polls == 0);
 
     start_calib(); legacy = true; send(CMD_NEXT, NULL);
     assert(w.state == WF_IDLE && writes == 0); /* Old firmware must never receive CAL. */
@@ -172,6 +254,6 @@ int main(void)
     start_calib(); send(CMD_NEXT, NULL); fail_read = true; workflow_tick(&w);
     fail_read = false; workflow_tick(&w); assert(w.failures == 0);
     fail_stop = true; send(CMD_STOP, NULL); assert(w.state == WF_IDLE && states[247] == 0x70);
-    puts("ESP32 workflow: parser, discovery, selection, calibration, confirmation, failure paths OK");
+    puts("ESP32 workflow: parser, manual discovery, no auto-scan, selection, calibration, confirmation, failure paths OK");
     return 0;
 }
