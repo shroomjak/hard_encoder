@@ -41,7 +41,7 @@ int main(void)
     assert(out[0] == 0 && out[1] == 44 && out[2] == 0 && out[3] == 0);
     assert(eMBRegInputCB(out, 0, 1) == MB_ENOREG);
     assert(eMBRegInputCB(out, 11, 2) == MB_ENOREG);
-    assert(eMBRegHoldingCB(out, 2, 1, MB_REG_WRITE) == MB_ENOREG);
+    assert(eMBRegHoldingCB(out, 3, 1, MB_REG_WRITE) == MB_ENOREG);
     assert(eMBRegHoldingCB(out, 1, 1, MB_REG_READ) == MB_ENOREG);
     snapshot_publish(0.0f / 0.0f, 20, 0, 0, 12370);
     snap(45);

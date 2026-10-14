@@ -1,3 +1,4 @@
-# Как и в примере Espressif, ESP-IDF загружает зависимость esp-modbus по
-# idf_component.yml. Добавлять её исходники в проект вручную не требуется.
-idf_component_register(SRCS "main.c" INCLUDE_DIRS ".")
+# esp-modbus загружается Component Manager из idf_component.yml.
+idf_component_register(SRCS "main.c" "workflow.c"
+                       INCLUDE_DIRS "."
+                       PRIV_REQUIRES console esp_timer driver)

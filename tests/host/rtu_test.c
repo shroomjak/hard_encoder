@@ -6,6 +6,7 @@
 #include "mbport.h"
 #include "mbcrc.h"
 #include "snapshot_registers.h"
+extern int start_angk_cal;
 
 static eMBEventType event;
 static BOOL have_event, tx_on;
@@ -59,5 +60,30 @@ int main(void)
     UCHAR other[16]={2,4,0,0,0,2};
     send_request(other, 6);
     assert(sent_len==0);
+    /* Calibration is unicast only, even with valid CRC. */
+    UCHAR broadcast_cal[16]={0,6,0,1,0,0x14};
+    send_request(broadcast_cal, 6);
+    assert(sent_len==0 && start_angk_cal==0);
+    UCHAR unicast_cal[16]={1,6,0,1,0,0x14};
+    send_request(unicast_cal, 6);
+    assert(sent_len==8 && sent[1]==6 && start_angk_cal==1);
+    sent_len=0;
+    UCHAR busy[16]={1,6,0,1,0,0x13};
+    send_request(busy, 6);
+    assert(sent_len==5 && sent[1]==0x86 && sent[2]==6);
+    sent_len=0;
+    UCHAR invalid[16]={1,6,0,1,0,0x15};
+    send_request(invalid, 6);
+    assert(sent_len==5 && sent[1]==0x86 && sent[2]==3);
+    sent_len=0;
+    UCHAR stop[16]={1,6,0,1,0,0x10};
+    send_request(stop, 6);
+    assert(sent_len==8 && !start_angk_cal);
+    sent_len=0;
+    UCHAR live[16]={1,4,1,0,0,3};
+    send_request(live, 6);
+    assert(sent_len==11 && sent[1]==4 && sent[2]==6);
+    assert(sent[3]==0 && sent[4]==0 && sent[6]==1 && sent[7]==0xca && sent[8]==1);
+    assert(usMBCRC16(sent, sent_len)==0);
     return 0;
 }
