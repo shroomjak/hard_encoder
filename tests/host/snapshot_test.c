@@ -1,3 +1,19 @@
+/*
+ * Тест контракта снимка STM32: SNAP → STATUS/DATA, без платы (UTF-8).
+ * Запуск из корня: sh tests/host/run_snapshot_test.sh
+ * Эквивалентный запуск: python3 tests/modbus_snapshot_test.py
+ * Требуются sh, cc с поддержкой C99 и стандартная библиотека C.
+ *
+ * Собираются реальные snapshot_registers.c и modbus_registers.c. Callback
+ * регистров вызывается напрямую: RTU-кадрирование здесь не участвует.
+ * Проверяем отсутствие готового кадра, seq/ready, неизменность уже готового
+ * снимка при повторном SNAP, обновление при новом seq, метаданные, границы
+ * регистров, микроградусы и округление, отбрасывание NaN/Inf/неверного сектора.
+ * Зачем: не допустить выдачи старого/невалидного угла как нового измерения
+ * или незаметного изменения масштаба и порядка слов протокола.
+ * Не проверяются DMA/АЦП, электрическая синхронизация головок и UART.
+ * Успех — завершение с кодом 0 (может быть без вывода); ошибка — assert.
+ */
 #include <assert.h>
 #include <stdint.h>
 #include <math.h>
@@ -41,7 +57,7 @@ int main(void)
     assert(out[0] == 0 && out[1] == 44 && out[2] == 0 && out[3] == 0);
     assert(eMBRegInputCB(out, 0, 1) == MB_ENOREG);
     assert(eMBRegInputCB(out, 11, 2) == MB_ENOREG);
-    assert(eMBRegHoldingCB(out, 2, 1, MB_REG_WRITE) == MB_ENOREG);
+    assert(eMBRegHoldingCB(out, 3, 1, MB_REG_WRITE) == MB_ENOREG);
     assert(eMBRegHoldingCB(out, 1, 1, MB_REG_READ) == MB_ENOREG);
     snapshot_publish(0.0f / 0.0f, 20, 0, 0, 12370);
     snap(45);

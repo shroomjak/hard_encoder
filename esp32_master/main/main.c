@@ -4,11 +4,10 @@
  * Прошивка собирается и загружается ESP-IDF, НЕ IAR: подробная инструкция
  * и схема соединений приведены в docs/modbus_rtu.md.
  *
- * Цикл для двух головок:
- *   1. SNAP(seq)    — однократная FC06 на адрес 0: все slave фиксируют
- *                     последний готовый результат; ответа НЕ будет.
- *   2. STATUS(1/2) — адресные FC04 (seq, ready); проверяем ACK обеих.
- *   3. READ(1/2)   — адресные FC04 для всех полей, только если ВСЕ ACK.
+ * Режимы poll / calib выбираются через USB-консоль ESP-IDF.
+ * Перед каждым запуском workflow выполняет поиск ID 1..247.
+ * poll: broadcast SNAP -> STATUS всех выбранных -> READ только после всех ACK.
+ * calib: адресные FC06 + LIVE FC04, подтверждения оператора между этапами.
  *
  * UART2 обслуживает RS485; диагностические ESP_LOGx() видны на USB-консоли
  * отладочной платы, а не на проводах A/B. ESP-IDF реализует Modbus RTU,
@@ -16,6 +15,12 @@
  */
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+#include "esp_console.h"
+#include "esp_timer.h"
+#include "freertos/queue.h"
+#include "workflow.h"
 #include "esp_log.h"
 #include "esp_modbus_master.h"
 #include "driver/uart.h"
@@ -33,12 +38,9 @@
 #define MB_RTS_GPIO 4
 #define MB_BAUD 115200
 
-/* У каждого slave в прошивке STM32 свой адрес MB_SLAVE_ADDRESS.
- * Добавляя головки, изменить и массив, и HEAD_COUNT. */
+/* У каждого slave свой MB_SLAVE_ADDRESS. Список выбирается в консоли. */
 #define REG_COUNT 11       /* полная карта входных регистров 0..10 */
 #define STATUS_COUNT 2     /* только seq и ready */
-#define HEAD_COUNT 2
-static const uint8_t head_ids[HEAD_COUNT] = {1, 2};
 static const char *TAG = "encoder";
 static void *master;
 
@@ -127,10 +129,10 @@ static bool status_ack(uint8_t id, uint16_t seq)
 /* Полный цикл опроса одного номера кадра.
  * Адрес 0 Modbus зарезервирован для вещания: никто не отвечает на SNAP.
  * Espressif esp-modbus после него выдерживает заданную в sdkconfig.defaults
- * задержку обработки (200 мс), прежде чем принимать следующий запрос.
+ * задержку обработки (150 мс), прежде чем принимать следующий запрос.
  * Даже при ошибке одной головки спрашиваем STATUS оставшихся для диагностики,
  * но НЕ выдаём READ ни одной из них до полного набора подтверждений. */
-static void poll_heads(uint16_t seq)
+static void poll_heads(const uint8_t *head_ids, size_t head_count, uint16_t seq)
 {
     uint16_t command = seq;
     esp_err_t err = request(0, 0x06, 0, 1, &command);
@@ -140,7 +142,7 @@ static void poll_heads(uint16_t seq)
     }
     ESP_LOGI(TAG, "SNAP seq=%u", (unsigned)seq);
     bool all_ack = true;
-    for (unsigned i = 0; i < HEAD_COUNT; ++i) {
+    for (unsigned i = 0; i < head_count; ++i) {
         /* При сбое STATUS одна повторная попытка; повтор не делает SNAP. */
         if (!status_ack(head_ids[i], seq) && !status_ack(head_ids[i], seq))
             all_ack = false;
@@ -153,7 +155,7 @@ static void poll_heads(uint16_t seq)
     /* READ обращается только к уже зафиксированному frozen-кадру.
      * Повторно проверяем seq/ready, поскольку между STATUS и READ могли
      * произойти ошибка обмена или изменение состояния у slave. */
-    for (unsigned i = 0; i < HEAD_COUNT; ++i) {
+    for (unsigned i = 0; i < head_count; ++i) {
         uint16_t r[REG_COUNT] = {0};
         err = request(head_ids[i], 0x04, 0, REG_COUNT, r);
         if (err != ESP_OK || r[0] != seq || r[1] != 1 || r[4] >= 144) {
@@ -177,14 +179,65 @@ static void poll_heads(uint16_t seq)
     }
 }
 
-/* Точка входа ESP-IDF (аналог main() в обычном C-проекте).
- * UART_DATA_8_BITS + UART_PARITY_EVEN + один стоп-бит = 8E1, как на STM32.
- * RTS автоматически переключает направление в режиме RS485_HALF_DUPLEX.
- * Сначала создаём стек и настраиваем UART, затем задаём требуемый
- * дескриптор и запускаем master. Далее только master инициирует обмен;
- * задержка FreeRTOS задаёт интервал между ПОЛНЫМИ циклами опроса.
- * seq демонстрационно начинается с 42; для защиты от старого ACK после
- * перезапуска master использовать сохранённый в NVS неповторяющийся номер. */
+/* Консоль не обращается к Modbus: команды передаются единственной задаче
+ * через очередь. Поэтому stop/next можно вводить во время обмена. */
+static QueueHandle_t commands;
+static workflow_t workflow;
+
+/* Адаптер ESP-IDF к переносимому автомату: тот получает только успех/ошибку.
+ * Детальные esp_err_t остаются в прямом рабочем poll и его диагностике. */
+static bool workflow_request(uint8_t id, uint8_t function, uint16_t first,
+                             uint16_t count, uint16_t *words)
+{
+    return request(id, function, first, count, words) == ESP_OK;
+}
+static void workflow_log(const char *text) { ESP_LOGI(TAG, "%s", text); }
+static uint32_t now_ms(void) { return (uint32_t)(esp_timer_get_time() / 1000); }
+
+/* Общий обработчик зарегистрированных команд REPL. Дополнительный аргумент
+ * разрешён только у poll/calib: один CSV-список, а не отдельные аргументы ID.
+ * В очередь копируется вся command_t, поэтому локальный буфер не нужен после
+ * возврата. При переполнении очереди команда не исполняется и не теряется молча. */
+static int console_command(int argc, char **argv)
+{
+    command_t command = {0};
+    if (!strcmp(argv[0], "scan")) command.kind = CMD_SCAN;
+    else if (!strcmp(argv[0], "poll")) command.kind = CMD_POLL;
+    else if (!strcmp(argv[0], "calib")) command.kind = CMD_CALIB;
+    else if (!strcmp(argv[0], "next")) command.kind = CMD_NEXT;
+    else command.kind = CMD_STOP;
+    bool has_ids = command.kind == CMD_POLL || command.kind == CMD_CALIB;
+    if (argc > (has_ids ? 2 : 1) ||
+        (argc == 2 && !parse_head_ids(argv[1], &command))) {
+        printf("Usage: %s%s; decimal IDs 1..247, no duplicates\n",
+               argv[0], has_ids ? " [id,id,...]" : "");
+        return 1;
+    }
+    if (xQueueSend(commands, &command, 0) != pdTRUE) {
+        printf("Command queue full; try again\n");
+        return 1;
+    }
+    return 0;
+}
+
+/* Единственная задача-владелец Modbus и workflow. Ожидание очереди задаёт
+ * паузу до 100 мс между шагами; сами запросы могут занимать больше времени.
+ * Перед каждым следующим шагом проверяется команда из консоли. */
+static void worker(void *arg)
+{
+    (void)arg;
+    command_t command;
+    for (;;) {
+        /* Очередь проверяется между запросами поиска / этапами калибровки /
+         * полными циклами poll. stop не прерывает Modbus-транзакцию. */
+        if (xQueueReceive(commands, &command, pdMS_TO_TICKS(100)) == pdTRUE)
+            workflow_command(&workflow, &command);
+        workflow_tick(&workflow);
+    }
+}
+
+/* UART2: 115200/8E1, RTS управляет RS485. USB/UART0: отдельная консоль.
+ * seq не сбрасывается при смене режимов, но после reboot снова 42 (см. docs). */
 void app_main(void)
 {
     mb_communication_info_t comm = {
@@ -204,9 +257,37 @@ void app_main(void)
     ESP_ERROR_CHECK(mbc_master_set_descriptor(master, descriptor, 1));
     ESP_ERROR_CHECK(mbc_master_start(master));
 
-    uint16_t seq = 42;
-    while (true) {
-        poll_heads(seq++); /* uint16_t переполняется после 65535 */
-        vTaskDelay(pdMS_TO_TICKS(100));
+    /* Сначала запускаем транспорт и задачу, затем консоль. Автомат остаётся
+     * в IDLE: до команды оператора никакие головки не опрашиваются. */
+    commands = xQueueCreate(4, sizeof(command_t));
+    ESP_ERROR_CHECK(commands ? ESP_OK : ESP_ERR_NO_MEM);
+    workflow_init(&workflow, (workflow_io_t){workflow_request, poll_heads, workflow_log, now_ms});
+    if (xTaskCreate(worker, "encoder_bus", 6144, NULL, 5, NULL) != pdPASS)
+        ESP_ERROR_CHECK(ESP_ERR_NO_MEM);
+
+    esp_console_repl_t *repl = NULL;
+    esp_console_repl_config_t repl_config = ESP_CONSOLE_REPL_CONFIG_DEFAULT();
+    repl_config.prompt = "encoder>";
+    repl_config.max_cmdline_length = 1024; /* CSV всех 247 ID */
+    esp_console_dev_uart_config_t uart_config = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_console_new_repl_uart(&uart_config, &repl_config, &repl));
+    /* REPL уже регистрирует help. Команды и сообщения оставлены ASCII,
+     * чтобы их можно было вводить/читать в терминалах с разными кодировками;
+     * комментарии исходников при этом хранятся в UTF-8. */
+    const char *names[] = {"scan", "poll", "calib", "next", "stop"};
+    const char *help[] = {
+        "Scan all IDs 1..247 without writes",
+        "poll [id,id,...]: scan, then SNAP/STATUS/READ; omitted IDs = all found",
+        "calib [id,id,...]: scan, then sequential calibration (EEPROM writes!)",
+        "Confirm the displayed calibration stage / next head; set rotation first",
+        "Stop current mode; active calibration receives addressed 0x10"
+    };
+    for (unsigned i = 0; i < sizeof names / sizeof names[0]; ++i) {
+        const esp_console_cmd_t cmd = {
+            .command = names[i], .help = help[i], .func = console_command
+        };
+        ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
     }
+    ESP_LOGI(TAG, "Ready: type poll [1,2] or calib [1,2]. Each mode scans IDs 1..247 first.");
+    ESP_ERROR_CHECK(esp_console_start_repl(repl));
 }

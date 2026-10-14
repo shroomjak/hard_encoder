@@ -431,6 +431,14 @@ eMBPoll( void )
             break;
 
         case EV_EXECUTE:
+            /* Project policy: only FC06 holding[0] (SNAP) may broadcast.
+             * Never execute calibration/EEPROM commands on every head. */
+            if( ucRcvAddress == MB_ADDRESS_BROADCAST &&
+                !(usLength == 5 && ucMBFrame[0] == MB_FUNC_WRITE_REGISTER &&
+                  ucMBFrame[1] == 0 && ucMBFrame[2] == 0) )
+            {
+                break;
+            }
             ucFunctionCode = ucMBFrame[MB_PDU_FUNC_OFF];
             eException = MB_EX_ILLEGAL_FUNCTION;
             for( i = 0; i < MB_FUNC_HANDLERS_MAX; i++ )
