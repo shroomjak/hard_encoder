@@ -4,8 +4,8 @@
  * Стек из ThirdParty/FreeModbus уже проверил CRC, адрес устройства и
  * формат Modbus RTU. Здесь переводим стандартные функции Modbus в
  * действия датчика: FC06 holding[0] вызывает SNAP, holding[1] управляет
- * калибровкой; FC04 выдаёт frozen-данные либо отдельный LIVE-диапазон. Передача сырых строк или собственный протокол
- * поверх UART здесь не реализуются.
+ * калибровкой; FC04 выдаёт frozen-данные либо отдельный LIVE-диапазон.
+ * Передача сырых строк или собственный протокол поверх UART здесь не реализуются.
  *
  * Важная особенность FreeModbus: адрес в callback = адрес на проводе + 1.
  * Например, регистр 0 в запросе FC06 приходит сюда как address=1.
@@ -26,6 +26,9 @@ extern float offset_minmax[128], buf_x3[128];
 extern unsigned char encoder_state;
 extern uint8_t backlight_width_en, i2c3_tx_wp;
 
+/* Только подготавливаем флаги/буферы: тяжёлые расчёты продолжат выполняться
+ * в прежнем суперцикле main.c. Не ждём вращения или записи EEPROM внутри FC06,
+ * иначе slave перестал бы вовремя отвечать на запросы состояния. */
 static eMBErrorCode calibration_command(uint16_t command)
 {
     if (command == 0x10) {
@@ -39,17 +42,20 @@ static eMBErrorCode calibration_command(uint16_t command)
     }
     if (command < 0x11 || command > 0x14) return MB_EINVAL;
     if (start_calibrate || auto_cal || start_offset_cal || start_angk_cal ||
-        !i2c3_tx_wp) return MB_ETIMEDOUT; /* exception: slave busy */
+        !i2c3_tx_wp) return MB_ETIMEDOUT; /* Исключение Modbus 06: slave занят. */
     /* Второй проход допустим только после первого, без промежуточного STOP. */
     if (command == 0x12 && encoder_state != 0x20) return MB_EINVAL;
     switch (command) {
     case 0x11:
     case 0x12:
+        /* Отсчёты нового прохода инициализирует angtab_cal(); -1 снимает
+         * защёлку сектора, чтобы первый подходящий отсчёт мог быть принят. */
         old_sector = -1;
         start_calibrate = command == 0x11 ? 1 : 2;
         encoder_state = command == 0x11 ? 0x10 : 0x30;
         break;
     case 0x13:
+        /* Начинаем поиск offset с окна 63..65, не продолжаем прежнюю фазу. */
         offset_start = 63;
         offset_end = 65;
         offset_cur = offset_start;
@@ -59,6 +65,8 @@ static eMBErrorCode calibration_command(uint16_t command)
         start_offset_cal = 1;
         break;
     case 0x14:
+        /* Пиковый детектор должен накопить новую яркость при фиксированной
+         * подсветке. Старые пики и работающая АРУ исказили бы новые buf_k. */
         anglek_phase = avg_minmax_num = 0;
         memset(buf_x3, 0, sizeof buf_x3);
         backlight_width_en = 0;
@@ -85,14 +93,16 @@ eMBErrorCode eMBRegHoldingCB(UCHAR *buf, USHORT address, USHORT count, eMBRegist
 }
 
 /*
- * eMBRegInputCB — чтение зафиксированного снимка стандартной FC04.
+ * eMBRegInputCB — чтение стандартной FC04: два независимых диапазона.
+ * LIVE 0x100..0x102 читает текущее состояние автоматов без SNAP.
+ * Ниже описан диапазон снимка 0..10:
  * STATUS запрашивает первые 2 регистра (seq, ready), READ — все 11.
  * Допустимы и меньшие диапазоны, но их адреса обязаны полностью
  * укладываться в 0..SNAP_REG_COUNT-1. Сначала проверяем диапазон с
  * расширенной арифметикой uint32_t, затем складываем каждый uint16_t
  * в ответ в сетевом порядке байтов: старший, младший.
  *
- * Значения берутся из frozen в snapshot_registers.c, а не из текущего
+ * Значения снимка берутся из frozen в snapshot_registers.c, а не из текущего
  * результата main.c: после SNAP они не меняются при новых кадрах АЦП.
  */
 eMBErrorCode eMBRegInputCB(UCHAR *buf, USHORT address, USHORT count)

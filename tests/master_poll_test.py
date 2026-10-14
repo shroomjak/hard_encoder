@@ -1,8 +1,21 @@
 #!/usr/bin/env python3
-"""Compile the real poll functions from main.c, mocking only ESP logs/transport.
+"""Регрессионный тест рабочего poll ESP32 на компьютере (UTF-8).
 
-No copy of the polling implementation: extraction matches the sector regression
-harness. This is NOT an ESP-IDF build and does not validate target drivers.
+Запуск из корня: python3 tests/master_poll_test.py
+Требуются Python 3 и компилятор cc (C99) в PATH; ESP-IDF и платы не нужны.
+
+Из main/main.c извлекаются реальные log_not_ready(), status_ack(), poll_heads().
+Подменяются только интерфейс request и журнал ESP_LOG; копии алгоритма нет.
+Проверяются произвольные ID 247/3, один SNAP на цикл, STATUS всех головок перед
+рабочими READ, повтор STATUS без нового SNAP, полный отказ от рабочих READ
+при неполном ACK, устаревший seq, невалидный сектор и ошибка broadcast.
+При ready=0 диагностическое чтение разрешено, но DATA публиковаться не должно.
+
+Зачем: сохранить согласованность измерений нескольких головок при изменении
+списка ID или логики опроса. Это не тест поиска/calib (см. workflow_test.c),
+не сборка ESP-IDF и не проверка настоящего драйвера UART/esp-modbus.
+Временные исходник и исполняемый файл автоматически удаляются. Успех — код 0
+и строка ESP32 poll: ... OK; ошибка компиляции/assert даёт ненулевой код.
 """
 from pathlib import Path
 import subprocess

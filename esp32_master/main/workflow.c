@@ -1,10 +1,26 @@
+/*
+ * Автомат режимов master: поиск slave, рабочий poll и отдельный calib (UTF-8).
+ *
+ * scan/poll/calib → SCAN всех ID 1..247 → проверка выбранного списка.
+ * poll → повторение SNAP/STATUS/READ до stop.
+ * calib → CONFIRM → next → CALIB → CONFIRM следующего этапа/головки.
+ * Шесть этапов: 14 → 13 → 11 → 12 → 14 → 13; затем STOP и проверка 00.
+ * Ошибка прерывает весь список с попыткой STOP. Резервного копирования,
+ * управления двигателем и восстановления коэффициентов здесь нет.
+ *
+ * Все аппаратные зависимости вынесены в workflow_io_t: один и тот же код
+ * исполняется на ESP32 и в tests/host/workflow_test.c с подменённым транспортом.
+ */
 #include "workflow.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 
 #define CAL_TIMEOUT_MS 600000U /* 10 минут на этап, включая EEPROM */
-#define CAL_MAX_FAILURES 5
+#define CAL_MAX_FAILURES 5     /* Успешное LIVE-чтение обнуляет счётчик ошибок. */
+/* Команда → ожидаемое состояние выполнения → состояние завершения.
+ * Повтор buf_k/offset после двух проходов ang_tab учитывает связь коэффициентов.
+ * Подсказка описывает ручное вращение: двигателем этот модуль не управляет. */
 static const struct {
     uint16_t command, busy, done;
     const char *instruction;
@@ -17,6 +33,9 @@ static const struct {
     {0x13, 0x50, 0x60, "offset repeat: rotate uniformly, either direction, 10..40 rpm"}
 };
 
+/* Разбираем цифры вручную: запрет знаков/hex и проверка границы после каждой
+ * цифры исключают переполнение даже при очень длинном ошибочном числе.
+ * seen не позволяет одному ID дважды попасть в последовательность калибровки. */
 bool parse_head_ids(const char *text, command_t *command)
 {
     command->count = 0;
@@ -41,6 +60,8 @@ invalid:
     return false;
 }
 
+/* Ограниченный локальный буфер для одной строки. Длинные списки адресов
+ * печатаются по одному ID, чтобы не потерять хвост при усечении строки. */
 static void message(workflow_t *w, const char *fmt, ...)
 {
     char text[192];
@@ -51,12 +72,16 @@ static void message(workflow_t *w, const char *fmt, ...)
     w->io.log(text);
 }
 
+/* Читаем именно LIVE, а не поле 6 frozen-снимка: SNAP здесь не нужен.
+ * Сигнатура защищает от запуска калибровки на старой несовместимой прошивке. */
 static bool live(workflow_t *w, uint16_t r[ENCODER_CAL_REG_COUNT])
 {
     return w->io.request(w->ids[w->head], 4, ENCODER_CAL_STATE,
                          ENCODER_CAL_REG_COUNT, r) && r[2] == ENCODER_CAL_MAGIC;
 }
 
+/* Всегда адресная запись выбранной головке; broadcast для калибровки нет.
+ * Эхо FC06 подтверждает приём команды, а результат проверяется отдельно. */
 static bool write_command(workflow_t *w, uint16_t command)
 {
     return w->io.request(w->ids[w->head], 6, ENCODER_CAL_COMMAND, 1, &command);
@@ -77,6 +102,9 @@ static bool stop_head(workflow_t *w)
     return true;
 }
 
+/* При ошибке прекращаем весь список, а не переходим к следующему ID.
+ * STOP — только попытка: при потере связи состояние slave может быть неизвестно.
+ * Ни запись EEPROM, ни уже изменённые коэффициенты этим не откатываются. */
 static void abort_calibration(workflow_t *w, const char *reason)
 {
     message(w, "CALIB aborted: %s. RAM coefficients are NOT rolled back.", reason);
@@ -84,6 +112,8 @@ static void abort_calibration(workflow_t *w, const char *reason)
     w->state = WF_IDLE;
 }
 
+/* Ожидание оператора не ограничено CAL_TIMEOUT_MS. Каждый этап, включая
+ * первую команду следующей головке, требует отдельного подтверждения next. */
 static void confirm_step(workflow_t *w)
 {
     w->state = WF_CONFIRM;
@@ -92,6 +122,8 @@ static void confirm_step(workflow_t *w)
             (unsigned)w->step + 1, steps[w->step].instruction);
 }
 
+/* Нулевой state соответствует WF_IDLE. seq сохраняется при смене режимов,
+ * но после перезапуска устройства снова начинается с 42 (см. ограничение в docs). */
 void workflow_init(workflow_t *w, workflow_io_t io)
 {
     memset(w, 0, sizeof *w);
@@ -99,11 +131,15 @@ void workflow_init(workflow_t *w, workflow_io_t io)
     w->seq = 42;
 }
 
+/* Обрабатывается задачей шины между шагами автомата. Консоль не вызывает
+ * эту функцию параллельно с обменом. Успешная постановка команды в очередь
+ * ещё не означает, что она допустима в текущем состоянии автомата. */
 void workflow_command(workflow_t *w, const command_t *command)
 {
     if (command->kind == CMD_STOP) {
         if (w->state == WF_CALIB || w->state == WF_CONFIRM) {
-            /* При step=0 ещё нет запущенных нами команд этой головке. */
+            /* В WF_CONFIRM при step=0 мы ещё не запускали эту головку.
+             * В WF_CALIB даже первый этап уже активен и требует STOP. */
             if (w->state == WF_CALIB || w->step != 0)
                 abort_calibration(w, "operator stop");
         }
@@ -123,7 +159,10 @@ void workflow_command(workflow_t *w, const command_t *command)
             w->state = WF_IDLE;
             return;
         }
-        /* Не захватывать головку с чужой/незавершённой калибровкой. */
+        /* Повторная проверка после ожидания оператора: за это время головка
+         * могла перезагрузиться или изменить состояние. Первый этап требует
+         * 0x00, остальные — done предыдущего этапа; EEPROM должна быть свободна.
+         * Головку с чужой/незавершённой калибровкой не захватываем. */
         if (r[1] != 1 || (w->step == 0 && r[0] != 0) ||
             (w->step != 0 && r[0] != steps[w->step - 1].done)) {
             message(w, "CALIB refused: state=0x%02x eeprom_ready=%u; inspect head", r[0], r[1]);
@@ -154,6 +193,9 @@ void workflow_command(workflow_t *w, const command_t *command)
     message(w, "Scanning ALL Modbus IDs 1..247 (about 2 minutes); stop cancels. No writes.");
 }
 
+/* Сначала выводим весь результат, затем проверяем явный список.
+ * Отсутствующий ID отменяет запуск целиком: незаметно исключать головки нельзя.
+ * Без явного списка берём found по возрастанию, иначе сохраняем порядок CLI. */
 static void finish_scan(workflow_t *w)
 {
     message(w, "SCAN complete: %u responding head(s). Available IDs:", (unsigned)w->found_count);
@@ -182,9 +224,14 @@ static void finish_scan(workflow_t *w)
     }
 }
 
+/* Продвинуть текущий режим. IDLE и CONFIRM не создают трафика.
+ * Вызов не является полностью неблокирующим: request ждёт ответ/тайм-аут,
+ * а poll выполняет полный цикл. Очередь stop проверяется между вызовами. */
 void workflow_tick(workflow_t *w)
 {
     if (w->state == WF_SCAN) {
+        /* Для обнаружения достаточно ответа FC04: ready=0 тоже допустим.
+         * Только читаем, чтобы поиск не фиксировал снимки и не запускал EEPROM. */
         uint16_t status[2];
         if (w->io.request((uint8_t)w->scan_id, 4, 0, 2, status)) {
             w->found[w->found_count++] = (uint8_t)w->scan_id;
@@ -195,6 +242,8 @@ void workflow_tick(workflow_t *w)
     } else if (w->state == WF_POLL) {
         w->io.poll(w->ids, w->count, w->seq++);
     } else if (w->state == WF_CALIB) {
+        /* Беззнаковая разность корректна и при переходе счётчика мс через 0,
+         * если интервал проверки меньше полного периода uint32_t. */
         if ((uint32_t)(w->io.now_ms() - w->started) >= CAL_TIMEOUT_MS) {
             abort_calibration(w, "step timeout (10 minutes)");
             return;
@@ -215,6 +264,8 @@ void workflow_tick(workflow_t *w)
             abort_calibration(w, "unexpected state / head reset");
             return;
         }
+        /* Код done может появиться раньше завершения передачи I2C.
+         * Ждём оба условия; EEPROM_READY не заменяет проверку CRC после reboot. */
         if (r[0] != steps[w->step].done || r[1] != 1) return;
         if (++w->step == sizeof steps / sizeof steps[0]) {
             if (!stop_head(w)) { w->state = WF_IDLE; return; }

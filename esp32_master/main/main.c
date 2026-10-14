@@ -184,6 +184,8 @@ static void poll_heads(const uint8_t *head_ids, size_t head_count, uint16_t seq)
 static QueueHandle_t commands;
 static workflow_t workflow;
 
+/* Адаптер ESP-IDF к переносимому автомату: тот получает только успех/ошибку.
+ * Детальные esp_err_t остаются в прямом рабочем poll и его диагностике. */
 static bool workflow_request(uint8_t id, uint8_t function, uint16_t first,
                              uint16_t count, uint16_t *words)
 {
@@ -192,6 +194,10 @@ static bool workflow_request(uint8_t id, uint8_t function, uint16_t first,
 static void workflow_log(const char *text) { ESP_LOGI(TAG, "%s", text); }
 static uint32_t now_ms(void) { return (uint32_t)(esp_timer_get_time() / 1000); }
 
+/* Общий обработчик зарегистрированных команд REPL. Дополнительный аргумент
+ * разрешён только у poll/calib: один CSV-список, а не отдельные аргументы ID.
+ * В очередь копируется вся command_t, поэтому локальный буфер не нужен после
+ * возврата. При переполнении очереди команда не исполняется и не теряется молча. */
 static int console_command(int argc, char **argv)
 {
     command_t command = {0};
@@ -214,6 +220,9 @@ static int console_command(int argc, char **argv)
     return 0;
 }
 
+/* Единственная задача-владелец Modbus и workflow. Ожидание очереди задаёт
+ * паузу до 100 мс между шагами; сами запросы могут занимать больше времени.
+ * Перед каждым следующим шагом проверяется команда из консоли. */
 static void worker(void *arg)
 {
     (void)arg;
@@ -248,6 +257,8 @@ void app_main(void)
     ESP_ERROR_CHECK(mbc_master_set_descriptor(master, descriptor, 1));
     ESP_ERROR_CHECK(mbc_master_start(master));
 
+    /* Сначала запускаем транспорт и задачу, затем консоль. Автомат остаётся
+     * в IDLE: до команды оператора никакие головки не опрашиваются. */
     commands = xQueueCreate(4, sizeof(command_t));
     ESP_ERROR_CHECK(commands ? ESP_OK : ESP_ERR_NO_MEM);
     workflow_init(&workflow, (workflow_io_t){workflow_request, poll_heads, workflow_log, now_ms});
@@ -260,6 +271,9 @@ void app_main(void)
     repl_config.max_cmdline_length = 1024; /* CSV всех 247 ID */
     esp_console_dev_uart_config_t uart_config = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_console_new_repl_uart(&uart_config, &repl_config, &repl));
+    /* REPL уже регистрирует help. Команды и сообщения оставлены ASCII,
+     * чтобы их можно было вводить/читать в терминалах с разными кодировками;
+     * комментарии исходников при этом хранятся в UTF-8. */
     const char *names[] = {"scan", "poll", "calib", "next", "stop"};
     const char *help[] = {
         "Scan all IDs 1..247 without writes",
