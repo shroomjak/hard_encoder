@@ -63,3 +63,4 @@ esp32_master/dependencies.lock
 
 # EWARM build output
 EWARM/taos/
+EWARM/
