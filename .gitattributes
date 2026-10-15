@@ -1,7 +1,30 @@
-# Keep C/H sources in CP1251 on disk (Russian comments). Git stores bytes as-is.
-*.c text working-tree-encoding=CP1251
-*.h text working-tree-encoding=CP1251
-
-# UTF-8 for tooling / docs
+# По умолчанию новые исходники, ESP-IDF, тесты и FreeModbus — UTF-8.
+* text=auto
+*.c text working-tree-encoding=UTF-8 eol=lf
+*.h text working-tree-encoding=UTF-8 eol=lf
 *.md text eol=lf
 *.json text eol=lf
+*.py text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+
+# Базовые STM32/IAR файлы НЕ перекодируем. Git хранит их в UTF-8,
+# рабочее дерево остаётся CP1251, как в исторической сборке IAR.
+Src/*.c text working-tree-encoding=CP1251 !eol
+Inc/*.h text working-tree-encoding=CP1251 !eol
+Drivers/**/*.c text working-tree-encoding=CP1251 !eol
+Drivers/**/*.h text working-tree-encoding=CP1251 !eol
+EWARM/**/*.c text working-tree-encoding=CP1251 !eol
+EWARM/**/*.h text working-tree-encoding=CP1251 !eol
+
+# Рукописная адаптация Modbus и общий контракт протокола — UTF-8.
+Src/modbus_*.c text working-tree-encoding=UTF-8 eol=lf
+Src/snapshot_registers.c text working-tree-encoding=UTF-8 eol=lf
+Inc/modbus_board.h text working-tree-encoding=UTF-8 eol=lf
+Inc/port.h text working-tree-encoding=UTF-8 eol=lf
+Inc/snapshot_registers.h text working-tree-encoding=UTF-8 eol=lf
+Inc/encoder_protocol.h text working-tree-encoding=UTF-8 eol=lf
+
+# Командный обработчик калибровки и его интерфейс — UTF-8.
+Src/encoder_calibration.c text working-tree-encoding=UTF-8 eol=lf
+Inc/encoder_calibration.h text working-tree-encoding=UTF-8 eol=lf

@@ -17,8 +17,15 @@
      bit_err_corr() (контроль дефекта B - маски разряда).
   3. Порог достоверности: при badbit_value >= 1000 коррекция не применяется.
 
-Запуск:  python3 tests/sector_decode_test.py
-Требуется: gcc. Исходник Src/main.c читается в кодировке CP1251 (см. .gitattributes).
+Зачем: не допустить возврата ошибок выбора бита и определения сектора при
+дальнейших изменениях прошивки. Проверяется именно декодер, а не физическое
+распознавание изображения фотолинейки, вычисление угла целиком или калибровка.
+
+Запуск из корня: python3 tests/sector_decode_test.py
+Требуются Python 3 и gcc в PATH; IAR, STM32 и ESP32 не нужны.
+Этот файл — UTF-8; Src/main.c читается как CP1251 без его перекодирования.
+Сборка использует временный каталог, исходники прошивки не изменяются.
+Успех — код 0 и «ВСЕ ПРОВЕРКИ ПРОЙДЕНЫ»; ошибка проверки/сборки — ненулевой код.
 """
 
 import io
@@ -178,19 +185,7 @@ def main():
         print("ОБНАРУЖЕН ВЫХОД ЗА ГРАНИЦУ МАССИВА (undefined behavior)")
         return 1
 
-    result = subprocess.run(
-        [exe],
-        capture_output=True,
-        encoding="utf-8",
-    )
-
-    if result.stdout:
-        print(result.stdout, end="")
-
-    if result.stderr:
-        print(result.stderr, end="", file=sys.stderr)
-
-    return result.returncode
+    return subprocess.run([exe]).returncode
 
 
 if __name__ == "__main__":

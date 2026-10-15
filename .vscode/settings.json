@@ -1,14 +1,10 @@
 {
-  "files.encoding": "windows1251",
-  "files.autoGuessEncoding": false,
-  "files.eol": "\r\n",
-  "[c]": {
-    "files.encoding": "windows1251"
-  },
-  "[cpp]": {
-    "files.encoding": "windows1251"
-  },
+  "files.encoding": "utf8",
+  "files.autoGuessEncoding": true,
+  "files.candidateGuessEncodings": ["utf8", "windows1251"],
+  "files.eol": "\n",
   "files.associations": {
     "*.h": "c"
-  }
+  },
+  "cmake.sourceDirectory": "${workspaceFolder}/esp32_master"
 }

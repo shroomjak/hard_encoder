@@ -10,8 +10,9 @@
 
 | Файл | Содержание |
 |---|---|
-| [`docs/main_c_overview.md`](docs/main_c_overview.md) | Поблочный технический разбор `Src/main.c`: периферия, прерывания, конечные автоматы, протокол обмена. |
+| [`docs/main_c_overview.md`](docs/main_c_overview.md) | Поблочный технический разбор `Src/main.c`: периферия, прерывания, конечные автоматы. |
 | [`docs/angle_math_and_calibration.md`](docs/angle_math_and_calibration.md) | Математика и программная реализация: поиск **репера** и **сектора**, обнаружение и коррекция ошибок, вычисление **угла**, функции **самокалибровки** и порядок их запуска. |
+| [`docs/modbus_rtu.md`](docs/modbus_rtu.md) | Реализация Modbus RTU/RS-485: FreeModbus slave на STM32, официальный ESP-Modbus master на ESP32, карта регистров и сценарий SNAP → STATUS → READ. |
 
 Сам `Src/main.c` снабжён комментариями у ключевых функций, инициализаций и объявлений.
 
@@ -19,7 +20,28 @@
 
 ```bash
 python3 tests/sector_decode_test.py
+python3 tests/modbus_snapshot_test.py
 ```
+
+`tests/modbus_snapshot_test.py` запускает актуальный host-тест
+`Src/snapshot_registers.c` и `Src/modbus_registers.c`: FC06 SNAP → FC04 STATUS/DATA,
+масштаб микроградусов, номер последовательности, метаданные и границы регистров.
+
+Дополнительные проверки:
+
+```bash
+sh tests/host/run_rtu_test.sh
+sh tests/host/run_calibration_test.sh
+python3 tests/calibration_state_test.py
+sh tests/host/run_workflow_test.sh
+python3 tests/master_poll_test.py
+```
+
+ESP32 теперь управляется через `idf.py monitor`: `poll 1,2`, `calib 2,1`,
+`next`, `stop`, `scan`. Поиск ID 1..247 выполняется **только вручную командой `scan`**.
+`poll`/`calib` с явными ID запускаются без поиска; без ID используют кэш завершённого
+ручного `scan` (при пустом кэше просят указать ID или выполнить поиск).
+[Команды, подтверждения и ограничения калибровки](esp32_master/README.md#команды-в-idfpy-monitor).
 
 Регрессионный тест декодера сектора: извлекает из `Src/main.c` реальные `calc_sector()`,
 `bit_err_corr()` и таблицу `bit_tab[]`, собирает их хостовым `gcc` и проверяет полным
@@ -38,6 +60,10 @@ python3 tests/sector_decode_test.py
 **Программная часть**: работа с USART, инициализация, настройка, подключение и тест на компьютере через serial monitor через обратное преобразование RS485 -> USART
 
 ### 3. Реализация ModBus RTU (RS485)
+
+Текущая реализация и инструкция по сборке находятся в [`docs/modbus_rtu.md`](docs/modbus_rtu.md).
+STM32 использует vendored **FreeModbus** (BSD-3-Clause), ESP32 master — официальный
+компонент **espressif/esp-modbus** через ESP-IDF Component Manager.
 **Электрическая часть**: печатная плата, параллельная шина портов счтывающих головок (4 шт.), преобразователь RS485 -> USART при подключении к ESP32
 
 Здесь роль Master у ESP32, роли Slave у считывающих головок на STM32.
@@ -56,10 +82,21 @@ python3 tests/sector_decode_test.py
 
 ### 5. Отработка самокалибровки
 
-Происходит по шине SPI, возможно выполнить внутри IAR изменяя нужные регистры; лучше реализовать внутри ModBus, отдельной командой на самокалибровку конкретной головки
+Раньше происходила по шине SPI — в текущей ревизии канал удалён (см. `docs/main_c_overview.md`, §11). Калибровки доступны через адресные команды Modbus FC06 (holding[1]);
+ESP32 в режиме `calib` выполняет `14 → 13 → 11 → 12 → 14 → 13`, контролирует LIVE-состояние
+и ждёт подтверждений оператора. Базовые алгоритмы STM32 не изменены.
 
 Важно отработать процедуру, понять кодовые слова, инструкции и терминальные состояния. 
 
 Сохранить изначальную таблицу отдельно, вдруг сломаю!
 
 Повторить эксперимент 4 после самокалибровки, сравнить результаты 
+
+### Реализация шины RS485 / Modbus RTU
+
+См. [docs/modbus_rtu.md](docs/modbus_rtu.md) — источники FreeModbus и esp-modbus,
+подключение библиотек, конфигурация пинов и адресов, карта регистров,
+сценарий SNAP → STATUS всех головок → READ, тесты и [порядок прошивки
+ESP32 через ESP-IDF и USB](docs/modbus_rtu.md#2-как-прошить-esp32-esp-idf-usb-а-не-iar).
+**IAR применяется к STM32, не к ESP32. Пины RS485 в примере нужно сверить
+с реальной схемой платы до прошивки.**

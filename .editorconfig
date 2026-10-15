@@ -1,12 +1,20 @@
-# Sources use Windows-1251 (CP1251) for Russian comments.
-# Do not change charset to utf-8 without explicit conversion of all affected files.
-
 root = true
 
 [*]
-charset = windows-1251
-end_of_line = crlf
+charset = utf-8
+end_of_line = lf
 insert_final_newline = true
 
-[*.{md,json,yml,yaml,xml}]
+# Исторические STM32/IAR файлы. CP1251 не входит в стандарт EditorConfig;
+# для Src/main.c при необходимости выбрать Windows-1251 вручную в редакторе.
+[{Src,Inc,Drivers,EWARM}/**.{c,h}]
+charset = unset
+end_of_line = crlf
+
+[Src/{modbus_port,modbus_registers,snapshot_registers,encoder_calibration}.c]
 charset = utf-8
+end_of_line = lf
+
+[Inc/{modbus_board,port,snapshot_registers,encoder_protocol,encoder_calibration}.h]
+charset = utf-8
+end_of_line = lf

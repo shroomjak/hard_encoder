@@ -1,182 +1,151 @@
 # ninja log v5
-7618	7905	8124771256270915	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Exe/taos.out	d060ea9e4d4e329d
-1505	2469	8124786725234144	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.o	342f39cbafe32e17
-1661	2293	8124786723145724	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.o	4b473fcc75e9fc36
-1194	2554	8124786725838329	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/FLASH_8855453216840458194.dir/standardflash.o	e2f8250c8508ff59
-2254	3022	8124786730632584	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.o	27e83ffdfcca8b67
-4142	5118	8124786751641105	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.o	17766117e1c59493
-962	1648	8124786716833082	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.o	54aa0d4e4bbe21a1
-4030	5430	8124786754698571	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.o	39df0b6b7d18c6ef
-4449	4950	8124786749937448	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.o	14f43cc6fe98644a
-3486	4025	8124786740755766	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.o	3cca495c39b29083
-1360	2248	8124786722988405	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.o	a2405f4a3be08c36
-1218	1963	8124786720145298	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.o	e15a6215f8ee8d53
-53	1500	8124786715429807	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/FLASH_8855453216840458194.dir/spi_driver.o	3098e4073870a9a
-3087	3783	8124786738215256	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.o	6ef05b5c954a130f
-28	628	8124786706689675	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/arm_sin_f32.o	c082e0de5de6b160
-2521	3067	8124786731114912	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.o	8e242dbcfb15419e
-36	958	8124786710108933	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/system_stm32f7xx.o	ccc6351d9522880e
-62	1204	8124786712175004	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.o	6370e20cc816500f
-632	1354	8124786713929463	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.o	2affe487a762c5d7
-21	1183	8124786712175004	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/User_8454777428142420917.dir/stm32f7xx_hal_msp.o	bfb71d382a5e6273
-1045	1862	8124786719184364	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.o	3f22de475f4010ca
-45	2022	8124786720641600	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/arm_common_tables.o	66ca93846f10282f
-1867	2590	8124786726156655	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.o	ae47744509023ea6
-1969	2515	8124786725531381	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.o	f8778f9f0a7c90f7
-3028	6464	8124786765172226	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.o	4401fb356026e0c3
-2475	3081	8124786731022452	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.o	b2919607b9b8aa41
-2028	6139	8124786761877802	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.o	b3c0920912280010
-2	1038	8124786710586124	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/User_8454777428142420917.dir/stm32f7xx_it.o	7cd5977080fbe752
-3072	3729	8124786737505596	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.o	83b78de086eaaf48
-3734	5612	8124786756655444	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.o	7aa7c9253294f81d
-2603	3681	8124786737106515	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.o	3654d4c635f67410
-2300	3479	8124786735206238	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.o	5c61be1651b8c851
-14	7026	8124786770743062	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/User_8454777428142420917.dir/main.o	f59f4375c2071a1e
-2562	3624	8124786736628741	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.o	19465286b8a913de
-3686	4294	8124786743374918	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.o	dfb8538c709301ab
-3632	4136	8124786741866443	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.o	9b62aed0114bb707
-4977	5027	8124786750892045	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/EWARM_18443280873093131863.dir/startup_stm32f722xx.o	70cbc77984dbb0c3
-4301	4971	8124786750009647	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.o	50d3773e3c3d0b80
-5034	5661	8124786757117926	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.o	b120eae8abdcc393
-3789	4443	8124786744872604	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.o	46b6c27137e3631d
-4956	5553	8124786756111913	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_usart.o	723fa7b1671d5700
-7911	8038	8124771257864010	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Exe/taos.bin	45ab5638c90df39c
-16	339	8124788266950695	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/arm_sin_f32.o	c082e0de5de6b160
-30	632	8124788269812920	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/system_stm32f7xx.o	ccc6351d9522880e
-38	663	8124788269933403	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.o	6370e20cc816500f
-65	762	8124788271089566	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.o	54aa0d4e4bbe21a1
-46	962	8124788272995595	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.o	3f22de475f4010ca
-23	1014	8124788273534209	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/FLASH_8855453216840458194.dir/spi_driver.o	3098e4073870a9a
-342	1075	8124788274210630	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.o	2affe487a762c5d7
-56	1522	8124788278631694	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/FLASH_8855453216840458194.dir/standardflash.o	e2f8250c8508ff59
-637	1566	8124788278935184	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.o	ae47744509023ea6
-1086	1623	8124788279640626	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.o	f8778f9f0a7c90f7
-3	1674	8124788280015122	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/arm_common_tables.o	66ca93846f10282f
-1021	1711	8124788280245010	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.o	4b473fcc75e9fc36
-969	1771	8124788281132544	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.o	e15a6215f8ee8d53
-766	1832	8124788281453032	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.o	a2405f4a3be08c36
-673	1879	8124788282253325	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.o	342f39cbafe32e17
-1578	2198	8124788285428064	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.o	b2919607b9b8aa41
-1887	2449	8124788287972600	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.o	8e242dbcfb15419e
-1631	2495	8124788288130793	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.o	27e83ffdfcca8b67
-1778	2624	8124788289718517	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/User_8454777428142420917.dir/stm32f7xx_hal_msp.o	bfb71d382a5e6273
-1718	2703	8124788290412361	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/User_8454777428142420917.dir/stm32f7xx_it.o	7cd5977080fbe752
-1682	2906	8124788292415978	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.o	5c61be1651b8c851
-2630	3289	8124788296347317	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.o	83b78de086eaaf48
-2714	3450	8124788297846299	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.o	dfb8538c709301ab
-2202	3469	8124788297982123	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.o	3654d4c635f67410
-2503	3660	8124788300050256	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.o	19465286b8a913de
-3458	3999	8124788303440581	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.o	9b62aed0114bb707
-3294	4049	8124788303847976	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.o	6ef05b5c954a130f
-3476	4069	8124788303696540	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.o	3cca495c39b29083
-3667	4419	8124788307669345	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.o	46b6c27137e3631d
-4057	4662	8124788310058040	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.o	50d3773e3c3d0b80
-2916	4924	8124788312597026	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.o	7aa7c9253294f81d
-4426	4971	8124788313132162	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.o	14f43cc6fe98644a
-4980	5060	8124788314318610	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/EWARM_18443280873093131863.dir/startup_stm32f722xx.o	70cbc77984dbb0c3
-4076	5099	8124788314421444	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.o	17766117e1c59493
-4669	5463	8124788318008181	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.o	b120eae8abdcc393
-4005	5497	8124788318304863	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.o	39df0b6b7d18c6ef
-4930	5565	8124788319131380	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_usart.o	723fa7b1671d5700
-1527	6126	8124788324749196	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.o	b3c0920912280010
-2458	6249	8124788325948374	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.o	4401fb356026e0c3
-1840	7376	8124788337216522	D:/Научная работа/4 курс/taos_h_boot/EWARM/taos/Obj/User_8454777428142420917.dir/main.o	f59f4375c2071a1e
-44	776	8129776852616137	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/arm_sin_f32.o	227d81559c255426
-29	827	8129776852777202	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/system_stm32f7xx.o	e4e8106dc6aa6fab
-13	1127	8129776856014630	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/stm32f7xx_hal_msp.o	afbc6487899ea823
-21	1198	8129776856646286	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/stm32f7xx_it.o	aca35b03a3e67223
-781	1561	8129776860339254	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.o	7f492a4c9b74e6e2
-51	1636	8129776861011366	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/FLASH_8855453216840458194.dir/spi_driver.o	5c5e22b9151ac74a
-836	1737	8129776862102691	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.o	1047283e7698c543
-1140	1840	8129776863082680	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.o	4075fa51c7a7e121
-38	1971	8129776864364548	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/arm_common_tables.o	457baf7394ff9440
-1214	2002	8129776864581048	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.o	9e838152417685a1
+931	1898	8131635148858981	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.o	a61302502a0fb497
+7024	7309	8131635203386764	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/EWARM_18443280873093131863.dir/startup_stm32f722xx.o	3e63d4f446f3e22b
+2563	8964	8131635219474917	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/main.o	fc565071ec5e7dc
+6074	7017	8131635199882817	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mbfuncinput.o	5327497e1f9c2557
+3051	4067	8131635170673963	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.o	11b6f34d06863a8
 59	2042	8129776864879660	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/FLASH_8855453216840458194.dir/standardflash.o	2ad8a406ded006b1
-1574	2330	8129776868070752	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.o	be1fc20bee00572e
-1643	2501	8129776869787738	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.o	d6b474d92a3a2018
-2007	2555	8129776870262510	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.o	c16d8f721ef45357
-1978	2815	8129776872893929	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.o	a555a77a671b4f
-1847	2922	8129776873751549	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.o	8d66232b98d60beb
-1748	2983	8129776874493783	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.o	27347076460e4f1e
-2508	3217	8129776876929311	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.o	873cf3f87f4325f5
-2563	3400	8129776878707278	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.o	1371d7816297d4cb
-2930	3582	8129776880525021	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.o	ce86064d32364b1d
-2341	3640	8129776880857267	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.o	93366365e76ef4d
-3222	3844	8129776883213892	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.o	3c23ad5d93acf82e
-2822	3989	8129776884592425	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.o	ca1660f15f1be51e
-3647	4282	8129776887594877	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.o	2705acf1cc36e673
-3589	4329	8129776888010090	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.o	425ce68d8e0ae81c
-3405	4576	8129776890504768	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.o	a4e198cb4177a793
-3997	4730	8129776891841489	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.o	356942c4607a8f15
-4287	4873	8129776893436733	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.o	49076782e91a261a
-4335	5422	8129776898886082	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.o	7a9d552ecaca1e10
-4880	5510	8129776899736677	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.o	bc419975016d3090
-4738	5610	8129776900814340	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.o	fedb762acd0cab54
-5615	5737	8129776902264358	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/EWARM_18443280873093131863.dir/startup_stm32f722xx.o	3e63d4f446f3e22b
-5428	6057	8129776905285051	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.o	fba2c3bd2870443e
-4583	6072	8129776905324327	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.o	4cfbf01566fcd173
-3852	6126	8129776906001170	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.o	ceb0f313319e453
-5515	6296	8129776907814025	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_usart.o	b7702a1ec9527694
-5744	6468	8129776909443385	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.o	df3801f3ef2d99d5
-2047	7144	8129776916189379	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.o	851352f7e47e4c0
-2990	7403	8129776918825698	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.o	ab2c75f7978ba2f9
-3	8302	8129776927568372	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/main.o	3a95b0882e9440b
-8307	9098	8129776935651937	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.out	be749ba75199612e
-9107	9245	8129776937507666	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.bin	9f8784bee6e47fdc
-35	705	8130543269890125	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/arm_sin_f32.o	227d81559c255426
-28	988	8130543272593601	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/system_stm32f7xx.o	e4e8106dc6aa6fab
-2	1252	8130543275112636	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/stm32f7xx_it.o	aca35b03a3e67223
-13	1325	8130543275657839	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/stm32f7xx_hal_msp.o	afbc6487899ea823
-711	1559	8130543278310397	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.o	9e838152417685a1
-59	1642	8130543278976762	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.o	7f492a4c9b74e6e2
-43	1785	8130543280539901	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/FLASH_8855453216840458194.dir/spi_driver.o	5c5e22b9151ac74a
-1258	1934	8130543282176433	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.o	4075fa51c7a7e121
-994	2157	8130543284040213	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.o	1047283e7698c543
-50	2280	8130543285460287	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/arm_common_tables.o	457baf7394ff9440
-1570	2295	8130543285701110	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.o	a555a77a671b4f
-1791	2703	8130543289792606	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.o	d6b474d92a3a2018
-1648	2769	8130543290081955	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.o	8d66232b98d60beb
-2165	2867	8130543291335480	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.o	be1fc20bee00572e
-2303	2929	8130543292049824	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.o	c16d8f721ef45357
-1337	3106	8130543293436511	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/FLASH_8855453216840458194.dir/standardflash.o	2ad8a406ded006b1
-1943	3205	8130543294742792	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.o	27347076460e4f1e
-2285	3222	8130543294959434	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.o	1371d7816297d4cb
-2873	3605	8130543298734541	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.o	873cf3f87f4325f5
-3111	3924	8130543302005465	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.o	ce86064d32364b1d
-3213	4196	8130543304666829	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.o	a4e198cb4177a793
-2709	4219	8130543304697440	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.o	93366365e76ef4d
-3612	4238	8130543304588693	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.o	3c23ad5d93acf82e
-3231	4560	8130543308409140	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.o	ca1660f15f1be51e
-4243	4858	8130543311392564	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.o	2705acf1cc36e673
-4225	4908	8130543311674877	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.o	49076782e91a261a
-4201	5010	8130543312808937	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.o	356942c4607a8f15
-4565	5468	8130543317015945	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.o	425ce68d8e0ae81c
-4865	5515	8130543317765951	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.o	bc419975016d3090
-4913	5588	8130543318468878	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.o	fedb762acd0cab54
-5015	6101	8130543323634517	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.o	7a9d552ecaca1e10
-5521	6146	8130543324296029	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.o	fba2c3bd2870443e
-6109	6228	8130543325225312	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/EWARM_18443280873093131863.dir/startup_stm32f722xx.o	3e63d4f446f3e22b
-3930	6509	8130543327675953	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.o	ceb0f313319e453
-5593	6580	8130543328368466	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.o	df3801f3ef2d99d5
-6153	6956	8130543332361139	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_usart.o	b7702a1ec9527694
-5475	7157	8130543334328618	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.o	4cfbf01566fcd173
-2934	7730	8130543340103575	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.o	ab2c75f7978ba2f9
-2777	7923	8130543342011220	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.o	851352f7e47e4c0
-20	8421	8130543346641965	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/main.o	3a95b0882e9440b
-8426	8670	8130543349614328	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.out	be749ba75199612e
-8678	8706	8130543350074025	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.bin	9f8784bee6e47fdc
-3	4365	8130587833122640	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/main.o	3a95b0882e9440b
-4369	4641	8130587836097784	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.out	be749ba75199612e
-4653	4679	8130587836716465	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.bin	9f8784bee6e47fdc
-4	4418	8130589748005204	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/main.o	3a95b0882e9440b
-4422	4650	8130589750695486	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.out	be749ba75199612e
-4660	4685	8130589751306206	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.bin	9f8784bee6e47fdc
-4	4356	8130611175325493	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/main.o	3a95b0882e9440b
-4360	4591	8130611177894541	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.out	be749ba75199612e
-4599	4626	8130611178446280	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.bin	9f8784bee6e47fdc
-5	4340	8130615559779978	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/main.o	3a95b0882e9440b
-4346	4548	8130615562182484	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.out	be749ba75199612e
-4558	4586	8130615562829738	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.bin	9f8784bee6e47fdc
-4	5137	8130637979189048	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/main.o	3a95b0882e9440b
-5155	7072	8130637998924979	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.out	be749ba75199612e
-7083	7194	8130638000486650	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.bin	9f8784bee6e47fdc
+1963	2558	8131635155599139	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.o	74c6e7eeeb8a05b6
+4	719	8131635137244992	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/system_stm32f7xx.o	2fcc2fa800833463
+1431	2188	8131635151964205	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.o	37e6a5a049f347be
+2193	3713	8131635166867131	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.o	9a5a7bb1dccad2fb
+2490	3581	8131635165756017	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/stm32f7xx_hal_msp.o	13f0f8efd414ba8d
+5185	6126	8131635191032202	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_usart.o	b53eda8154bf6cc5
+24	923	8131635139252176	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.o	c0e937f2732a1af
+14	1941	8131635149270277	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/arm_common_tables.o	c570a1cddd1e3563
+6837	7671	8131635206876886	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/modbus_registers.o	39b8695aada54744
+32	445	8131635134512109	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/arm_sin_f32.o	70502559230a451b
+2508	3786	8131635167819034	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/stm32f7xx_it.o	212a4ec3e769847f
+51	1636	8129776861011366	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/FLASH_8855453216840458194.dir/spi_driver.o	5c5e22b9151ac74a
+2611	3416	8131635163918293	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.o	1d6e0f5c41cba90b
+725	1770	8131635147528342	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.o	ed6ef790201f9cb
+73	838	8131635138420264	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.o	f630fbb4d9eb14ed
+40	984	8131635139818467	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.o	e419a3a5bb186d6
+453	1444	8131635144354668	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.o	14b1739b388b1397
+6493	7556	8131635205684091	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mbrtu.o	4647564a224bef53
+845	1957	8131635149113518	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.o	1af4e87e9b7a6cd
+51	1424	8131635144037778	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.o	f45de5141f6adef2
+992	2501	8131635154655497	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.o	ac12bd08e72747d4
+1947	2692	8131635156891179	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.o	ff9eac071dee0aa4
+1449	2484	8131635154655497	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.o	fc4d1ec4e2c310e1
+3792	4505	8131635175123523	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.o	30cb921792b00451
+1775	2605	8131635155918431	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.o	369688273bbe3ca
+5723	6716	8131635197056837	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mb.o	7a1ab776c4c9b972
+1903	3046	8131635160507282	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.o	635a2b108b993e88
+4511	5180	8131635181465067	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.o	3c7ceb8e8095126f
+4385	5399	8131635183850082	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.o	9c49cc4beac22a36
+4997	6069	8131635190504204	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.o	3e130fd5cbd833b1
+3586	4380	8131635173697219	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.o	4141e9a81c3c3963
+5404	6829	8131635197815480	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.o	83076c9b24c1221b
+4075	4992	8131635179564724	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.o	b096ff4b720c7d2a
+3719	5717	8131635187165849	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.o	1574d124ac4f8270
+6722	8158	8131635211700516	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/modbus_port.o	26513e2cb5789ee0
+3422	5700	8131635187044869	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.o	9c21cbff14d17550
+5706	6606	8131635195752116	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.o	7454fbd236d3702f
+62	6487	8131635194841957	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.o	a163fee3e3ae0b6e
+2698	8240	8131635212406184	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.o	97a76763118cf105
+8969	9258	8131635222821717	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.out	a038f5a7bd450db1
+9263	9289	8131635223301360	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.bin	9f8784bee6e47fdc
+6131	6947	8131635199407420	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mbfuncholding.o	3fcda0976c8f26b
+6612	7565	8131635205773618	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mbcrc.o	f2e74ed127b7fa2d
+7269	7883	8131635208926884	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mbutils.o	f9cb5b53b5525ca5
+6954	7264	8131635202747288	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/snapshot_registers.o	4a528536e796b1da
+39	375	8131635656272513	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/arm_sin_f32.o	70502559230a451b
+14	671	8131635659157815	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/system_stm32f7xx.o	2fcc2fa800833463
+64	797	8131635660337113	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.o	f630fbb4d9eb14ed
+3	836	8131635660535537	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.o	c0e937f2732a1af
+22	883	8131635661053695	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.o	e419a3a5bb186d6
+47	1085	8131635663168898	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.o	ed6ef790201f9cb
+55	1425	8131635666660129	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.o	f45de5141f6adef2
+677	1677	8131635669033680	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.o	14b1739b388b1397
+890	1761	8131635669509182	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.o	fc4d1ec4e2c310e1
+1092	1945	8131635671526292	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.o	37e6a5a049f347be
+32	1965	8131635671428474	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/arm_common_tables.o	c570a1cddd1e3563
+806	2053	8131635672358644	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.o	1af4e87e9b7a6cd
+842	2377	8131635675995762	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.o	ac12bd08e72747d4
+1767	2426	8131635676519594	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.o	74c6e7eeeb8a05b6
+1682	2444	8131635676559839	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.o	ff9eac071dee0aa4
+1430	2512	8131635677483078	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.o	a61302502a0fb497
+1949	2917	8131635681593914	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.o	369688273bbe3ca
+1969	3306	8131635685233353	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.o	9a5a7bb1dccad2fb
+2382	3514	8131635687044523	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/stm32f7xx_hal_msp.o	13f0f8efd414ba8d
+2057	3603	8131635688282212	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.o	635a2b108b993e88
+2449	3661	8131635689014747	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/stm32f7xx_it.o	212a4ec3e769847f
+3311	4137	8131635693098064	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.o	4141e9a81c3c3963
+3667	4295	8131635695288819	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.o	30cb921792b00451
+3519	4358	8131635695943854	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.o	1d6e0f5c41cba90b
+3610	4569	8131635698061896	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.o	11b6f34d06863a8
+4142	5017	8131635702532091	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.o	9c49cc4beac22a36
+4363	5034	8131635702642575	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.o	3c7ceb8e8095126f
+2518	5135	8131635703668594	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.o	9c21cbff14d17550
+4574	5323	8131635705376548	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.o	b096ff4b720c7d2a
+5039	5877	8131635711212118	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.o	7454fbd236d3702f
+5023	5951	8131635711806706	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.o	3e130fd5cbd833b1
+5140	6019	8131635712487765	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mb.o	7a1ab776c4c9b972
+4300	6086	8131635712959721	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.o	1574d124ac4f8270
+5329	6101	8131635713078073	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_usart.o	b53eda8154bf6cc5
+381	6392	8131635716173206	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.o	a163fee3e3ae0b6e
+5957	6585	8131635718312390	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mbcrc.o	f2e74ed127b7fa2d
+6092	6717	8131635719581702	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mbfuncholding.o	3fcda0976c8f26b
+6023	6762	8131635719817689	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mbfuncinput.o	5327497e1f9c2557
+6769	6855	8131635721046977	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/EWARM_18443280873093131863.dir/startup_stm32f722xx.o	3e63d4f446f3e22b
+6591	6966	8131635722141653	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/snapshot_registers.o	4a528536e796b1da
+6106	7018	8131635722625911	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mbrtu.o	4647564a224bef53
+6397	7088	8131635723288597	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/modbus_registers.o	39b8695aada54744
+5883	7125	8131635723617061	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.o	83076c9b24c1221b
+6862	7379	8131635726305357	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mbutils.o	f9cb5b53b5525ca5
+6723	7748	8131635729932347	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/modbus_port.o	26513e2cb5789ee0
+2923	7890	8131635731382916	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.o	97a76763118cf105
+2432	8397	8131635736395168	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/main.o	fc565071ec5e7dc
+8399	8547	8131635737948911	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.out	a038f5a7bd450db1
+8549	8561	8131635738215484	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.bin	9f8784bee6e47fdc
+681	1669	8137625609242885	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/arm_sin_f32.o	70502559230a451b
+692	1934	8137625611603552	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/system_stm32f7xx.o	2fcc2fa800833463
+715	2226	8137625614638388	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal.o	c0e937f2732a1af
+18	2478	8137625617060485	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_cortex.o	e419a3a5bb186d6
+739	2605	8137625618460184	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc_ex.o	f630fbb4d9eb14ed
+732	2712	8137625619483665	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma.o	f45de5141f6adef2
+1674	2882	8137625619941610	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dac.o	14b1739b388b1397
+1942	3483	8137625626359193	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_crc.o	ed6ef790201f9cb
+2235	3849	8137625630295202	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash.o	a61302502a0fb497
+704	3993	8137625632017078	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/CMSIS_6603591812247902717.dir/arm_common_tables.o	c570a1cddd1e3563
+2611	4118	8137625633372005	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_flash_ex.o	fc4d1ec4e2c310e1
+2888	4139	8137625633848239	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_exti.o	37e6a5a049f347be
+3488	4447	8137625636551910	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c_ex.o	74c6e7eeeb8a05b6
+2719	4559	8137625637176781	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_dma_ex.o	1af4e87e9b7a6cd
+2487	4749	8137625639437855	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_gpio.o	ac12bd08e72747d4
+3858	4974	8137625641955264	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr_ex.o	369688273bbe3ca
+4145	5172	8137625643892296	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_pwr.o	ff9eac071dee0aa4
+4564	5573	8137625647862603	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rng.o	1d6e0f5c41cba90b
+4755	5659	8137625649035127	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dac.o	4141e9a81c3c3963
+4000	5717	8137625649246958	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc.o	9a5a7bb1dccad2fb
+4123	5751	8137625649267087	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_rcc_ex.o	635a2b108b993e88
+5178	6119	8137625653556564	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_adc.o	11b6f34d06863a8
+5578	6301	8137625655371480	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rng.o	30cb921792b00451
+5664	6365	8137625656054082	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_exti.o	3c7ceb8e8095126f
+5723	6546	8137625657844322	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_gpio.o	b096ff4b720c7d2a
+6372	6701	8137625659581561	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/encoder_calibration.o	c60c7f60957b2e5e
+6125	7036	8137625662771333	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_dma.o	9c49cc4beac22a36
+6308	7116	8137625663652811	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_utils.o	7454fbd236d3702f
+6551	7344	8137625665875405	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_spi.o	3e130fd5cbd833b1
+5756	7405	8137625666374358	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_rcc.o	1574d124ac4f8270
+4980	7566	8137625667892720	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim_ex.o	9c21cbff14d17550
+7122	7875	8137625670922540	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mbcrc.o	f2e74ed127b7fa2d
+7040	7892	8137625671209756	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_usart.o	b53eda8154bf6cc5
+6705	7981	8137625672213439	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_ll_tim.o	83076c9b24c1221b
+7351	8160	8137625673802183	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mbfuncinput.o	5327497e1f9c2557
+7572	8364	8137625675829055	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mbfuncholding.o	3fcda0976c8f26b
+7411	8454	8137625677076984	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mb.o	7a1ab776c4c9b972
+8371	8666	8137625679238462	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/snapshot_registers.o	4a528536e796b1da
+724	8847	8137625680798095	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_i2c.o	a163fee3e3ae0b6e
+7897	9048	8137625682845009	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/stm32f7xx_hal_msp.o	13f0f8efd414ba8d
+8461	9137	8137625683897349	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/modbus_registers.o	39b8695aada54744
+7986	9161	8137625684056503	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/stm32f7xx_it.o	212a4ec3e769847f
+9053	9180	8137625684455877	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/EWARM_18443280873093131863.dir/startup_stm32f722xx.o	3e63d4f446f3e22b
+8167	9481	8137625687273559	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/modbus_port.o	26513e2cb5789ee0
+8851	9487	8137625687293696	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mbutils.o	f9cb5b53b5525ca5
+8671	9520	8137625687655616	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/Modbus RTU_15542486436518374863.dir/mbrtu.o	4647564a224bef53
+4453	9695	8137625689457439	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/STM32F7xx_HAL_Driver_11354751252277784.dir/stm32f7xx_hal_tim.o	97a76763118cf105
+7880	12124	8137625713562356	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Obj/User_8454777428142420917.dir/main.o	fc565071ec5e7dc
+12128	12964	8137625722082652	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.out	2750f15a44db4d18
+12968	13097	8137625723781964	C:/Users/ilya2/OneDrive/Documents/GitHub/hard_encoder/EWARM/taos/Exe/taos.bin	9f8784bee6e47fdc
