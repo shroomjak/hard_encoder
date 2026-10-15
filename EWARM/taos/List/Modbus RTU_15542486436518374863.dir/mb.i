@@ -18433,6 +18433,14 @@ eMBPoll( void )
             break;
 
         case EV_EXECUTE:
+            
+ 
+            if( ucRcvAddress == ( 0 ) &&
+                !(usLength == 5 && ucMBFrame[0] == ( 6 ) &&
+                  ucMBFrame[1] == 0 && ucMBFrame[2] == 0) )
+            {
+                break;
+            }
             ucFunctionCode = ucMBFrame[0];
             eException = MB_EX_ILLEGAL_FUNCTION;
             for( i = 0; i < 3; i++ )

@@ -18121,6 +18121,10 @@ prveMBError2Exception( eMBErrorCode eErrorCode )
             eStatus = MB_EX_ILLEGAL_DATA_ADDRESS;
             break;
 
+        case MB_EINVAL:
+            eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+            break;
+
         case MB_ETIMEDOUT:
             eStatus = MB_EX_SLAVE_BUSY;
             break;

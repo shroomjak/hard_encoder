@@ -17662,19 +17662,60 @@ uint16_t snapshot_register(uint16_t address);
 
 
 
+ 
+ 
+enum {
+    ENCODER_MAX_ID = 247,          
+    ENCODER_SNAP = 0,              
+    ENCODER_CAL_COMMAND = 1,         
+    ENCODER_CAL_STATE = 0x100,       
+    ENCODER_EEPROM_READY = 0x101,    
+    ENCODER_CAL_VERSION = 0x102,     
+    ENCODER_CAL_MAGIC = 0xCA01,     
+    ENCODER_CAL_REG_COUNT = 3      
+};
+ 
+
+typedef enum {
+    ENCODER_CAL_OK,
+    ENCODER_CAL_INVALID,
+    ENCODER_CAL_BUSY
+} encoder_cal_result_t;
 
 
 
+ 
+encoder_cal_result_t encoder_calibration_command(uint16_t command);
 
+ 
+extern unsigned char encoder_state;
+extern uint8_t i2c3_tx_wp;
 
 
  
 eMBErrorCode eMBRegHoldingCB(UCHAR *buf, USHORT address, USHORT count, eMBRegisterMode mode)
 {
-    if (address != 1 || count != 1 || mode != MB_REG_WRITE) return MB_ENOREG;
-    snapshot_latch((uint16_t)((uint16_t)buf[0] << 8 | buf[1]));
-    return MB_ENOERR;
+    uint16_t value;
+    if (count != 1 || mode != MB_REG_WRITE) return MB_ENOREG;
+    value = (uint16_t)((uint16_t)buf[0] << 8 | buf[1]);
+    if (address == ENCODER_SNAP + 1) {
+        snapshot_latch(value);
+        return MB_ENOERR;
+    }
+    if (address == ENCODER_CAL_COMMAND + 1) {
+        
+ 
+        switch (encoder_calibration_command(value)) {
+        case ENCODER_CAL_OK: return MB_ENOERR;
+        case ENCODER_CAL_BUSY: return MB_ETIMEDOUT;  
+        case ENCODER_CAL_INVALID: return MB_EINVAL;  
+        }
+        return MB_EINVAL;
+    }
+    return MB_ENOREG;
 }
+
+
 
 
 
@@ -17689,6 +17730,17 @@ eMBErrorCode eMBRegHoldingCB(UCHAR *buf, USHORT address, USHORT count, eMBRegist
  
 eMBErrorCode eMBRegInputCB(UCHAR *buf, USHORT address, USHORT count)
 {
+    if (address >= ENCODER_CAL_STATE + 1 && count > 0 &&
+        (uint32_t)address + count <= ENCODER_CAL_STATE + 1 + ENCODER_CAL_REG_COUNT) {
+         
+        const uint16_t live[] = {encoder_state, i2c3_tx_wp ? 1 : 0, ENCODER_CAL_MAGIC};
+        for (USHORT i = 0; i < count; ++i) {
+            uint16_t value = live[address - ENCODER_CAL_STATE - 1 + i];
+            *buf++ = (UCHAR)(value >> 8);
+            *buf++ = (UCHAR)value;
+        }
+        return MB_ENOERR;
+    }
     if (address < 1 || count == 0 || count > SNAP_REG_COUNT ||
         (uint32_t)address + count > SNAP_REG_COUNT + 1) return MB_ENOREG;
     for (USHORT i = 0; i < count; ++i) {
