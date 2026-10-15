@@ -208334,7 +208334,7 @@
     "display": "encoder_state",
     "location": {
       "column": "15",
-      "line": "935",
+      "line": "936",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "encoder_state",
@@ -208348,7 +208348,7 @@
     "display": "crc_table",
     "location": {
       "column": "21",
-      "line": "945",
+      "line": "946",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "crc_table",
@@ -208362,7 +208362,7 @@
     "display": "void crc_8_step(unsigned char, unsigned char *)",
     "location": {
       "column": "6",
-      "line": "971",
+      "line": "972",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "crc_8_step",
@@ -208376,7 +208376,7 @@
     "display": "crc_16_table",
     "location": {
       "column": "22",
-      "line": "978",
+      "line": "979",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "crc_16_table",
@@ -208390,7 +208390,7 @@
     "display": "unsigned short crc_16_step(unsigned char, unsigned short)",
     "location": {
       "column": "16",
-      "line": "994",
+      "line": "995",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "crc_16_step",
@@ -208398,13 +208398,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@27946@F@crc_16_step@r",
+    "ID": "c:main.c@28022@F@crc_16_step@r",
     "What": "Variable",
     "defdec": "Def",
     "display": "r",
     "location": {
       "column": "18",
-      "line": "996",
+      "line": "997",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "r",
@@ -208418,7 +208418,7 @@
     "display": "double Fast2ArcTan(double)",
     "location": {
       "column": "8",
-      "line": "1034",
+      "line": "1035",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "Fast2ArcTan",
@@ -208426,13 +208426,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@28570@F@Fast2ArcTan@xx",
+    "ID": "c:main.c@28646@F@Fast2ArcTan@xx",
     "What": "Variable",
     "defdec": "Def",
     "display": "xx",
     "location": {
       "column": "10",
-      "line": "1035",
+      "line": "1036",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "xx",
@@ -208446,7 +208446,7 @@
     "display": "buf_x5",
     "location": {
       "column": "7",
-      "line": "1043",
+      "line": "1044",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "buf_x5",
@@ -208460,7 +208460,7 @@
     "display": "buf_x5_num",
     "location": {
       "column": "5",
-      "line": "1045",
+      "line": "1046",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "buf_x5_num",
@@ -208474,7 +208474,7 @@
     "display": "buf_k",
     "location": {
       "column": "7",
-      "line": "1062",
+      "line": "1063",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "buf_k",
@@ -208488,7 +208488,7 @@
     "display": "offset",
     "location": {
       "column": "8",
-      "line": "1204",
+      "line": "1205",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "offset",
@@ -208502,7 +208502,7 @@
     "display": "ang_tab",
     "location": {
       "column": "7",
-      "line": "1214",
+      "line": "1215",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "ang_tab",
@@ -208516,7 +208516,7 @@
     "display": "void SystemClock_Config(void)",
     "location": {
       "column": "6",
-      "line": "1380",
+      "line": "1381",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "SystemClock_Config",
@@ -208530,7 +208530,7 @@
     "display": "void MX_GPIO_Init(void)",
     "location": {
       "column": "13",
-      "line": "1381",
+      "line": "1382",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "MX_GPIO_Init",
@@ -208544,7 +208544,7 @@
     "display": "void MX_TIM3_Init(void)",
     "location": {
       "column": "13",
-      "line": "1382",
+      "line": "1383",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "MX_TIM3_Init",
@@ -208558,7 +208558,7 @@
     "display": "void MX_TIM4_Init(void)",
     "location": {
       "column": "13",
-      "line": "1383",
+      "line": "1384",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "MX_TIM4_Init",
@@ -208572,7 +208572,7 @@
     "display": "void MX_DAC_Init(void)",
     "location": {
       "column": "13",
-      "line": "1384",
+      "line": "1385",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "MX_DAC_Init",
@@ -208586,7 +208586,7 @@
     "display": "void MX_ADC1_Init(void)",
     "location": {
       "column": "13",
-      "line": "1385",
+      "line": "1386",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "MX_ADC1_Init",
@@ -208600,7 +208600,7 @@
     "display": "void MX_ADC2_Init(void)",
     "location": {
       "column": "13",
-      "line": "1386",
+      "line": "1387",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "MX_ADC2_Init",
@@ -208614,7 +208614,7 @@
     "display": "void MX_I2C3_Init(void)",
     "location": {
       "column": "13",
-      "line": "1387",
+      "line": "1388",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "MX_I2C3_Init",
@@ -208628,7 +208628,7 @@
     "display": "void copy_data(void)",
     "location": {
       "column": "6",
-      "line": "1390",
+      "line": "1391",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "copy_data",
@@ -208642,7 +208642,7 @@
     "display": "void find_startpixel(void)",
     "location": {
       "column": "6",
-      "line": "1391",
+      "line": "1392",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "find_startpixel",
@@ -208656,7 +208656,7 @@
     "display": "float mes_piks(uint16_t)",
     "location": {
       "column": "7",
-      "line": "1392",
+      "line": "1393",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "mes_piks",
@@ -208670,7 +208670,7 @@
     "display": "void find_datablock(void)",
     "location": {
       "column": "6",
-      "line": "1393",
+      "line": "1394",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "find_datablock",
@@ -208684,7 +208684,7 @@
     "display": "void calc_sector(void)",
     "location": {
       "column": "6",
-      "line": "1394",
+      "line": "1395",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "calc_sector",
@@ -208698,7 +208698,7 @@
     "display": "void err_corr(void)",
     "location": {
       "column": "6",
-      "line": "1395",
+      "line": "1396",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "err_corr",
@@ -208712,7 +208712,7 @@
     "display": "void calc_ang(void)",
     "location": {
       "column": "6",
-      "line": "1396",
+      "line": "1397",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "calc_ang",
@@ -208726,7 +208726,7 @@
     "display": "float INTEGRAL(float *, int)",
     "location": {
       "column": "7",
-      "line": "1398",
+      "line": "1399",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "INTEGRAL",
@@ -208740,7 +208740,7 @@
     "display": "float KVADRATURA(float *, int)",
     "location": {
       "column": "7",
-      "line": "1399",
+      "line": "1400",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "KVADRATURA",
@@ -208754,7 +208754,7 @@
     "display": "float CENTR_OF_MASS(float *, int)",
     "location": {
       "column": "7",
-      "line": "1400",
+      "line": "1401",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "CENTR_OF_MASS",
@@ -208768,7 +208768,7 @@
     "display": "float BR4(float *, int)",
     "location": {
       "column": "7",
-      "line": "1401",
+      "line": "1402",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "BR4",
@@ -208782,7 +208782,7 @@
     "display": "float BR6(float *, int)",
     "location": {
       "column": "7",
-      "line": "1402",
+      "line": "1403",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "BR6",
@@ -208796,7 +208796,7 @@
     "display": "float BR8(float *, int)",
     "location": {
       "column": "7",
-      "line": "1403",
+      "line": "1404",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "BR8",
@@ -208810,7 +208810,7 @@
     "display": "float BR4_F(float *, int)",
     "location": {
       "column": "7",
-      "line": "1404",
+      "line": "1405",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "BR4_F",
@@ -208824,7 +208824,7 @@
     "display": "float BR6_F(float *, int)",
     "location": {
       "column": "7",
-      "line": "1405",
+      "line": "1406",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "BR6_F",
@@ -208838,7 +208838,7 @@
     "display": "float BR4_C(float *, int)",
     "location": {
       "column": "7",
-      "line": "1406",
+      "line": "1407",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "BR4_C",
@@ -208852,7 +208852,7 @@
     "display": "float calc(float *, int)",
     "location": {
       "column": "7",
-      "line": "1407",
+      "line": "1408",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "calc",
@@ -208866,7 +208866,7 @@
     "display": "void init_vars(void)",
     "location": {
       "column": "6",
-      "line": "1412",
+      "line": "1413",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "init_vars",
@@ -208880,7 +208880,7 @@
     "display": "void Backlight_StartFromSI(void)",
     "location": {
       "column": "13",
-      "line": "1413",
+      "line": "1414",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "Backlight_StartFromSI",
@@ -208894,7 +208894,7 @@
     "display": "void Backlight_StartTimer(uint16_t)",
     "location": {
       "column": "13",
-      "line": "1414",
+      "line": "1415",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "Backlight_StartTimer",
@@ -208908,7 +208908,7 @@
     "display": "void DelayTim4Ticks(uint16_t)",
     "location": {
       "column": "13",
-      "line": "1415",
+      "line": "1416",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "DelayTim4Ticks",
@@ -208922,7 +208922,7 @@
     "display": "void copy_data(void)",
     "location": {
       "column": "6",
-      "line": "1448",
+      "line": "1449",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "copy_data",
@@ -208930,13 +208930,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@36789@F@copy_data@i",
+    "ID": "c:main.c@36865@F@copy_data@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "24",
-      "line": "1452",
+      "line": "1453",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -208944,13 +208944,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@37608@F@copy_data@i",
+    "ID": "c:main.c@37684@F@copy_data@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "24",
-      "line": "1470",
+      "line": "1471",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -208964,7 +208964,7 @@
     "display": "void find_startpixel(void)",
     "location": {
       "column": "6",
-      "line": "1518",
+      "line": "1519",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "find_startpixel",
@@ -208972,13 +208972,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@39718@F@find_startpixel@i",
+    "ID": "c:main.c@39794@F@find_startpixel@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "22",
-      "line": "1523",
+      "line": "1524",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -208992,7 +208992,7 @@
     "display": "float mes_piks(uint16_t)",
     "location": {
       "column": "11",
-      "line": "1594",
+      "line": "1595",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "mes_piks",
@@ -209000,13 +209000,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@42840@F@mes_piks@amax_X0",
+    "ID": "c:main.c@42916@F@mes_piks@amax_X0",
     "What": "Variable",
     "defdec": "Def",
     "display": "amax_X0",
     "location": {
       "column": "22",
-      "line": "1595",
+      "line": "1596",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "amax_X0",
@@ -209014,13 +209014,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@42873@F@mes_piks@mes_pix",
+    "ID": "c:main.c@42949@F@mes_piks@mes_pix",
     "What": "Variable",
     "defdec": "Def",
     "display": "mes_pix",
     "location": {
       "column": "13",
-      "line": "1596",
+      "line": "1597",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "mes_pix",
@@ -209028,13 +209028,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@42926@F@mes_piks@i",
+    "ID": "c:main.c@43002@F@mes_piks@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "26",
-      "line": "1598",
+      "line": "1599",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209042,13 +209042,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@43047@F@mes_piks@temp_X1",
+    "ID": "c:main.c@43123@F@mes_piks@temp_X1",
     "What": "Variable",
     "defdec": "Def",
     "display": "temp_X1",
     "location": {
       "column": "18",
-      "line": "1602",
+      "line": "1603",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "temp_X1",
@@ -209062,7 +209062,7 @@
     "display": "unsigned short get_pix(float)",
     "location": {
       "column": "16",
-      "line": "1635",
+      "line": "1636",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "get_pix",
@@ -209070,13 +209070,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@43949@F@get_pix@left",
+    "ID": "c:main.c@44025@F@get_pix@left",
     "What": "Variable",
     "defdec": "Def",
     "display": "left",
     "location": {
       "column": "7",
-      "line": "1637",
+      "line": "1638",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "left",
@@ -209084,13 +209084,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@43978@F@get_pix@right",
+    "ID": "c:main.c@44054@F@get_pix@right",
     "What": "Variable",
     "defdec": "Def",
     "display": "right",
     "location": {
       "column": "7",
-      "line": "1638",
+      "line": "1639",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "right",
@@ -209098,13 +209098,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@44007@F@get_pix@k",
+    "ID": "c:main.c@44083@F@get_pix@k",
     "What": "Variable",
     "defdec": "Def",
     "display": "k",
     "location": {
       "column": "9",
-      "line": "1639",
+      "line": "1640",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "k",
@@ -209112,13 +209112,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@44028@F@get_pix@dif",
+    "ID": "c:main.c@44104@F@get_pix@dif",
     "What": "Variable",
     "defdec": "Def",
     "display": "dif",
     "location": {
       "column": "7",
-      "line": "1640",
+      "line": "1641",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "dif",
@@ -209132,7 +209132,7 @@
     "display": "void find_datablock(void)",
     "location": {
       "column": "6",
-      "line": "1678",
+      "line": "1679",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "find_datablock",
@@ -209140,13 +209140,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@45223@F@find_datablock@tmp_pos",
+    "ID": "c:main.c@45299@F@find_datablock@tmp_pos",
     "What": "Variable",
     "defdec": "Def",
     "display": "tmp_pos",
     "location": {
       "column": "15",
-      "line": "1680",
+      "line": "1681",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "tmp_pos",
@@ -209154,13 +209154,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@45530@F@find_datablock@i",
+    "ID": "c:main.c@45606@F@find_datablock@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "18",
-      "line": "1692",
+      "line": "1693",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209168,13 +209168,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@45989@F@find_datablock@i",
+    "ID": "c:main.c@46065@F@find_datablock@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "18",
-      "line": "1705",
+      "line": "1706",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209188,7 +209188,7 @@
     "display": "void calc_sector(void)",
     "location": {
       "column": "6",
-      "line": "1741",
+      "line": "1742",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "calc_sector",
@@ -209196,13 +209196,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@47819@F@calc_sector@tmp1",
+    "ID": "c:main.c@47895@F@calc_sector@tmp1",
     "What": "Variable",
     "defdec": "Def",
     "display": "tmp1",
     "location": {
       "column": "13",
-      "line": "1751",
+      "line": "1752",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "tmp1",
@@ -209210,13 +209210,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@47838@F@calc_sector@tmin",
+    "ID": "c:main.c@47914@F@calc_sector@tmin",
     "What": "Variable",
     "defdec": "Def",
     "display": "tmin",
     "location": {
       "column": "13",
-      "line": "1752",
+      "line": "1753",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "tmin",
@@ -209224,13 +209224,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@47920@F@calc_sector@min",
+    "ID": "c:main.c@47996@F@calc_sector@min",
     "What": "Variable",
     "defdec": "Def",
     "display": "min",
     "location": {
       "column": "13",
-      "line": "1753",
+      "line": "1754",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "min",
@@ -209238,13 +209238,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@47945@F@calc_sector@i",
+    "ID": "c:main.c@48021@F@calc_sector@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "18",
-      "line": "1754",
+      "line": "1755",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209252,13 +209252,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@48226@F@calc_sector@cur_data",
+    "ID": "c:main.c@48302@F@calc_sector@cur_data",
     "What": "Variable",
     "defdec": "Def",
     "display": "cur_data",
     "location": {
       "column": "18",
-      "line": "1767",
+      "line": "1768",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "cur_data",
@@ -209266,13 +209266,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@48256@F@calc_sector@bit_pos",
+    "ID": "c:main.c@48332@F@calc_sector@bit_pos",
     "What": "Variable",
     "defdec": "Def",
     "display": "bit_pos",
     "location": {
       "column": "18",
-      "line": "1768",
+      "line": "1769",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "bit_pos",
@@ -209280,13 +209280,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@48294@F@calc_sector@i",
+    "ID": "c:main.c@48370@F@calc_sector@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "18",
-      "line": "1769",
+      "line": "1770",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209294,13 +209294,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@48520@F@calc_sector@tmp_pos2",
+    "ID": "c:main.c@48596@F@calc_sector@tmp_pos2",
     "What": "Variable",
     "defdec": "Def",
     "display": "tmp_pos2",
     "location": {
       "column": "17",
-      "line": "1779",
+      "line": "1780",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "tmp_pos2",
@@ -209308,13 +209308,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@48556@F@calc_sector@j",
+    "ID": "c:main.c@48632@F@calc_sector@j",
     "What": "Variable",
     "defdec": "Def",
     "display": "j",
     "location": {
       "column": "28",
-      "line": "1780",
+      "line": "1781",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "j",
@@ -209328,7 +209328,7 @@
     "display": "void save_sector(void)",
     "location": {
       "column": "6",
-      "line": "1816",
+      "line": "1817",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "save_sector",
@@ -209342,7 +209342,7 @@
     "display": "void startpixel_err_corr(void)",
     "location": {
       "column": "6",
-      "line": "1854",
+      "line": "1855",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "startpixel_err_corr",
@@ -209350,13 +209350,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@50717@F@startpixel_err_corr@i",
+    "ID": "c:main.c@50793@F@startpixel_err_corr@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "22",
-      "line": "1861",
+      "line": "1862",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209370,7 +209370,7 @@
     "display": "void bit_err_corr(void)",
     "location": {
       "column": "6",
-      "line": "1911",
+      "line": "1912",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "bit_err_corr",
@@ -209378,13 +209378,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@53765@F@bit_err_corr@tmp_pos",
+    "ID": "c:main.c@53841@F@bit_err_corr@tmp_pos",
     "What": "Variable",
     "defdec": "Def",
     "display": "tmp_pos",
     "location": {
       "column": "23",
-      "line": "1929",
+      "line": "1930",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "tmp_pos",
@@ -209392,13 +209392,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@53806@F@bit_err_corr@j",
+    "ID": "c:main.c@53882@F@bit_err_corr@j",
     "What": "Variable",
     "defdec": "Def",
     "display": "j",
     "location": {
       "column": "34",
-      "line": "1930",
+      "line": "1931",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "j",
@@ -209412,7 +209412,7 @@
     "display": "void err_corr(void)",
     "location": {
       "column": "6",
-      "line": "1977",
+      "line": "1978",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "err_corr",
@@ -209426,7 +209426,7 @@
     "display": "void calc_ang(void)",
     "location": {
       "column": "6",
-      "line": "2079",
+      "line": "2080",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "calc_ang",
@@ -209440,7 +209440,7 @@
     "display": "float BR4(float *, int)",
     "location": {
       "column": "7",
-      "line": "2156",
+      "line": "2157",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "BR4",
@@ -209454,7 +209454,7 @@
     "display": "float BR4_C(float *, int)",
     "location": {
       "column": "7",
-      "line": "2196",
+      "line": "2197",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "BR4_C",
@@ -209468,7 +209468,7 @@
     "display": "void find_avg(void)",
     "location": {
       "column": "6",
-      "line": "2258",
+      "line": "2259",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "find_avg",
@@ -209476,13 +209476,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@65744@F@find_avg@i",
+    "ID": "c:main.c@65820@F@find_avg@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "16",
-      "line": "2296",
+      "line": "2297",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209490,13 +209490,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@66330@F@find_avg@i",
+    "ID": "c:main.c@66406@F@find_avg@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "16",
-      "line": "2329",
+      "line": "2330",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209504,13 +209504,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@66627@F@find_avg@i",
+    "ID": "c:main.c@66703@F@find_avg@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "16",
-      "line": "2341",
+      "line": "2342",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209518,13 +209518,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@67163@F@find_avg@i",
+    "ID": "c:main.c@67239@F@find_avg@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "16",
-      "line": "2372",
+      "line": "2373",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209532,13 +209532,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@67460@F@find_avg@i",
+    "ID": "c:main.c@67536@F@find_avg@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "16",
-      "line": "2384",
+      "line": "2385",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209552,7 +209552,7 @@
     "display": "void angtab_cal(void)",
     "location": {
       "column": "6",
-      "line": "2462",
+      "line": "2463",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "angtab_cal",
@@ -209560,13 +209560,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@70643@F@angtab_cal@crc16",
+    "ID": "c:main.c@70719@F@angtab_cal@crc16",
     "What": "Variable",
     "defdec": "Def",
     "display": "crc16",
     "location": {
       "column": "12",
-      "line": "2464",
+      "line": "2465",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "crc16",
@@ -209574,13 +209574,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@70790@F@angtab_cal@j",
+    "ID": "c:main.c@70866@F@angtab_cal@j",
     "What": "Variable",
     "defdec": "Def",
     "display": "j",
     "location": {
       "column": "26",
-      "line": "2472",
+      "line": "2473",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "j",
@@ -209588,13 +209588,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@70958@F@angtab_cal@j",
+    "ID": "c:main.c@71034@F@angtab_cal@j",
     "What": "Variable",
     "defdec": "Def",
     "display": "j",
     "location": {
       "column": "26",
-      "line": "2478",
+      "line": "2479",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "j",
@@ -209602,13 +209602,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@71085@F@angtab_cal@j",
+    "ID": "c:main.c@71161@F@angtab_cal@j",
     "What": "Variable",
     "defdec": "Def",
     "display": "j",
     "location": {
       "column": "26",
-      "line": "2484",
+      "line": "2485",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "j",
@@ -209616,13 +209616,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@71257@F@angtab_cal@j",
+    "ID": "c:main.c@71333@F@angtab_cal@j",
     "What": "Variable",
     "defdec": "Def",
     "display": "j",
     "location": {
       "column": "26",
-      "line": "2492",
+      "line": "2493",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "j",
@@ -209630,41 +209630,27 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@72347@F@angtab_cal@tmp_sum",
+    "ID": "c:main.c@72423@F@angtab_cal@tmp_sum",
     "What": "Variable",
     "defdec": "Def",
     "display": "tmp_sum",
     "location": {
       "column": "21",
-      "line": "2523",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
-    },
-    "name": "tmp_sum",
-    "origin": "project_file",
-    "scope": null
-  },
-  {
-    "ID": "c:main.c@72384@F@angtab_cal@j",
-    "What": "Variable",
-    "defdec": "Def",
-    "display": "j",
-    "location": {
-      "column": "34",
       "line": "2524",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
-    "name": "j",
+    "name": "tmp_sum",
     "origin": "project_file",
     "scope": null
   },
   {
-    "ID": "c:main.c@72802@F@angtab_cal@j",
+    "ID": "c:main.c@72460@F@angtab_cal@j",
     "What": "Variable",
     "defdec": "Def",
     "display": "j",
     "location": {
       "column": "34",
-      "line": "2532",
+      "line": "2525",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "j",
@@ -209672,13 +209658,27 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@74114@F@angtab_cal@tmp_sum",
+    "ID": "c:main.c@72878@F@angtab_cal@j",
+    "What": "Variable",
+    "defdec": "Def",
+    "display": "j",
+    "location": {
+      "column": "34",
+      "line": "2533",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
+    },
+    "name": "j",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:main.c@74190@F@angtab_cal@tmp_sum",
     "What": "Variable",
     "defdec": "Def",
     "display": "tmp_sum",
     "location": {
       "column": "21",
-      "line": "2586",
+      "line": "2587",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "tmp_sum",
@@ -209686,13 +209686,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@74151@F@angtab_cal@j",
+    "ID": "c:main.c@74227@F@angtab_cal@j",
     "What": "Variable",
     "defdec": "Def",
     "display": "j",
     "location": {
       "column": "34",
-      "line": "2587",
+      "line": "2588",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "j",
@@ -209700,13 +209700,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@74337@F@angtab_cal@j",
+    "ID": "c:main.c@74413@F@angtab_cal@j",
     "What": "Variable",
     "defdec": "Def",
     "display": "j",
     "location": {
       "column": "34",
-      "line": "2592",
+      "line": "2593",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "j",
@@ -209714,13 +209714,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@74753@F@angtab_cal@j",
+    "ID": "c:main.c@74829@F@angtab_cal@j",
     "What": "Variable",
     "defdec": "Def",
     "display": "j",
     "location": {
       "column": "34",
-      "line": "2599",
+      "line": "2600",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "j",
@@ -209728,13 +209728,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@75210@F@angtab_cal@i",
+    "ID": "c:main.c@75286@F@angtab_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "24",
-      "line": "2607",
+      "line": "2608",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209748,7 +209748,7 @@
     "display": "void offset_cal(void)",
     "location": {
       "column": "6",
-      "line": "2699",
+      "line": "2700",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "offset_cal",
@@ -209756,13 +209756,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@78100@F@offset_cal@crc16",
+    "ID": "c:main.c@78185@F@offset_cal@crc16",
     "What": "Variable",
     "defdec": "Def",
     "display": "crc16",
     "location": {
       "column": "12",
-      "line": "2701",
+      "line": "2702",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "crc16",
@@ -209770,13 +209770,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@78900@F@offset_cal@i",
+    "ID": "c:main.c@78985@F@offset_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "20",
-      "line": "2744",
+      "line": "2745",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209784,13 +209784,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@80174@F@offset_cal@i",
+    "ID": "c:main.c@80259@F@offset_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "20",
-      "line": "2818",
+      "line": "2819",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209798,13 +209798,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@81080@F@offset_cal@i",
+    "ID": "c:main.c@81165@F@offset_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "20",
-      "line": "2867",
+      "line": "2868",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209812,13 +209812,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@81756@F@offset_cal@i",
+    "ID": "c:main.c@81841@F@offset_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "18",
-      "line": "2895",
+      "line": "2896",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209832,7 +209832,7 @@
     "display": "void angk_cal(void)",
     "location": {
       "column": "6",
-      "line": "2971",
+      "line": "2972",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "angk_cal",
@@ -209840,13 +209840,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@84676@F@angk_cal@crc16",
+    "ID": "c:main.c@84779@F@angk_cal@crc16",
     "What": "Variable",
     "defdec": "Def",
     "display": "crc16",
     "location": {
       "column": "12",
-      "line": "2973",
+      "line": "2974",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "crc16",
@@ -209854,13 +209854,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@84794@F@angk_cal@i",
+    "ID": "c:main.c@84897@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "16",
-      "line": "2982",
+      "line": "2983",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209868,13 +209868,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@85045@F@angk_cal@i",
+    "ID": "c:main.c@85148@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "18",
-      "line": "2998",
+      "line": "2999",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209882,13 +209882,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@85296@F@angk_cal@i",
+    "ID": "c:main.c@85399@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "18",
-      "line": "3009",
+      "line": "3010",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209896,13 +209896,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@85418@F@angk_cal@i",
+    "ID": "c:main.c@85521@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "18",
-      "line": "3017",
+      "line": "3018",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209910,13 +209910,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@85615@F@angk_cal@i",
+    "ID": "c:main.c@85718@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "18",
-      "line": "3025",
+      "line": "3026",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209924,13 +209924,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@85837@F@angk_cal@i",
+    "ID": "c:main.c@85940@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "18",
-      "line": "3033",
+      "line": "3034",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209938,13 +209938,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@86080@F@angk_cal@i",
+    "ID": "c:main.c@86183@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "18",
-      "line": "3041",
+      "line": "3042",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209952,13 +209952,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@86537@F@angk_cal@i",
+    "ID": "c:main.c@86640@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "18",
-      "line": "3068",
+      "line": "3069",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209966,13 +209966,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@86878@F@angk_cal@i",
+    "ID": "c:main.c@86981@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "20",
-      "line": "3084",
+      "line": "3085",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209980,13 +209980,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@87138@F@angk_cal@i",
+    "ID": "c:main.c@87241@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "16",
-      "line": "3104",
+      "line": "3105",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -209994,13 +209994,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@87346@F@angk_cal@i",
+    "ID": "c:main.c@87449@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "16",
-      "line": "3112",
+      "line": "3113",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -210008,13 +210008,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@88062@F@angk_cal@i",
+    "ID": "c:main.c@88165@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "20",
-      "line": "3149",
+      "line": "3150",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -210022,13 +210022,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@88541@F@angk_cal@i",
+    "ID": "c:main.c@88644@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "16",
-      "line": "3176",
+      "line": "3177",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -210036,13 +210036,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@88749@F@angk_cal@i",
+    "ID": "c:main.c@88852@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "16",
-      "line": "3184",
+      "line": "3185",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -210050,13 +210050,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@89460@F@angk_cal@i",
+    "ID": "c:main.c@89563@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "20",
-      "line": "3220",
+      "line": "3221",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -210064,13 +210064,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@89947@F@angk_cal@i",
+    "ID": "c:main.c@90050@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "16",
-      "line": "3251",
+      "line": "3252",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -210078,13 +210078,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@90155@F@angk_cal@i",
+    "ID": "c:main.c@90258@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "16",
-      "line": "3259",
+      "line": "3260",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -210092,13 +210092,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@90868@F@angk_cal@i",
+    "ID": "c:main.c@90971@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "20",
-      "line": "3296",
+      "line": "3297",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -210106,13 +210106,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@91549@F@angk_cal@i",
+    "ID": "c:main.c@91652@F@angk_cal@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "18",
-      "line": "3323",
+      "line": "3324",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -210126,7 +210126,7 @@
     "display": "void dac_ctrl(void)",
     "location": {
       "column": "6",
-      "line": "3388",
+      "line": "3389",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "dac_ctrl",
@@ -210140,7 +210140,7 @@
     "display": "void DelayTim4Ticks(uint16_t)",
     "location": {
       "column": "13",
-      "line": "3448",
+      "line": "3449",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "DelayTim4Ticks",
@@ -210154,7 +210154,7 @@
     "display": "void Backlight_StartTimer(uint16_t)",
     "location": {
       "column": "13",
-      "line": "3466",
+      "line": "3467",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "Backlight_StartTimer",
@@ -210168,7 +210168,7 @@
     "display": "void Backlight_StartFromSI(void)",
     "location": {
       "column": "13",
-      "line": "3485",
+      "line": "3486",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "Backlight_StartFromSI",
@@ -210182,7 +210182,7 @@
     "display": "void init_vars(void)",
     "location": {
       "column": "6",
-      "line": "3520",
+      "line": "3521",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "init_vars",
@@ -210190,13 +210190,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@97768@F@init_vars@i",
+    "ID": "c:main.c@97871@F@init_vars@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "12",
-      "line": "3529",
+      "line": "3530",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -210204,13 +210204,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@98247@F@init_vars@i",
+    "ID": "c:main.c@98350@F@init_vars@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "12",
-      "line": "3540",
+      "line": "3541",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -210218,13 +210218,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@98687@F@init_vars@i",
+    "ID": "c:main.c@98790@F@init_vars@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "12",
-      "line": "3551",
+      "line": "3552",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -210232,13 +210232,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@99132@F@init_vars@i",
+    "ID": "c:main.c@99235@F@init_vars@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
       "column": "12",
-      "line": "3562",
+      "line": "3563",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "i",
@@ -210246,13 +210246,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@99637@F@init_vars@j",
+    "ID": "c:main.c@99740@F@init_vars@j",
     "What": "Variable",
     "defdec": "Def",
     "display": "j",
     "location": {
       "column": "22",
-      "line": "3582",
+      "line": "3583",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "j",
@@ -210266,7 +210266,7 @@
     "display": "int main(void)",
     "location": {
       "column": "5",
-      "line": "3619",
+      "line": "3620",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "main",
@@ -210280,7 +210280,7 @@
     "display": "void SystemClock_Config(void)",
     "location": {
       "column": "6",
-      "line": "3734",
+      "line": "3738",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "SystemClock_Config",
@@ -210294,7 +210294,7 @@
     "display": "void MX_ADC1_Init(void)",
     "location": {
       "column": "13",
-      "line": "3794",
+      "line": "3798",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "MX_ADC1_Init",
@@ -210308,7 +210308,7 @@
     "display": "void MX_ADC2_Init(void)",
     "location": {
       "column": "13",
-      "line": "3888",
+      "line": "3892",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "MX_ADC2_Init",
@@ -210316,13 +210316,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@114723@F@MX_ADC2_Init@ADC_InitStruct",
+    "ID": "c:main.c@115042@F@MX_ADC2_Init@ADC_InitStruct",
     "What": "Variable",
     "defdec": "Def",
     "display": "ADC_InitStruct",
     "location": {
       "column": "22",
-      "line": "3921",
+      "line": "3925",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "ADC_InitStruct",
@@ -210330,13 +210330,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@114767@F@MX_ADC2_Init@ADC_REG_InitStruct",
+    "ID": "c:main.c@115086@F@MX_ADC2_Init@ADC_REG_InitStruct",
     "What": "Variable",
     "defdec": "Def",
     "display": "ADC_REG_InitStruct",
     "location": {
       "column": "26",
-      "line": "3922",
+      "line": "3926",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "ADC_REG_InitStruct",
@@ -210344,13 +210344,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@114819@F@MX_ADC2_Init@ADC_CommonInitStruct",
+    "ID": "c:main.c@115138@F@MX_ADC2_Init@ADC_CommonInitStruct",
     "What": "Variable",
     "defdec": "Def",
     "display": "ADC_CommonInitStruct",
     "location": {
       "column": "28",
-      "line": "3923",
+      "line": "3927",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "ADC_CommonInitStruct",
@@ -210358,13 +210358,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@114877@F@MX_ADC2_Init@GPIO_InitStruct",
+    "ID": "c:main.c@115196@F@MX_ADC2_Init@GPIO_InitStruct",
     "What": "Variable",
     "defdec": "Def",
     "display": "GPIO_InitStruct",
     "location": {
       "column": "23",
-      "line": "3925",
+      "line": "3929",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "GPIO_InitStruct",
@@ -210378,7 +210378,7 @@
     "display": "void MX_TIM3_Init(void)",
     "location": {
       "column": "13",
-      "line": "3983",
+      "line": "3987",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "MX_TIM3_Init",
@@ -210386,13 +210386,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@117225@F@MX_TIM3_Init@sClockSourceConfig",
+    "ID": "c:main.c@117544@F@MX_TIM3_Init@sClockSourceConfig",
     "What": "Variable",
     "defdec": "Def",
     "display": "sClockSourceConfig",
     "location": {
       "column": "26",
-      "line": "3987",
+      "line": "3991",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "sClockSourceConfig",
@@ -210400,13 +210400,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@117277@F@MX_TIM3_Init@sSlaveConfig",
+    "ID": "c:main.c@117596@F@MX_TIM3_Init@sSlaveConfig",
     "What": "Variable",
     "defdec": "Def",
     "display": "sSlaveConfig",
     "location": {
       "column": "26",
-      "line": "3988",
+      "line": "3992",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "sSlaveConfig",
@@ -210414,13 +210414,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@117323@F@MX_TIM3_Init@sMasterConfig",
+    "ID": "c:main.c@117642@F@MX_TIM3_Init@sMasterConfig",
     "What": "Variable",
     "defdec": "Def",
     "display": "sMasterConfig",
     "location": {
       "column": "27",
-      "line": "3989",
+      "line": "3993",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "sMasterConfig",
@@ -210428,13 +210428,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@117371@F@MX_TIM3_Init@sConfigOC",
+    "ID": "c:main.c@117690@F@MX_TIM3_Init@sConfigOC",
     "What": "Variable",
     "defdec": "Def",
     "display": "sConfigOC",
     "location": {
       "column": "22",
-      "line": "3990",
+      "line": "3994",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "sConfigOC",
@@ -210442,13 +210442,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@118426@F@MX_TIM3_Init@GPIO_InitStruct",
+    "ID": "c:main.c@118745@F@MX_TIM3_Init@GPIO_InitStruct",
     "What": "Variable",
     "defdec": "Def",
     "display": "GPIO_InitStruct",
     "location": {
       "column": "20",
-      "line": "4027",
+      "line": "4031",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "GPIO_InitStruct",
@@ -210456,13 +210456,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@118473@F@MX_TIM3_Init@tmpreg",
+    "ID": "c:main.c@118792@F@MX_TIM3_Init@tmpreg",
     "What": "Variable",
     "defdec": "Def",
     "display": "tmpreg",
     "location": {
       "column": "3",
-      "line": "4029",
+      "line": "4033",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "tmpreg",
@@ -210476,7 +210476,7 @@
     "display": "void MX_TIM4_Init(void)",
     "location": {
       "column": "13",
-      "line": "4064",
+      "line": "4068",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "MX_TIM4_Init",
@@ -210490,7 +210490,7 @@
     "display": "void MX_DAC_Init(void)",
     "location": {
       "column": "13",
-      "line": "4088",
+      "line": "4092",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "MX_DAC_Init",
@@ -210498,13 +210498,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@120265@F@MX_DAC_Init@sConfig",
+    "ID": "c:main.c@120584@F@MX_DAC_Init@sConfig",
     "What": "Variable",
     "defdec": "Def",
     "display": "sConfig",
     "location": {
       "column": "26",
-      "line": "4091",
+      "line": "4095",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "sConfig",
@@ -210518,7 +210518,7 @@
     "display": "void MX_I2C3_Init(void)",
     "location": {
       "column": "13",
-      "line": "4138",
+      "line": "4142",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "MX_I2C3_Init",
@@ -210532,7 +210532,7 @@
     "display": "void MX_GPIO_Init(void)",
     "location": {
       "column": "13",
-      "line": "4183",
+      "line": "4187",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "MX_GPIO_Init",
@@ -210540,13 +210540,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@123075@F@MX_GPIO_Init@EXTI_InitStruct",
+    "ID": "c:main.c@123394@F@MX_GPIO_Init@EXTI_InitStruct",
     "What": "Variable",
     "defdec": "Def",
     "display": "EXTI_InitStruct",
     "location": {
       "column": "23",
-      "line": "4185",
+      "line": "4189",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "EXTI_InitStruct",
@@ -210560,7 +210560,7 @@
     "display": "void DMA2_Stream3_IRQHandler(void)",
     "location": {
       "column": "6",
-      "line": "4259",
+      "line": "4263",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "DMA2_Stream3_IRQHandler",
@@ -210574,7 +210574,7 @@
     "display": "void TIM4_IRQHandler(void)",
     "location": {
       "column": "6",
-      "line": "4327",
+      "line": "4331",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "TIM4_IRQHandler",
@@ -210588,7 +210588,7 @@
     "display": "void HAL_I2C_MspInit(I2C_HandleTypeDef *)",
     "location": {
       "column": "6",
-      "line": "4353",
+      "line": "4357",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "HAL_I2C_MspInit",
@@ -210596,13 +210596,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@129257@F@HAL_I2C_MspInit@GPIO_InitStruct",
+    "ID": "c:main.c@129576@F@HAL_I2C_MspInit@GPIO_InitStruct",
     "What": "Variable",
     "defdec": "Def",
     "display": "GPIO_InitStruct",
     "location": {
       "column": "21",
-      "line": "4355",
+      "line": "4359",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "GPIO_InitStruct",
@@ -210610,13 +210610,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@129442@F@HAL_I2C_MspInit@tmpreg",
+    "ID": "c:main.c@129761@F@HAL_I2C_MspInit@tmpreg",
     "What": "Variable",
     "defdec": "Def",
     "display": "tmpreg",
     "location": {
       "column": "5",
-      "line": "4361",
+      "line": "4365",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "tmpreg",
@@ -210624,13 +210624,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@129477@F@HAL_I2C_MspInit@tmpreg",
+    "ID": "c:main.c@129796@F@HAL_I2C_MspInit@tmpreg",
     "What": "Variable",
     "defdec": "Def",
     "display": "tmpreg",
     "location": {
       "column": "5",
-      "line": "4362",
+      "line": "4366",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "tmpreg",
@@ -210638,13 +210638,13 @@
     "scope": null
   },
   {
-    "ID": "c:main.c@129538@F@HAL_I2C_MspInit@tmpreg",
+    "ID": "c:main.c@129857@F@HAL_I2C_MspInit@tmpreg",
     "What": "Variable",
     "defdec": "Def",
     "display": "tmpreg",
     "location": {
       "column": "5",
-      "line": "4364",
+      "line": "4368",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "tmpreg",
@@ -210658,7 +210658,7 @@
     "display": "void HAL_I2C_MspDeInit(I2C_HandleTypeDef *)",
     "location": {
       "column": "6",
-      "line": "4400",
+      "line": "4404",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "HAL_I2C_MspDeInit",
@@ -210672,7 +210672,7 @@
     "display": "void HAL_I2C_MemTxCpltCallback(I2C_HandleTypeDef *)",
     "location": {
       "column": "6",
-      "line": "4436",
+      "line": "4440",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "HAL_I2C_MemTxCpltCallback",
@@ -210686,7 +210686,7 @@
     "display": "void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *)",
     "location": {
       "column": "6",
-      "line": "4448",
+      "line": "4452",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "HAL_I2C_MasterRxCpltCallback",
@@ -210700,7 +210700,7 @@
     "display": "void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *)",
     "location": {
       "column": "6",
-      "line": "4470",
+      "line": "4474",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "HAL_I2C_ErrorCallback",
@@ -210714,7 +210714,7 @@
     "display": "void I2C3_EV_IRQHandler(void)",
     "location": {
       "column": "6",
-      "line": "4491",
+      "line": "4495",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "I2C3_EV_IRQHandler",
@@ -210728,7 +210728,7 @@
     "display": "void I2C3_ER_IRQHandler(void)",
     "location": {
       "column": "6",
-      "line": "4502",
+      "line": "4506",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "I2C3_ER_IRQHandler",
@@ -210742,7 +210742,7 @@
     "display": "void Error_Handler(void)",
     "location": {
       "column": "6",
-      "line": "4520",
+      "line": "4524",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\main.c"
     },
     "name": "Error_Handler",
@@ -371030,7 +371030,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@32@macro@MODBUS_BOARD_H",
+    "ID": "c:modbus_board.h@31@macro@MODBUS_BOARD_H",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MODBUS_BOARD_H",
@@ -371044,7 +371044,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@58@macro@MB_SLAVE_ADDRESS",
+    "ID": "c:modbus_board.h@55@macro@MB_SLAVE_ADDRESS",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_SLAVE_ADDRESS",
@@ -371058,7 +371058,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@301@macro@MB_BAUD",
+    "ID": "c:modbus_board.h@293@macro@MB_BAUD",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_BAUD",
@@ -371072,7 +371072,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@326@macro@MB_TX_PIN",
+    "ID": "c:modbus_board.h@317@macro@MB_TX_PIN",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_TX_PIN",
@@ -371086,7 +371086,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@359@macro@MB_RX_PIN",
+    "ID": "c:modbus_board.h@349@macro@MB_RX_PIN",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_RX_PIN",
@@ -371100,7 +371100,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@392@macro@MB_DE_PIN",
+    "ID": "c:modbus_board.h@381@macro@MB_DE_PIN",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_DE_PIN",
@@ -371114,7 +371114,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@425@macro@MB_NRE_PIN",
+    "ID": "c:modbus_board.h@413@macro@MB_NRE_PIN",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_NRE_PIN",
@@ -371128,7 +371128,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@459@macro@MB_TX_PORT",
+    "ID": "c:modbus_board.h@446@macro@MB_TX_PORT",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_TX_PORT",
@@ -371142,7 +371142,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@485@macro@MB_RX_PORT",
+    "ID": "c:modbus_board.h@471@macro@MB_RX_PORT",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_RX_PORT",
@@ -371156,7 +371156,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@511@macro@MB_DE_PORT",
+    "ID": "c:modbus_board.h@496@macro@MB_DE_PORT",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_DE_PORT",
@@ -371170,7 +371170,7 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_board.h@537@macro@MB_NRE_PORT",
+    "ID": "c:modbus_board.h@521@macro@MB_NRE_PORT",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_NRE_PORT",
@@ -391528,7 +391528,7 @@
     "scope": null
   },
   {
-    "ID": "c:mb.c@2256@macro@MB_PORT_HAS_CLOSE",
+    "ID": "c:mb.c@2201@macro@MB_PORT_HAS_CLOSE",
     "What": "MacroDef",
     "defdec": "Def",
     "display": "MB_PORT_HAS_CLOSE",
@@ -391570,13 +391570,13 @@
     "scope": null
   },
   {
-    "ID": "c:@E@mb.c@2442",
+    "ID": "c:@E@mb.c@2379",
     "What": "Enum",
     "defdec": "Def",
     "display": "",
     "fields": [
       {
-        "ID": "c:@E@mb.c@2442@STATE_ENABLED",
+        "ID": "c:@E@mb.c@2379@STATE_ENABLED",
         "What": "Enumerator",
         "defdec": "Def",
         "display": "STATE_ENABLED",
@@ -391590,7 +391590,7 @@
         "scope": null
       },
       {
-        "ID": "c:@E@mb.c@2442@STATE_DISABLED",
+        "ID": "c:@E@mb.c@2379@STATE_DISABLED",
         "What": "Enumerator",
         "defdec": "Def",
         "display": "STATE_DISABLED",
@@ -391604,7 +391604,7 @@
         "scope": null
       },
       {
-        "ID": "c:@E@mb.c@2442@STATE_NOT_INITIALIZED",
+        "ID": "c:@E@mb.c@2379@STATE_NOT_INITIALIZED",
         "What": "Enumerator",
         "defdec": "Def",
         "display": "STATE_NOT_INITIALIZED",
@@ -391810,7 +391810,7 @@
     "scope": null
   },
   {
-    "ID": "c:mb.c@5083@F@eMBInit@eStatus",
+    "ID": "c:mb.c@4946@F@eMBInit@eStatus",
     "What": "Variable",
     "defdec": "Def",
     "display": "eStatus",
@@ -391838,7 +391838,7 @@
     "scope": null
   },
   {
-    "ID": "c:mb.c@10761@F@eMBRegisterCB@i",
+    "ID": "c:mb.c@10472@F@eMBRegisterCB@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
@@ -391852,7 +391852,7 @@
     "scope": null
   },
   {
-    "ID": "c:mb.c@10785@F@eMBRegisterCB@eStatus",
+    "ID": "c:mb.c@10495@F@eMBRegisterCB@eStatus",
     "What": "Variable",
     "defdec": "Def",
     "display": "eStatus",
@@ -391866,7 +391866,7 @@
     "scope": null
   },
   {
-    "ID": "c:mb.c@10891@F@eMBRegisterCB@mb_saved_primask",
+    "ID": "c:mb.c@10597@F@eMBRegisterCB@mb_saved_primask",
     "What": "Variable",
     "defdec": "Def",
     "display": "mb_saved_primask",
@@ -391894,7 +391894,7 @@
     "scope": null
   },
   {
-    "ID": "c:mb.c@12080@F@eMBClose@eStatus",
+    "ID": "c:mb.c@11744@F@eMBClose@eStatus",
     "What": "Variable",
     "defdec": "Def",
     "display": "eStatus",
@@ -391922,7 +391922,7 @@
     "scope": null
   },
   {
-    "ID": "c:mb.c@12394@F@eMBEnable@eStatus",
+    "ID": "c:mb.c@12039@F@eMBEnable@eStatus",
     "What": "Variable",
     "defdec": "Def",
     "display": "eStatus",
@@ -391950,7 +391950,7 @@
     "scope": null
   },
   {
-    "ID": "c:mb.c@12721@F@eMBDisable@eStatus",
+    "ID": "c:mb.c@12348@F@eMBDisable@eStatus",
     "What": "Variable",
     "defdec": "Def",
     "display": "eStatus",
@@ -391978,7 +391978,7 @@
     "scope": null
   },
   {
-    "ID": "c:mb.c@13105@F@eMBPoll@ucMBFrame",
+    "ID": "c:mb.c@12710@F@eMBPoll@ucMBFrame",
     "What": "Variable",
     "defdec": "Def",
     "display": "ucMBFrame",
@@ -391992,7 +391992,7 @@
     "scope": null
   },
   {
-    "ID": "c:mb.c@13137@F@eMBPoll@ucRcvAddress",
+    "ID": "c:mb.c@12741@F@eMBPoll@ucRcvAddress",
     "What": "Variable",
     "defdec": "Def",
     "display": "ucRcvAddress",
@@ -392006,7 +392006,7 @@
     "scope": null
   },
   {
-    "ID": "c:mb.c@13172@F@eMBPoll@ucFunctionCode",
+    "ID": "c:mb.c@12775@F@eMBPoll@ucFunctionCode",
     "What": "Variable",
     "defdec": "Def",
     "display": "ucFunctionCode",
@@ -392020,7 +392020,7 @@
     "scope": null
   },
   {
-    "ID": "c:mb.c@13209@F@eMBPoll@usLength",
+    "ID": "c:mb.c@12811@F@eMBPoll@usLength",
     "What": "Variable",
     "defdec": "Def",
     "display": "usLength",
@@ -392034,7 +392034,7 @@
     "scope": null
   },
   {
-    "ID": "c:mb.c@13240@F@eMBPoll@eException",
+    "ID": "c:mb.c@12841@F@eMBPoll@eException",
     "What": "Variable",
     "defdec": "Def",
     "display": "eException",
@@ -392048,7 +392048,7 @@
     "scope": null
   },
   {
-    "ID": "c:mb.c@13279@F@eMBPoll@i",
+    "ID": "c:mb.c@12878@F@eMBPoll@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
@@ -392062,7 +392062,7 @@
     "scope": null
   },
   {
-    "ID": "c:mb.c@13303@F@eMBPoll@eStatus",
+    "ID": "c:mb.c@12901@F@eMBPoll@eStatus",
     "What": "Variable",
     "defdec": "Def",
     "display": "eStatus",
@@ -392076,7 +392076,7 @@
     "scope": null
   },
   {
-    "ID": "c:mb.c@13345@F@eMBPoll@eEvent",
+    "ID": "c:mb.c@12942@F@eMBPoll@eEvent",
     "What": "Variable",
     "defdec": "Def",
     "display": "eEvent",
@@ -393272,258 +393272,6 @@
     "scope": null
   },
   {
-    "ID": "c:mbrtu.h@1647@macro@_MB_RTU_H",
-    "What": "MacroDef",
-    "defdec": "Def",
-    "display": "_MB_RTU_H",
-    "location": {
-      "column": "9",
-      "line": "31",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "_MB_RTU_H",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@eMBRTUInit",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "eMBErrorCode eMBRTUInit(UCHAR, UCHAR, ULONG, eMBParity, UCHAR)",
-    "location": {
-      "column": "18",
-      "line": "36",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "eMBRTUInit",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@eMBRTUInit",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "eMBErrorCode eMBRTUInit(UCHAR, UCHAR, ULONG, eMBParity, UCHAR)",
-    "location": {
-      "column": "18",
-      "line": "36",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "eMBRTUInit",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@eMBRTUStart",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "void eMBRTUStart(void)",
-    "location": {
-      "column": "17",
-      "line": "38",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "eMBRTUStart",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@eMBRTUStart",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "void eMBRTUStart(void)",
-    "location": {
-      "column": "17",
-      "line": "38",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "eMBRTUStart",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@eMBRTUStop",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "void eMBRTUStop(void)",
-    "location": {
-      "column": "17",
-      "line": "39",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "eMBRTUStop",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@eMBRTUStop",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "void eMBRTUStop(void)",
-    "location": {
-      "column": "17",
-      "line": "39",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "eMBRTUStop",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@eMBRTUReceive",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "eMBErrorCode eMBRTUReceive(UCHAR *, UCHAR **, USHORT *)",
-    "location": {
-      "column": "17",
-      "line": "40",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "eMBRTUReceive",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@eMBRTUReceive",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "eMBErrorCode eMBRTUReceive(UCHAR *, UCHAR **, USHORT *)",
-    "location": {
-      "column": "17",
-      "line": "40",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "eMBRTUReceive",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@eMBRTUSend",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "eMBErrorCode eMBRTUSend(UCHAR, const UCHAR *, USHORT)",
-    "location": {
-      "column": "17",
-      "line": "41",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "eMBRTUSend",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@eMBRTUSend",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "eMBErrorCode eMBRTUSend(UCHAR, const UCHAR *, USHORT)",
-    "location": {
-      "column": "17",
-      "line": "41",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "eMBRTUSend",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@xMBRTUReceiveFSM",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "BOOL xMBRTUReceiveFSM(void)",
-    "location": {
-      "column": "17",
-      "line": "42",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "xMBRTUReceiveFSM",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@xMBRTUReceiveFSM",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "BOOL xMBRTUReceiveFSM(void)",
-    "location": {
-      "column": "17",
-      "line": "42",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "xMBRTUReceiveFSM",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@xMBRTUTransmitFSM",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "BOOL xMBRTUTransmitFSM(void)",
-    "location": {
-      "column": "17",
-      "line": "43",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "xMBRTUTransmitFSM",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@xMBRTUTransmitFSM",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "BOOL xMBRTUTransmitFSM(void)",
-    "location": {
-      "column": "17",
-      "line": "43",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "xMBRTUTransmitFSM",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@xMBRTUTimerT15Expired",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "BOOL xMBRTUTimerT15Expired(void)",
-    "location": {
-      "column": "17",
-      "line": "44",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "xMBRTUTimerT15Expired",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@xMBRTUTimerT35Expired",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "BOOL xMBRTUTimerT35Expired(void)",
-    "location": {
-      "column": "17",
-      "line": "45",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "xMBRTUTimerT35Expired",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@xMBRTUTimerT35Expired",
-    "What": "Function",
-    "defdec": "Dec",
-    "display": "BOOL xMBRTUTimerT35Expired(void)",
-    "location": {
-      "column": "17",
-      "line": "45",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
-    },
-    "name": "xMBRTUTimerT35Expired",
-    "origin": "user_include",
-    "scope": null
-  },
-  {
     "ID": "c:mbfunc.h@1649@macro@_MB_FUNC_H",
     "What": "MacroDef",
     "defdec": "Def",
@@ -394592,6 +394340,258 @@
     "scope": null
   },
   {
+    "ID": "c:mbrtu.h@1647@macro@_MB_RTU_H",
+    "What": "MacroDef",
+    "defdec": "Def",
+    "display": "_MB_RTU_H",
+    "location": {
+      "column": "9",
+      "line": "31",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "_MB_RTU_H",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@eMBRTUInit",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "eMBErrorCode eMBRTUInit(UCHAR, UCHAR, ULONG, eMBParity, UCHAR)",
+    "location": {
+      "column": "18",
+      "line": "36",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "eMBRTUInit",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@eMBRTUInit",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "eMBErrorCode eMBRTUInit(UCHAR, UCHAR, ULONG, eMBParity, UCHAR)",
+    "location": {
+      "column": "18",
+      "line": "36",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "eMBRTUInit",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@eMBRTUStart",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "void eMBRTUStart(void)",
+    "location": {
+      "column": "17",
+      "line": "38",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "eMBRTUStart",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@eMBRTUStart",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "void eMBRTUStart(void)",
+    "location": {
+      "column": "17",
+      "line": "38",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "eMBRTUStart",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@eMBRTUStop",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "void eMBRTUStop(void)",
+    "location": {
+      "column": "17",
+      "line": "39",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "eMBRTUStop",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@eMBRTUStop",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "void eMBRTUStop(void)",
+    "location": {
+      "column": "17",
+      "line": "39",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "eMBRTUStop",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@eMBRTUReceive",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "eMBErrorCode eMBRTUReceive(UCHAR *, UCHAR **, USHORT *)",
+    "location": {
+      "column": "17",
+      "line": "40",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "eMBRTUReceive",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@eMBRTUReceive",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "eMBErrorCode eMBRTUReceive(UCHAR *, UCHAR **, USHORT *)",
+    "location": {
+      "column": "17",
+      "line": "40",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "eMBRTUReceive",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@eMBRTUSend",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "eMBErrorCode eMBRTUSend(UCHAR, const UCHAR *, USHORT)",
+    "location": {
+      "column": "17",
+      "line": "41",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "eMBRTUSend",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@eMBRTUSend",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "eMBErrorCode eMBRTUSend(UCHAR, const UCHAR *, USHORT)",
+    "location": {
+      "column": "17",
+      "line": "41",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "eMBRTUSend",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@xMBRTUReceiveFSM",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "BOOL xMBRTUReceiveFSM(void)",
+    "location": {
+      "column": "17",
+      "line": "42",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "xMBRTUReceiveFSM",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@xMBRTUReceiveFSM",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "BOOL xMBRTUReceiveFSM(void)",
+    "location": {
+      "column": "17",
+      "line": "42",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "xMBRTUReceiveFSM",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@xMBRTUTransmitFSM",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "BOOL xMBRTUTransmitFSM(void)",
+    "location": {
+      "column": "17",
+      "line": "43",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "xMBRTUTransmitFSM",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@xMBRTUTransmitFSM",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "BOOL xMBRTUTransmitFSM(void)",
+    "location": {
+      "column": "17",
+      "line": "43",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "xMBRTUTransmitFSM",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@xMBRTUTimerT15Expired",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "BOOL xMBRTUTimerT15Expired(void)",
+    "location": {
+      "column": "17",
+      "line": "44",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "xMBRTUTimerT15Expired",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@xMBRTUTimerT35Expired",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "BOOL xMBRTUTimerT35Expired(void)",
+    "location": {
+      "column": "17",
+      "line": "45",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "xMBRTUTimerT35Expired",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@xMBRTUTimerT35Expired",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "BOOL xMBRTUTimerT35Expired(void)",
+    "location": {
+      "column": "17",
+      "line": "45",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.h"
+    },
+    "name": "xMBRTUTimerT35Expired",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
     "ID": "c:mbfuncholding.c@2103@macro@MB_PDU_FUNC_READ_ADDR_OFF",
     "What": "MacroDef",
     "defdec": "Def",
@@ -395194,202 +395194,6 @@
     "scope": null
   },
   {
-    "ID": "c:mbutils.c@2058@macro@BITS_UCHAR",
-    "What": "MacroDef",
-    "defdec": "Def",
-    "display": "BITS_UCHAR",
-    "location": {
-      "column": "9",
-      "line": "42",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
-    },
-    "name": "BITS_UCHAR",
-    "origin": "project_file",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@xMBUtilSetBits",
-    "What": "Function",
-    "defdec": "Def",
-    "display": "void xMBUtilSetBits(UCHAR *, USHORT, UCHAR, UCHAR)",
-    "location": {
-      "column": "1",
-      "line": "46",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
-    },
-    "name": "xMBUtilSetBits",
-    "origin": "project_file",
-    "scope": null
-  },
-  {
-    "ID": "c:mbutils.c@2278@F@xMBUtilSetBits@usWordBuf",
-    "What": "Variable",
-    "defdec": "Def",
-    "display": "usWordBuf",
-    "location": {
-      "column": "21",
-      "line": "49",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
-    },
-    "name": "usWordBuf",
-    "origin": "project_file",
-    "scope": null
-  },
-  {
-    "ID": "c:mbutils.c@2310@F@xMBUtilSetBits@usMask",
-    "What": "Variable",
-    "defdec": "Def",
-    "display": "usMask",
-    "location": {
-      "column": "21",
-      "line": "50",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
-    },
-    "name": "usMask",
-    "origin": "project_file",
-    "scope": null
-  },
-  {
-    "ID": "c:mbutils.c@2339@F@xMBUtilSetBits@usByteOffset",
-    "What": "Variable",
-    "defdec": "Def",
-    "display": "usByteOffset",
-    "location": {
-      "column": "21",
-      "line": "51",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
-    },
-    "name": "usByteOffset",
-    "origin": "project_file",
-    "scope": null
-  },
-  {
-    "ID": "c:mbutils.c@2374@F@xMBUtilSetBits@usNPreBits",
-    "What": "Variable",
-    "defdec": "Def",
-    "display": "usNPreBits",
-    "location": {
-      "column": "21",
-      "line": "52",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
-    },
-    "name": "usNPreBits",
-    "origin": "project_file",
-    "scope": null
-  },
-  {
-    "ID": "c:mbutils.c@2407@F@xMBUtilSetBits@usValue",
-    "What": "Variable",
-    "defdec": "Def",
-    "display": "usValue",
-    "location": {
-      "column": "21",
-      "line": "53",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
-    },
-    "name": "usValue",
-    "origin": "project_file",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@xMBUtilGetBits",
-    "What": "Function",
-    "defdec": "Def",
-    "display": "UCHAR xMBUtilGetBits(UCHAR *, USHORT, UCHAR)",
-    "location": {
-      "column": "1",
-      "line": "85",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
-    },
-    "name": "xMBUtilGetBits",
-    "origin": "project_file",
-    "scope": null
-  },
-  {
-    "ID": "c:mbutils.c@3650@F@xMBUtilGetBits@usWordBuf",
-    "What": "Variable",
-    "defdec": "Def",
-    "display": "usWordBuf",
-    "location": {
-      "column": "21",
-      "line": "87",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
-    },
-    "name": "usWordBuf",
-    "origin": "project_file",
-    "scope": null
-  },
-  {
-    "ID": "c:mbutils.c@3682@F@xMBUtilGetBits@usMask",
-    "What": "Variable",
-    "defdec": "Def",
-    "display": "usMask",
-    "location": {
-      "column": "21",
-      "line": "88",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
-    },
-    "name": "usMask",
-    "origin": "project_file",
-    "scope": null
-  },
-  {
-    "ID": "c:mbutils.c@3711@F@xMBUtilGetBits@usByteOffset",
-    "What": "Variable",
-    "defdec": "Def",
-    "display": "usByteOffset",
-    "location": {
-      "column": "21",
-      "line": "89",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
-    },
-    "name": "usByteOffset",
-    "origin": "project_file",
-    "scope": null
-  },
-  {
-    "ID": "c:mbutils.c@3746@F@xMBUtilGetBits@usNPreBits",
-    "What": "Variable",
-    "defdec": "Def",
-    "display": "usNPreBits",
-    "location": {
-      "column": "21",
-      "line": "90",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
-    },
-    "name": "usNPreBits",
-    "origin": "project_file",
-    "scope": null
-  },
-  {
-    "ID": "c:@F@prveMBError2Exception",
-    "What": "Function",
-    "defdec": "Def",
-    "display": "eMBException prveMBError2Exception(eMBErrorCode)",
-    "location": {
-      "column": "1",
-      "line": "116",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
-    },
-    "name": "prveMBError2Exception",
-    "origin": "project_file",
-    "scope": null
-  },
-  {
-    "ID": "c:mbutils.c@4603@F@prveMBError2Exception@eStatus",
-    "What": "Variable",
-    "defdec": "Def",
-    "display": "eStatus",
-    "location": {
-      "column": "21",
-      "line": "118",
-      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
-    },
-    "name": "eStatus",
-    "origin": "project_file",
-    "scope": null
-  },
-  {
     "ID": "c:modbus_port.c@rx_byte",
     "What": "Variable",
     "defdec": "Dec",
@@ -395726,16 +395530,58 @@
     "scope": null
   },
   {
+    "ID": "c:@encoder_state",
+    "What": "Variable",
+    "defdec": "Dec",
+    "display": "encoder_state",
+    "location": {
+      "column": "22",
+      "line": "20",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\modbus_registers.c"
+    },
+    "name": "encoder_state",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:@i2c3_tx_wp",
+    "What": "Variable",
+    "defdec": "Dec",
+    "display": "i2c3_tx_wp",
+    "location": {
+      "column": "16",
+      "line": "21",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\modbus_registers.c"
+    },
+    "name": "i2c3_tx_wp",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
     "ID": "c:@F@eMBRegHoldingCB",
     "What": "Function",
     "defdec": "Def",
     "display": "eMBErrorCode eMBRegHoldingCB(UCHAR *, USHORT, USHORT, eMBRegisterMode)",
     "location": {
       "column": "14",
-      "line": "29",
+      "line": "25",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\modbus_registers.c"
     },
     "name": "eMBRegHoldingCB",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:modbus_registers.c@1589@F@eMBRegHoldingCB@value",
+    "What": "Variable",
+    "defdec": "Def",
+    "display": "value",
+    "location": {
+      "column": "14",
+      "line": "27",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\modbus_registers.c"
+    },
+    "name": "value",
     "origin": "project_file",
     "scope": null
   },
@@ -395746,7 +395592,7 @@
     "display": "eMBErrorCode eMBRegInputCB(UCHAR *, USHORT, USHORT)",
     "location": {
       "column": "14",
-      "line": "47",
+      "line": "60",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\modbus_registers.c"
     },
     "name": "eMBRegInputCB",
@@ -395754,13 +395600,27 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_registers.c@3242@F@eMBRegInputCB@i",
+    "ID": "c:modbus_registers.c@3796@F@eMBRegInputCB@live",
+    "What": "Variable",
+    "defdec": "Def",
+    "display": "live",
+    "location": {
+      "column": "24",
+      "line": "65",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\modbus_registers.c"
+    },
+    "name": "live",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:modbus_registers.c@3889@F@eMBRegInputCB@i",
     "What": "Variable",
     "defdec": "Def",
     "display": "i",
     "location": {
-      "column": "17",
-      "line": "51",
+      "column": "21",
+      "line": "66",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\modbus_registers.c"
     },
     "name": "i",
@@ -395768,17 +395628,383 @@
     "scope": null
   },
   {
-    "ID": "c:modbus_registers.c@3282@F@eMBRegInputCB@value",
+    "ID": "c:modbus_registers.c@3933@F@eMBRegInputCB@value",
+    "What": "Variable",
+    "defdec": "Def",
+    "display": "value",
+    "location": {
+      "column": "22",
+      "line": "67",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\modbus_registers.c"
+    },
+    "name": "value",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:modbus_registers.c@4258@F@eMBRegInputCB@i",
+    "What": "Variable",
+    "defdec": "Def",
+    "display": "i",
+    "location": {
+      "column": "17",
+      "line": "75",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\modbus_registers.c"
+    },
+    "name": "i",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:modbus_registers.c@4298@F@eMBRegInputCB@value",
     "What": "Variable",
     "defdec": "Def",
     "display": "value",
     "location": {
       "column": "18",
-      "line": "52",
+      "line": "76",
       "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Src\\modbus_registers.c"
     },
     "name": "value",
     "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:mbutils.c@2017@macro@BITS_UCHAR",
+    "What": "MacroDef",
+    "defdec": "Def",
+    "display": "BITS_UCHAR",
+    "location": {
+      "column": "9",
+      "line": "42",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
+    },
+    "name": "BITS_UCHAR",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@xMBUtilSetBits",
+    "What": "Function",
+    "defdec": "Def",
+    "display": "void xMBUtilSetBits(UCHAR *, USHORT, UCHAR, UCHAR)",
+    "location": {
+      "column": "1",
+      "line": "46",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
+    },
+    "name": "xMBUtilSetBits",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:mbutils.c@2230@F@xMBUtilSetBits@usWordBuf",
+    "What": "Variable",
+    "defdec": "Def",
+    "display": "usWordBuf",
+    "location": {
+      "column": "21",
+      "line": "49",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
+    },
+    "name": "usWordBuf",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:mbutils.c@2261@F@xMBUtilSetBits@usMask",
+    "What": "Variable",
+    "defdec": "Def",
+    "display": "usMask",
+    "location": {
+      "column": "21",
+      "line": "50",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
+    },
+    "name": "usMask",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:mbutils.c@2289@F@xMBUtilSetBits@usByteOffset",
+    "What": "Variable",
+    "defdec": "Def",
+    "display": "usByteOffset",
+    "location": {
+      "column": "21",
+      "line": "51",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
+    },
+    "name": "usByteOffset",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:mbutils.c@2323@F@xMBUtilSetBits@usNPreBits",
+    "What": "Variable",
+    "defdec": "Def",
+    "display": "usNPreBits",
+    "location": {
+      "column": "21",
+      "line": "52",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
+    },
+    "name": "usNPreBits",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:mbutils.c@2355@F@xMBUtilSetBits@usValue",
+    "What": "Variable",
+    "defdec": "Def",
+    "display": "usValue",
+    "location": {
+      "column": "21",
+      "line": "53",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
+    },
+    "name": "usValue",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@xMBUtilGetBits",
+    "What": "Function",
+    "defdec": "Def",
+    "display": "UCHAR xMBUtilGetBits(UCHAR *, USHORT, UCHAR)",
+    "location": {
+      "column": "1",
+      "line": "85",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
+    },
+    "name": "xMBUtilGetBits",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:mbutils.c@3564@F@xMBUtilGetBits@usWordBuf",
+    "What": "Variable",
+    "defdec": "Def",
+    "display": "usWordBuf",
+    "location": {
+      "column": "21",
+      "line": "87",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
+    },
+    "name": "usWordBuf",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:mbutils.c@3595@F@xMBUtilGetBits@usMask",
+    "What": "Variable",
+    "defdec": "Def",
+    "display": "usMask",
+    "location": {
+      "column": "21",
+      "line": "88",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
+    },
+    "name": "usMask",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:mbutils.c@3623@F@xMBUtilGetBits@usByteOffset",
+    "What": "Variable",
+    "defdec": "Def",
+    "display": "usByteOffset",
+    "location": {
+      "column": "21",
+      "line": "89",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
+    },
+    "name": "usByteOffset",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:mbutils.c@3657@F@xMBUtilGetBits@usNPreBits",
+    "What": "Variable",
+    "defdec": "Def",
+    "display": "usNPreBits",
+    "location": {
+      "column": "21",
+      "line": "90",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
+    },
+    "name": "usNPreBits",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@prveMBError2Exception",
+    "What": "Function",
+    "defdec": "Def",
+    "display": "eMBException prveMBError2Exception(eMBErrorCode)",
+    "location": {
+      "column": "1",
+      "line": "116",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
+    },
+    "name": "prveMBError2Exception",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:mbutils.c@4486@F@prveMBError2Exception@eStatus",
+    "What": "Variable",
+    "defdec": "Def",
+    "display": "eStatus",
+    "location": {
+      "column": "21",
+      "line": "118",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\functions\\mbutils.c"
+    },
+    "name": "eStatus",
+    "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:encoder_protocol.h@636@macro@ENCODER_PROTOCOL_H",
+    "What": "MacroDef",
+    "defdec": "Def",
+    "display": "ENCODER_PROTOCOL_H",
+    "location": {
+      "column": "9",
+      "line": "9",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_protocol.h"
+    },
+    "name": "ENCODER_PROTOCOL_H",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@Ea@ENCODER_MAX_ID",
+    "What": "Enum",
+    "defdec": "Def",
+    "display": "",
+    "fields": [
+      {
+        "ID": "c:@Ea@ENCODER_MAX_ID@ENCODER_MAX_ID",
+        "What": "Enumerator",
+        "defdec": "Def",
+        "display": "ENCODER_MAX_ID",
+        "location": {
+          "column": "5",
+          "line": "12",
+          "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_protocol.h"
+        },
+        "name": "ENCODER_MAX_ID",
+        "origin": "user_include",
+        "scope": null
+      },
+      {
+        "ID": "c:@Ea@ENCODER_MAX_ID@ENCODER_SNAP",
+        "What": "Enumerator",
+        "defdec": "Def",
+        "display": "ENCODER_SNAP",
+        "location": {
+          "column": "5",
+          "line": "13",
+          "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_protocol.h"
+        },
+        "name": "ENCODER_SNAP",
+        "origin": "user_include",
+        "scope": null
+      },
+      {
+        "ID": "c:@Ea@ENCODER_MAX_ID@ENCODER_CAL_COMMAND",
+        "What": "Enumerator",
+        "defdec": "Def",
+        "display": "ENCODER_CAL_COMMAND",
+        "location": {
+          "column": "5",
+          "line": "14",
+          "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_protocol.h"
+        },
+        "name": "ENCODER_CAL_COMMAND",
+        "origin": "user_include",
+        "scope": null
+      },
+      {
+        "ID": "c:@Ea@ENCODER_MAX_ID@ENCODER_CAL_STATE",
+        "What": "Enumerator",
+        "defdec": "Def",
+        "display": "ENCODER_CAL_STATE",
+        "location": {
+          "column": "5",
+          "line": "15",
+          "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_protocol.h"
+        },
+        "name": "ENCODER_CAL_STATE",
+        "origin": "user_include",
+        "scope": null
+      },
+      {
+        "ID": "c:@Ea@ENCODER_MAX_ID@ENCODER_EEPROM_READY",
+        "What": "Enumerator",
+        "defdec": "Def",
+        "display": "ENCODER_EEPROM_READY",
+        "location": {
+          "column": "5",
+          "line": "16",
+          "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_protocol.h"
+        },
+        "name": "ENCODER_EEPROM_READY",
+        "origin": "user_include",
+        "scope": null
+      },
+      {
+        "ID": "c:@Ea@ENCODER_MAX_ID@ENCODER_CAL_VERSION",
+        "What": "Enumerator",
+        "defdec": "Def",
+        "display": "ENCODER_CAL_VERSION",
+        "location": {
+          "column": "5",
+          "line": "17",
+          "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_protocol.h"
+        },
+        "name": "ENCODER_CAL_VERSION",
+        "origin": "user_include",
+        "scope": null
+      },
+      {
+        "ID": "c:@Ea@ENCODER_MAX_ID@ENCODER_CAL_MAGIC",
+        "What": "Enumerator",
+        "defdec": "Def",
+        "display": "ENCODER_CAL_MAGIC",
+        "location": {
+          "column": "5",
+          "line": "18",
+          "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_protocol.h"
+        },
+        "name": "ENCODER_CAL_MAGIC",
+        "origin": "user_include",
+        "scope": null
+      },
+      {
+        "ID": "c:@Ea@ENCODER_MAX_ID@ENCODER_CAL_REG_COUNT",
+        "What": "Enumerator",
+        "defdec": "Def",
+        "display": "ENCODER_CAL_REG_COUNT",
+        "location": {
+          "column": "5",
+          "line": "19",
+          "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_protocol.h"
+        },
+        "name": "ENCODER_CAL_REG_COUNT",
+        "origin": "user_include",
+        "scope": null
+      }
+    ],
+    "location": {
+      "column": "1",
+      "line": "11",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_protocol.h"
+    },
+    "name": "",
+    "origin": "user_include",
     "scope": null
   },
   {
@@ -396005,6 +396231,106 @@
     },
     "name": "snapshot_register",
     "origin": "project_file",
+    "scope": null
+  },
+  {
+    "ID": "c:encoder_calibration.h@157@macro@ENCODER_CALIBRATION_H",
+    "What": "MacroDef",
+    "defdec": "Def",
+    "display": "ENCODER_CALIBRATION_H",
+    "location": {
+      "column": "9",
+      "line": "3",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_calibration.h"
+    },
+    "name": "ENCODER_CALIBRATION_H",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@EA@encoder_cal_result_t",
+    "What": "Enum",
+    "defdec": "Def",
+    "display": "",
+    "fields": [
+      {
+        "ID": "c:@EA@encoder_cal_result_t@ENCODER_CAL_OK",
+        "What": "Enumerator",
+        "defdec": "Def",
+        "display": "ENCODER_CAL_OK",
+        "location": {
+          "column": "5",
+          "line": "7",
+          "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_calibration.h"
+        },
+        "name": "ENCODER_CAL_OK",
+        "origin": "user_include",
+        "scope": null
+      },
+      {
+        "ID": "c:@EA@encoder_cal_result_t@ENCODER_CAL_INVALID",
+        "What": "Enumerator",
+        "defdec": "Def",
+        "display": "ENCODER_CAL_INVALID",
+        "location": {
+          "column": "5",
+          "line": "8",
+          "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_calibration.h"
+        },
+        "name": "ENCODER_CAL_INVALID",
+        "origin": "user_include",
+        "scope": null
+      },
+      {
+        "ID": "c:@EA@encoder_cal_result_t@ENCODER_CAL_BUSY",
+        "What": "Enumerator",
+        "defdec": "Def",
+        "display": "ENCODER_CAL_BUSY",
+        "location": {
+          "column": "5",
+          "line": "9",
+          "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_calibration.h"
+        },
+        "name": "ENCODER_CAL_BUSY",
+        "origin": "user_include",
+        "scope": null
+      }
+    ],
+    "location": {
+      "column": "9",
+      "line": "6",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_calibration.h"
+    },
+    "name": "",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@T@encoder_cal_result_t",
+    "What": "Typedef",
+    "defdec": "Def",
+    "display": "enum encoder_cal_result_t",
+    "location": {
+      "column": "3",
+      "line": "10",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_calibration.h"
+    },
+    "name": "encoder_cal_result_t",
+    "origin": "user_include",
+    "scope": null
+  },
+  {
+    "ID": "c:@F@encoder_calibration_command",
+    "What": "Function",
+    "defdec": "Dec",
+    "display": "encoder_cal_result_t encoder_calibration_command(uint16_t)",
+    "location": {
+      "column": "22",
+      "line": "15",
+      "path": "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\Inc\\encoder_calibration.h"
+    },
+    "name": "encoder_calibration_command",
+    "origin": "user_include",
     "scope": null
   }
 ]
