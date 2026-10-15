@@ -1528,6 +1528,9 @@
             <name>$PROJ_DIR$\..\Src\modbus_registers.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\Src\encoder_calibration.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\Src\snapshot_registers.c</name>
         </file>
     </group>

@@ -32,12 +32,15 @@ python3 tests/modbus_snapshot_test.py
 ```bash
 sh tests/host/run_rtu_test.sh
 sh tests/host/run_calibration_test.sh
+python3 tests/calibration_state_test.py
 sh tests/host/run_workflow_test.sh
 python3 tests/master_poll_test.py
 ```
 
 ESP32 теперь управляется через `idf.py monitor`: `poll 1,2`, `calib 2,1`,
-`next`, `stop`, `scan`. Каждый запуск poll/calib начинает полный поиск ID 1..247.
+`next`, `stop`, `scan`. Поиск ID 1..247 выполняется **только вручную командой `scan`**.
+`poll`/`calib` с явными ID запускаются без поиска; без ID используют кэш завершённого
+ручного `scan` (при пустом кэше просят указать ID или выполнить поиск).
 [Команды, подтверждения и ограничения калибровки](esp32_master/README.md#команды-в-idfpy-monitor).
 
 Регрессионный тест декодера сектора: извлекает из `Src/main.c` реальные `calc_sector()`,

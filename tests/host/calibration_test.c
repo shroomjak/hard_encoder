@@ -3,7 +3,9 @@
  * Запуск из корня: sh tests/host/run_calibration_test.sh
  * Требуются sh и компилятор cc с поддержкой C99; IAR и плата не нужны.
  *
- * Вызываем настоящие callback из modbus_registers.c. Переменные алгоритмов
+ * Вызываем настоящие callback из modbus_registers.c и encoder_calibration.c.
+ * Действия сверены с case 0x10..0x14 в spi_recv_process() коммита 4151ab14.
+ * Переменные алгоритмов
  * вместо main.c предоставляет calibration_stubs.c; алгоритмы не исполняются.
  * Проверяем запуск 0x11..0x14, требование первого прохода перед вторым,
  * отказ при занятости/неверной команде, остановку ВСЕХ автоматов по 0x10,
@@ -12,6 +14,7 @@
  * Зачем: обнаружить ошибки переноса команд Modbus в управляющие флаги до
  * работы с реальной EEPROM. Это НЕ проверка точности/сходимости калибровки,
  * фактической записи EEPROM или запрета broadcast (последнее — rtu_test.c).
+ * Переходы самих алгоритмов проверяет tests/calibration_state_test.py.
  * Успех — код 0 и сообщение Calibration registers: OK; ошибка — assert.
  */
 #include <assert.h>
@@ -25,6 +28,7 @@ extern int start_angk_cal, anglek_phase, offset_cur, offset_start, offset_end;
 extern int avg_minmax_num, old_sector;
 extern float offset_minmax[128], buf_x3[128];
 extern unsigned char encoder_state;
+extern uint32_t cycles_max;
 extern uint8_t backlight_width_en, i2c3_tx_wp;
 
 static eMBErrorCode command(uint16_t c)
@@ -51,16 +55,25 @@ int main(void)
     assert(reg(SNAP_ENCODER_STATE) == 0); /* LIVE does not mutate frozen. */
     assert(command(0x13) == MB_ETIMEDOUT);
     assert(command(0x14) == MB_ETIMEDOUT); /* No accidental restart. */
+    cycles_max = 12345;
     assert(command(0x10) == MB_ENOERR);
+    assert(cycles_max == 0);
     assert(!start_angk_cal && anglek_phase == 101 && backlight_width_en);
     assert(reg(ENCODER_CAL_STATE) == 0);
     offset_cur = 999;
     offset_minmax[10] = 12;
     assert(command(0x13) == MB_ENOERR);
     assert(start_offset_cal && offset_phase == 0 && offset_cur == 63);
-    assert(offset_minmax[10] == 0 && encoder_state == 0x50);
+    assert(encoder_state == 0x50);
+    for (unsigned i = 0; i < 128; ++i) assert(offset_minmax[i] == 1.0f);
     assert(command(0x10) == MB_ENOERR);
     assert(!start_offset_cal);
+    /* Original SPI case 0x13 respects the configured window. */
+    offset_start = 62; offset_end = 66;
+    assert(command(0x13) == MB_ENOERR);
+    assert(offset_cur == 62 && offset_start == 62 && offset_end == 66);
+    assert(command(0x10) == MB_ENOERR);
+    offset_start = 63; offset_end = 65;
     i2c3_tx_wp = 0;
     assert(reg(ENCODER_EEPROM_READY) == 0);
     assert(command(0x11) == MB_ETIMEDOUT);

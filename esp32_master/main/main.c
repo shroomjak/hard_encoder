@@ -5,7 +5,7 @@
  * и схема соединений приведены в docs/modbus_rtu.md.
  *
  * Режимы poll / calib выбираются через USB-консоль ESP-IDF.
- * Перед каждым запуском workflow выполняет поиск ID 1..247.
+ * Поиск ID 1..247 выполняется только по отдельной команде scan.
  * poll: broadcast SNAP -> STATUS всех выбранных -> READ только после всех ACK.
  * calib: адресные FC06 + LIVE FC04, подтверждения оператора между этапами.
  *
@@ -277,8 +277,8 @@ void app_main(void)
     const char *names[] = {"scan", "poll", "calib", "next", "stop"};
     const char *help[] = {
         "Scan all IDs 1..247 without writes",
-        "poll [id,id,...]: scan, then SNAP/STATUS/READ; omitted IDs = all found",
-        "calib [id,id,...]: scan, then sequential calibration (EEPROM writes!)",
+        "poll [id,id,...]: SNAP/STATUS/READ without scan; omitted IDs = cached scan",
+        "calib [id,id,...]: no scan; omitted IDs = cached scan (EEPROM writes!)",
         "Confirm the displayed calibration stage / next head; set rotation first",
         "Stop current mode; active calibration receives addressed 0x10"
     };
@@ -288,6 +288,6 @@ void app_main(void)
         };
         ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
     }
-    ESP_LOGI(TAG, "Ready: type poll [1,2] or calib [1,2]. Each mode scans IDs 1..247 first.");
+    ESP_LOGI(TAG, "Ready: poll 1,2 or calib 1,2 uses explicit IDs; scan manually to discover.");
     ESP_ERROR_CHECK(esp_console_start_repl(repl));
 }
