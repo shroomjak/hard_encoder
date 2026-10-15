@@ -163,6 +163,7 @@ def run(args: argparse.Namespace) -> None:
         rows_written += 1
         print(f"[OK] seq={agg.seq} status={status} angles={values}", flush=True)
 
+    ser.write("poll 1,2\r\n".encode("utf-8"))
     try:
         while not _stop[0]:
             raw = ser.readline()
@@ -172,7 +173,7 @@ def run(args: argparse.Namespace) -> None:
                 text = raw.decode("utf-8", errors="replace")
             except Exception:
                 continue
-
+            
             m_snap = _RE_SNAP.search(text)
             if m_snap:
                 if current is not None:
@@ -195,6 +196,7 @@ def run(args: argparse.Namespace) -> None:
                 seq = int(m_data.group(2))
                 angle = float(m_data.group(3))
                 current.add_data(hid, seq, angle)
+                print("[DATA]", hid, seq, angle, flush=True)
                 continue
 
         if current is not None:
