@@ -60,3 +60,6 @@ esp32_master/managed_components/
 esp32_master/sdkconfig
 esp32_master/sdkconfig.old
 esp32_master/dependencies.lock
+
+# EWARM build output
+EWARM/taos/
