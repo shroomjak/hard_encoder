@@ -1218,7 +1218,7 @@ float buf_k[128] ={
 /* Точка съёма угла на линейке (в пикселях, дробная). Значение по умолчанию 68
    перекрывается значением из EEPROM в init_vars(), если его CRC16 сошлась.
    Подбирается автоматически функцией offset_cal() (команда SPI 0x13).        */
-float  offset=64;
+float  offset=68;
 
 
 
@@ -1991,119 +1991,64 @@ void bit_err_corr(void) {
   * @retval none
   */
 /*-----------------------------------------------------------------------------------*/
-void err_corr(void) {
+static uint8_t sector_near(uint8_t a, int16_t b)
+{
+    int16_t d = (int16_t)a - b;
+    if (d < 0) d = (int16_t)-d;
+    if (d > (BIT_TAB_SIZE / 2)) d = (int16_t)(BIT_TAB_SIZE - d);
+    return (uint8_t)(d <= 1);
+}
 
-    /* Прогрев: первые 50 кадров принимаем на веру, но не сохраняем
-       недопустимый сектор 255 в доверенную историю. */
-    if (sec_cnt < 50) {
+static void accept_sector(void)
+{
+    save_sector();              /* cursec/lsec/rsec только из 0..143 */
+    errorflag = 0;              /* не полагаться на save_sector() */
+    bad_streak = 0;
+    reacq_streak = 0;
+    decoder_reacquire = 0;
+    last_good_sector = cursec;
+}
 
-        sec_cnt++;
+void err_corr(void)
+{
+    if (rem_sec == 255)
+        bit_err_corr();
 
-        if (rem_sec != 255) {
-            cursec = rem_sec;
-            if (rem_sec == 0) {
-                lsec = BIT_TAB_SIZE - 1;
-            } else {
-                lsec = rem_sec - 1;
-            }
-            if (rem_sec == BIT_TAB_SIZE - 1) {
-                rsec = 0;
-            } else {
-                rsec = rem_sec + 1;
-            }
-            errorflag = 0;
-            last_good_sector = cursec;
-        } else {
-            errorflag = 1;
-        }
-
-    } else if (decoder_reacquire) {
-
-        /* Повторный захват: не доверяем старому/неподтверждённому углу. */
-        errorflag = 1;
-
-        if (rem_sec == 255) {
-            bit_err_corr();
-        }
-
-        if (rem_sec != 255) {
-            if (reacq_streak == 0 || reacq_prev == rem_sec ||
-                reacq_prev == (int16_t)((rem_sec + 1) % BIT_TAB_SIZE) ||
-                reacq_prev == (int16_t)((rem_sec + BIT_TAB_SIZE - 1) % BIT_TAB_SIZE)) {
-                if (reacq_streak == 0) {
-                    reacq_streak = 1;
-                } else {
-                    reacq_streak++;
-                }
-                reacq_prev = rem_sec;
-            } else {
-                reacq_streak = 1;
-                reacq_prev = rem_sec;
-            }
-
-            if (reacq_streak >= REACQUIRE_CONFIRM) {
-                cursec = reacq_prev;
-                if (cursec == 0) {
-                    lsec = BIT_TAB_SIZE - 1;
-                } else {
-                    lsec = cursec - 1;
-                }
-                if (cursec == BIT_TAB_SIZE - 1) {
-                    rsec = 0;
-                } else {
-                    rsec = cursec + 1;
-                }
-                errorflag = 0;
-                decoder_reacquire = 0;
-                bad_streak = 0;
-                reacq_streak = 0;
-                reacq_prev = -1;
-                last_good_sector = cursec;
-            }
-        } else {
-            reacq_streak = 0;
-            reacq_prev = -1;
-        }
-
+    if (rem_sec != 255 && sec_cnt != 0 && sector_near(rem_sec, cursec)) {
+        accept_sector();
+    } else if (rem_sec != 255 && sec_cnt != 0 &&
+               sector_near(rem_sec, last_good_sector)) {
+        /* картинка вернулась к последнему достоверному сектору */
+        accept_sector();
+    } else if (rem_sec == 255) {
+        errorflag = 1;          /* серию кандидата не сбрасывать */
+        serrcnt1++;
     } else {
-
-        /* Нормальный режим: окно доверия {lsec, cursec, rsec}. */
-        if (rem_sec != 255 && (rem_sec == cursec || rem_sec == lsec || rem_sec == rsec)) {
-
-            save_sector();
-            bad_streak = 0;
-            last_good_sector = cursec;
-
-        } else {
-
-            serrcnt2++;
-            bit_err_corr();
-
-            if (rem_sec != 255 && (rem_sec == cursec || rem_sec == lsec || rem_sec == rsec)) {
-                save_sector();
-                bad_streak = 0;
-                last_good_sector = cursec;
-            } else {
-                serrcnt1++;
-                errorflag = 1;
-                /* Не сохраняем недопустимый/неподтверждённый сектор в историю. */
-                bad_streak++;
-                if (bad_streak >= REACQUIRE_BAD_STREAK) {
-                    decoder_reacquire = 1;
-                    reacq_streak = 0;
-                    reacq_prev = -1;
-                }
+        errorflag = 1;
+        serrcnt2++;
+        bit_err_corr();
+        if (rem_sec != 255 && sec_cnt != 0 &&
+            (sector_near(rem_sec, cursec) || sector_near(rem_sec, last_good_sector))) {
+            accept_sector();
+        } else if (rem_sec != 255 &&
+                   (reacq_streak == 0 || sector_near(rem_sec, reacq_prev))) {
+            reacq_streak++;
+            reacq_prev = (int16_t)rem_sec;
+            if (reacq_streak >= 2) {
+                accept_sector();
+                sec_cnt = 50;   /* захват состоялся, слепой прогрев больше не нужен */
             }
-
+        } else if (rem_sec != 255) {
+            reacq_streak = 1;
+            reacq_prev = (int16_t)rem_sec;
         }
-
     }
 
+    if (sec_cnt < 50) sec_cnt++;
     sector = cursec;
     lsector = lsec;
     rsector = rsec;
 }
-
 
 
 
