@@ -662,9 +662,25 @@ unsigned serrcnt2=0;
 unsigned serrcnt3=0;
 uint8_t errorflag;
 
+
+/* ---- Состояние повторного захвата сектора (reacquire) --------------------
+   Обычный режим: окно {lsec,cursec,rsec} и счётчик подряд идущих
+   неисправимых кадров. После REACQUIRE_BAD_STREAK подряд неисправимых кадров
+   декодер переходит в режим повторного захвата: новый сектор принимается
+   только после REACQUIRE_CONFIRM подряд согласованных кадров. До этого
+   errorflag=1 (ready=0). */
+#define REACQUIRE_BAD_STREAK   3
+#define REACQUIRE_CONFIRM      3
+
+uint8_t decoder_reacquire = 0;     /* 1 = режим повторного захвата */
+unsigned bad_streak = 0;           /* подряд неисправимых кадров (норм. режим) */
+unsigned reacq_streak = 0;         /* подряд согласованных кадров (reacquire) */
+int16_t reacq_prev = -1;           /* предыдущий кандидат в reacquire */
+int16_t last_good_sector = 0;      /* последний достоверно принятый сектор */
+
+
 int32_t badbit_pos;
 int32_t badbit_value;
-
 
 
 int16_t lsec=0;
@@ -1202,7 +1218,7 @@ float buf_k[128] ={
 /* Точка съёма угла на линейке (в пикселях, дробная). Значение по умолчанию 68
    перекрывается значением из EEPROM в init_vars(), если его CRC16 сошлась.
    Подбирается автоматически функцией offset_cal() (команда SPI 0x13).        */
-float  offset=68;
+float  offset=64;
 
 
 
@@ -1977,72 +1993,116 @@ void bit_err_corr(void) {
 /*-----------------------------------------------------------------------------------*/
 void err_corr(void) {
 
-        
-        if ( (sec_cnt<50) ) {                                                   //if less then 50 measurements
+    /* Прогрев: первые 50 кадров принимаем на веру, но не сохраняем
+       недопустимый сектор 255 в доверенную историю. */
+    if (sec_cnt < 50) {
 
-          sec_cnt++;
-          
-          cursec=rem_sec;                                                       //save current sector
-          if(rem_sec==0) {                                                      //find left sector
-            lsec=BIT_TAB_SIZE-1;
-          }
-          else {
-              lsec=rem_sec-1;
-          }
-          if(rem_sec==BIT_TAB_SIZE-1) {                                         //find right sector
-            rsec=0;
-          }
-          else {
-            rsec=rem_sec+1;
-          }  
-          errorflag=0;                                                          //clear error flag
+        sec_cnt++;
 
-      
+        if (rem_sec != 255) {
+            cursec = rem_sec;
+            if (rem_sec == 0) {
+                lsec = BIT_TAB_SIZE - 1;
+            } else {
+                lsec = rem_sec - 1;
+            }
+            if (rem_sec == BIT_TAB_SIZE - 1) {
+                rsec = 0;
+            } else {
+                rsec = rem_sec + 1;
+            }
+            errorflag = 0;
+            last_good_sector = cursec;
+        } else {
+            errorflag = 1;
         }
-        else {                                                                  //if more then 50 measurements
-     
-          if( (rem_sec==255) || ((rem_sec!=cursec)&&(rem_sec!=lsec)&&(rem_sec!=rsec)) ) { //if error found
 
-            serrcnt2++;                                                         //increment bit error counter
-            bit_err_corr();                                                     //bit error correction
+    } else if (decoder_reacquire) {
 
-            if( (rem_sec==255) || ((rem_sec!=cursec)&&(rem_sec!=lsec)&&(rem_sec!=rsec)) ) { //if error found
-              serrcnt1++;                                                       //increment unrecoverable error counter
-              errorflag=1;                                                      //set error flag
+        /* Повторный захват: не доверяем старому/неподтверждённому углу. */
+        errorflag = 1;
 
-              cursec=rem_sec;                                                   //save current sector
-              if(rem_sec==0) {                                                  //find left sector
-                lsec=BIT_TAB_SIZE-1;
-              }
-              else {
-                  lsec=rem_sec-1;
-              }
-              if(rem_sec==BIT_TAB_SIZE-1) {                                     //find right sector
-                rsec=0;
-              }
-              else {
-                rsec=rem_sec+1;
-              }
+        if (rem_sec == 255) {
+            bit_err_corr();
+        }
 
-            }
-            else {
-              save_sector();                                                    //save sector
+        if (rem_sec != 255) {
+            if (reacq_streak == 0 || reacq_prev == rem_sec ||
+                reacq_prev == (int16_t)((rem_sec + 1) % BIT_TAB_SIZE) ||
+                reacq_prev == (int16_t)((rem_sec + BIT_TAB_SIZE - 1) % BIT_TAB_SIZE)) {
+                if (reacq_streak == 0) {
+                    reacq_streak = 1;
+                } else {
+                    reacq_streak++;
+                }
+                reacq_prev = rem_sec;
+            } else {
+                reacq_streak = 1;
+                reacq_prev = rem_sec;
             }
 
-          }
-          else {                                                                //if no errors
-            save_sector();                                                      //save sector
-          }
+            if (reacq_streak >= REACQUIRE_CONFIRM) {
+                cursec = reacq_prev;
+                if (cursec == 0) {
+                    lsec = BIT_TAB_SIZE - 1;
+                } else {
+                    lsec = cursec - 1;
+                }
+                if (cursec == BIT_TAB_SIZE - 1) {
+                    rsec = 0;
+                } else {
+                    rsec = cursec + 1;
+                }
+                errorflag = 0;
+                decoder_reacquire = 0;
+                bad_streak = 0;
+                reacq_streak = 0;
+                reacq_prev = -1;
+                last_good_sector = cursec;
+            }
+        } else {
+            reacq_streak = 0;
+            reacq_prev = -1;
+        }
 
-         }
-        
-        sector=cursec;
-        lsector=lsec;
-        rsector=rsec;
-        
-        
+    } else {
+
+        /* Нормальный режим: окно доверия {lsec, cursec, rsec}. */
+        if (rem_sec != 255 && (rem_sec == cursec || rem_sec == lsec || rem_sec == rsec)) {
+
+            save_sector();
+            bad_streak = 0;
+            last_good_sector = cursec;
+
+        } else {
+
+            serrcnt2++;
+            bit_err_corr();
+
+            if (rem_sec != 255 && (rem_sec == cursec || rem_sec == lsec || rem_sec == rsec)) {
+                save_sector();
+                bad_streak = 0;
+                last_good_sector = cursec;
+            } else {
+                serrcnt1++;
+                errorflag = 1;
+                /* Не сохраняем недопустимый/неподтверждённый сектор в историю. */
+                bad_streak++;
+                if (bad_streak >= REACQUIRE_BAD_STREAK) {
+                    decoder_reacquire = 1;
+                    reacq_streak = 0;
+                    reacq_prev = -1;
+                }
+            }
+
+        }
+
+    }
+
+    sector = cursec;
+    lsector = lsec;
+    rsector = rsec;
 }
-
 
 
 
@@ -2217,7 +2277,7 @@ float BR4_C (float *mas, int centor_int)
   
 //  if(delta>=1 && delta<200) ampl=delta_cor[delta];
 //  else ampl=0.;
-  if(delta>=1 && delta<200) ampl=k_comp*arm_sin_f32((delta-100)*M_PI/50.+phase);
+  if(delta>=1 && delta<200) ampl=k_comp*arm_sin_f32((delta-100)*M_PI/50.f+phase);
   else ampl=0;
   
   //ampl=0;
@@ -2289,7 +2349,7 @@ void find_avg() {
     avg_buf[0]=cur_ang_X;
 
     
-    if ((cur_ang_X>0.5)&&(cur_ang_X<359.5)) {
+    if ((cur_ang_X>0.5f)&&(cur_ang_X<359.5f)) {
     
       rev_en=1;
       
@@ -2306,7 +2366,7 @@ void find_avg() {
           cur_min=avg_cur;
         }
         
-        if ( (cur_max<avg_cur)&&(avg_cur<0.1)) {
+        if ( (cur_max<avg_cur)&&(avg_cur<0.1f)) {
           cur_max=avg_cur;
         }
         
@@ -2315,7 +2375,7 @@ void find_avg() {
     
     
     }
-    else if ((avg_buf[0]<0.5)&&(avg_buf[29]>359.5)&&(rev_en==1) ) {
+    else if ((avg_buf[0]<0.5f)&&(avg_buf[29]>359.5f)&&(rev_en==1) ) {
       
       rev_en=0;
       
@@ -2358,7 +2418,7 @@ void find_avg() {
     }
     
 
-    else if ((avg_buf[29]<0.5)&&(avg_buf[0]>359.5)&&(rev_en==1) ) {
+    else if ((avg_buf[29]<0.5f)&&(avg_buf[0]>359.5f)&&(rev_en==1) ) {
       
       rev_en=0;
       
@@ -2437,8 +2497,8 @@ void find_avg() {
  *   аварийная остановка: start_calibrate=0, auto_cal=0, encoder_state=0x00.
   *
   * УСЛОВИЕ ВЗЯТИЯ ОТСЧЁТА (ключевая строка if ниже):
-  *     (cur_sector != old_sector) И ( s_l1 в [offset-25, offset-24]
-  *                                 ИЛИ s_l2 в [offset+24, offset+25] )
+  *     (cur_sector != old_sector) И ( s_l1 в [offset-26, offset-25]
+  *                                 ИЛИ s_l2 в [offset+25, offset+26] )
   * То есть отсчёт берётся не в произвольный момент, а когда сектор стоит
   * СИММЕТРИЧНО относительно точки съёма (половина сектора = 51/2 = 25.5 пикс).
   * Это убирает зависимость измеренной ширины от положения сектора в поле зрения
@@ -2505,7 +2565,7 @@ void angtab_cal(){
        полусекторе (51/2 = 25.5 пикс) от точки съёма offset - то есть сектор
        расположен симметрично в поле зрения. Всегда одинаковая геометрия
        измерения => систематика оптики не попадает в результат.               */
-    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-25) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+25)))) )  ) {
+    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-26) )&&(s_l1<=(offset-25)))||(((s_l2>=(offset+25))&&(s_l2<=(offset+26)))) )  ) {
 
       old_sector=rsector;                                                       //защёлка направления обхода (проход 1)
       cal_sector=cur_sector;
@@ -2569,7 +2629,7 @@ void angtab_cal(){
 
   else if (auto_cal==2) {
 
-    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-25) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+25)))) )  ) {
+    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-26) )&&(s_l1<=(offset-25)))||(((s_l2>=(offset+25))&&(s_l2<=(offset+26)))) )  ) {
 
       old_sector=lsector;  
       cal_sector=cur_sector;
@@ -2678,7 +2738,7 @@ void angtab_cal(){
   *   1   - дождаться avg_minmax_num > 3, записать min_max в offset_minmax[],
   *         сдвинуться к следующему значению до offset_end; затем найти минимум
   *         в окне [offset_start, offset_end] = [63, 65];
-  *         если минимум на ЛЕВОМ краю (<64) - расширять окно влево (фазы 2/3)
+  *         если минимум на ЛЕВОМ краю (< 64) - расширять окно влево (фазы 2/3)
   *         до offset_start-offset_snum = 56;
   *         если на ПРАВОМ (>64) - вправо (фазы 4/5) до offset_end+offset_snum = 72;
   *         если ровно 64 - сразу на фазу 100;
@@ -3111,7 +3171,7 @@ void angk_cal() {
 
       anglek_data[anglek_start]=buf_k[buf_k_num];
       for (int i=anglek_start+1;i<anglek_end+1;i++) {
-        anglek_data[i]=anglek_data[i-1]*1.04;
+        anglek_data[i]=anglek_data[i-1]*1.04f;
       }
 
       buf_k[buf_k_num]=anglek_data[anglek_cur];
@@ -3183,7 +3243,7 @@ void angk_cal() {
 
       anglek_data[anglek_start]=buf_k[buf_k_num];
       for (int i=anglek_start+1;i<anglek_end+1;i++) {
-        anglek_data[i]=anglek_data[i-1]*1.04;
+        anglek_data[i]=anglek_data[i-1]*1.04f;
       }
 
       buf_k[buf_k_num]=anglek_data[anglek_cur];
@@ -3258,7 +3318,7 @@ void angk_cal() {
 
       anglek_data[anglek_start]=buf_k[buf_k_num];
       for (int i=anglek_start+1;i<anglek_end+1;i++) {
-        anglek_data[i]=anglek_data[i-1]*1.04;
+        anglek_data[i]=anglek_data[i-1]*1.04f;
       }
 
       buf_k[buf_k_num]=anglek_data[anglek_cur];
@@ -3579,9 +3639,9 @@ void init_vars() {
 
 
   //compensation BR4
-  phase=0;
+  phase=0.0f;
   for (unsigned char j=0;j<200;j++) {
-   delta_cor[j]=0.01*sin((j-100)*3.1415926/50.+phase);
+   delta_cor[j]=0.01f*sin((j-100)*3.1415926f/50.f+phase);
   }
 
 

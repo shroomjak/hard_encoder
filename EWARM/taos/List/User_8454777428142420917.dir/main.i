@@ -54775,9 +54775,23 @@ unsigned serrcnt2=0;
 unsigned serrcnt3=0;
 uint8_t errorflag;
 
+
+
+
+
+
+
+ 
+
+uint8_t decoder_reacquire = 0;      
+unsigned bad_streak = 0;            
+unsigned reacq_streak = 0;          
+int16_t reacq_prev = -1;            
+int16_t last_good_sector = 0;       
+
+
 int32_t badbit_pos;
 int32_t badbit_value;
-
 
 
 int16_t lsec=0;
@@ -55315,7 +55329,7 @@ float buf_k[128] ={
 
 
  
-float  offset=68;
+float  offset=64;
 
 
 
@@ -56090,72 +56104,116 @@ void bit_err_corr(void) {
  
 void err_corr(void) {
 
-        
-        if ( (sec_cnt<50) ) {                                                   
+    
+ 
+    if (sec_cnt < 50) {
 
-          sec_cnt++;
-          
-          cursec=rem_sec;                                                       
-          if(rem_sec==0) {                                                      
-            lsec=144-1;
-          }
-          else {
-              lsec=rem_sec-1;
-          }
-          if(rem_sec==144-1) {                                         
-            rsec=0;
-          }
-          else {
-            rsec=rem_sec+1;
-          }  
-          errorflag=0;                                                          
+        sec_cnt++;
 
-      
+        if (rem_sec != 255) {
+            cursec = rem_sec;
+            if (rem_sec == 0) {
+                lsec = 144 - 1;
+            } else {
+                lsec = rem_sec - 1;
+            }
+            if (rem_sec == 144 - 1) {
+                rsec = 0;
+            } else {
+                rsec = rem_sec + 1;
+            }
+            errorflag = 0;
+            last_good_sector = cursec;
+        } else {
+            errorflag = 1;
         }
-        else {                                                                  
-     
-          if( (rem_sec==255) || ((rem_sec!=cursec)&&(rem_sec!=lsec)&&(rem_sec!=rsec)) ) { 
 
-            serrcnt2++;                                                         
-            bit_err_corr();                                                     
+    } else if (decoder_reacquire) {
 
-            if( (rem_sec==255) || ((rem_sec!=cursec)&&(rem_sec!=lsec)&&(rem_sec!=rsec)) ) { 
-              serrcnt1++;                                                       
-              errorflag=1;                                                      
+         
+        errorflag = 1;
 
-              cursec=rem_sec;                                                   
-              if(rem_sec==0) {                                                  
-                lsec=144-1;
-              }
-              else {
-                  lsec=rem_sec-1;
-              }
-              if(rem_sec==144-1) {                                     
-                rsec=0;
-              }
-              else {
-                rsec=rem_sec+1;
-              }
+        if (rem_sec == 255) {
+            bit_err_corr();
+        }
 
-            }
-            else {
-              save_sector();                                                    
+        if (rem_sec != 255) {
+            if (reacq_streak == 0 || reacq_prev == rem_sec ||
+                reacq_prev == (int16_t)((rem_sec + 1) % 144) ||
+                reacq_prev == (int16_t)((rem_sec + 144 - 1) % 144)) {
+                if (reacq_streak == 0) {
+                    reacq_streak = 1;
+                } else {
+                    reacq_streak++;
+                }
+                reacq_prev = rem_sec;
+            } else {
+                reacq_streak = 1;
+                reacq_prev = rem_sec;
             }
 
-          }
-          else {                                                                
-            save_sector();                                                      
-          }
+            if (reacq_streak >= 3) {
+                cursec = reacq_prev;
+                if (cursec == 0) {
+                    lsec = 144 - 1;
+                } else {
+                    lsec = cursec - 1;
+                }
+                if (cursec == 144 - 1) {
+                    rsec = 0;
+                } else {
+                    rsec = cursec + 1;
+                }
+                errorflag = 0;
+                decoder_reacquire = 0;
+                bad_streak = 0;
+                reacq_streak = 0;
+                reacq_prev = -1;
+                last_good_sector = cursec;
+            }
+        } else {
+            reacq_streak = 0;
+            reacq_prev = -1;
+        }
 
-         }
-        
-        sector=cursec;
-        lsector=lsec;
-        rsector=rsec;
-        
-        
+    } else {
+
+         
+        if (rem_sec != 255 && (rem_sec == cursec || rem_sec == lsec || rem_sec == rsec)) {
+
+            save_sector();
+            bad_streak = 0;
+            last_good_sector = cursec;
+
+        } else {
+
+            serrcnt2++;
+            bit_err_corr();
+
+            if (rem_sec != 255 && (rem_sec == cursec || rem_sec == lsec || rem_sec == rsec)) {
+                save_sector();
+                bad_streak = 0;
+                last_good_sector = cursec;
+            } else {
+                serrcnt1++;
+                errorflag = 1;
+                 
+                bad_streak++;
+                if (bad_streak >= 3) {
+                    decoder_reacquire = 1;
+                    reacq_streak = 0;
+                    reacq_prev = -1;
+                }
+            }
+
+        }
+
+    }
+
+    sector = cursec;
+    lsector = lsec;
+    rsector = rsec;
 }
-
 
 
 
@@ -56330,7 +56388,7 @@ float BR4_C (float *mas, int centor_int)
   
 
 
-  if(delta>=1 && delta<200) ampl=k_comp*arm_sin_f32((delta-100)*((float)3.141592653589793)/50.+phase);
+  if(delta>=1 && delta<200) ampl=k_comp*arm_sin_f32((delta-100)*((float)3.141592653589793)/50.f+phase);
   else ampl=0;
   
   
@@ -56402,7 +56460,7 @@ void find_avg() {
     avg_buf[0]=cur_ang_X;
 
     
-    if ((cur_ang_X>0.5)&&(cur_ang_X<359.5)) {
+    if ((cur_ang_X>0.5f)&&(cur_ang_X<359.5f)) {
     
       rev_en=1;
       
@@ -56419,7 +56477,7 @@ void find_avg() {
           cur_min=avg_cur;
         }
         
-        if ( (cur_max<avg_cur)&&(avg_cur<0.1)) {
+        if ( (cur_max<avg_cur)&&(avg_cur<0.1f)) {
           cur_max=avg_cur;
         }
         
@@ -56428,7 +56486,7 @@ void find_avg() {
     
     
     }
-    else if ((avg_buf[0]<0.5)&&(avg_buf[29]>359.5)&&(rev_en==1) ) {
+    else if ((avg_buf[0]<0.5f)&&(avg_buf[29]>359.5f)&&(rev_en==1) ) {
       
       rev_en=0;
       
@@ -56471,7 +56529,7 @@ void find_avg() {
     }
     
 
-    else if ((avg_buf[29]<0.5)&&(avg_buf[0]>359.5)&&(rev_en==1) ) {
+    else if ((avg_buf[29]<0.5f)&&(avg_buf[0]>359.5f)&&(rev_en==1) ) {
       
       rev_en=0;
       
@@ -56618,7 +56676,7 @@ void angtab_cal(){
 
 
  
-    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-25) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+25)))) )  ) {
+    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-26) )&&(s_l1<=(offset-25)))||(((s_l2>=(offset+25))&&(s_l2<=(offset+26)))) )  ) {
 
       old_sector=rsector;                                                       
       cal_sector=cur_sector;
@@ -56682,7 +56740,7 @@ void angtab_cal(){
 
   else if (auto_cal==2) {
 
-    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-25) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+25)))) )  ) {
+    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-26) )&&(s_l1<=(offset-25)))||(((s_l2>=(offset+25))&&(s_l2<=(offset+26)))) )  ) {
 
       old_sector=lsector;  
       cal_sector=cur_sector;
@@ -57224,7 +57282,7 @@ void angk_cal() {
 
       anglek_data[anglek_start]=buf_k[buf_k_num];
       for (int i=anglek_start+1;i<anglek_end+1;i++) {
-        anglek_data[i]=anglek_data[i-1]*1.04;
+        anglek_data[i]=anglek_data[i-1]*1.04f;
       }
 
       buf_k[buf_k_num]=anglek_data[anglek_cur];
@@ -57296,7 +57354,7 @@ void angk_cal() {
 
       anglek_data[anglek_start]=buf_k[buf_k_num];
       for (int i=anglek_start+1;i<anglek_end+1;i++) {
-        anglek_data[i]=anglek_data[i-1]*1.04;
+        anglek_data[i]=anglek_data[i-1]*1.04f;
       }
 
       buf_k[buf_k_num]=anglek_data[anglek_cur];
@@ -57371,7 +57429,7 @@ void angk_cal() {
 
       anglek_data[anglek_start]=buf_k[buf_k_num];
       for (int i=anglek_start+1;i<anglek_end+1;i++) {
-        anglek_data[i]=anglek_data[i-1]*1.04;
+        anglek_data[i]=anglek_data[i-1]*1.04f;
       }
 
       buf_k[buf_k_num]=anglek_data[anglek_cur];
@@ -57692,9 +57750,9 @@ void init_vars() {
 
 
   
-  phase=0;
+  phase=0.0f;
   for (unsigned char j=0;j<200;j++) {
-   delta_cor[j]=0.01*sin((j-100)*3.1415926/50.+phase);
+   delta_cor[j]=0.01f*sin((j-100)*3.1415926f/50.f+phase);
   }
 
 
