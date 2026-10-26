@@ -1,6 +1,14 @@
-# Использовать Modbus RTU и выдерживать паузу после вещательного SNAP.
+# Используем Modbus RTU.
 CONFIG_FMB_COMM_MODE_RTU_EN=y
-# Время ожидания адресного ответа (мс) и пауза после вещания (мс).
-CONFIG_FMB_MASTER_TIMEOUT_MS_RESPOND=400
-CONFIG_FMB_MASTER_DELAY_MS_CONVERT=150
 
+# Максимальное ожидание адресного ответа.
+CONFIG_FMB_MASTER_TIMEOUT_MS_RESPOND=30
+
+# Пауза после broadcast SNAP перед следующим запросом.
+CONFIG_FMB_MASTER_DELAY_MS_CONVERT=3
+
+# Частота системного тика FreeRTOS.
+CONFIG_FREERTOS_HZ=1000
+
+# Пока сохраняем защитную паузу после тайм-аута.
+CONFIG_FMB_MASTER_TIMEOUT_COOLDOWN_MS=150

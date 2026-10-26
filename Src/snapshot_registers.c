@@ -21,11 +21,13 @@
  * valid не передаётся напрямую: он преобразуется в frozen_ready.
  * error/encoder_state сохраняются даже у неудачного кадра для диагностики. */
 typedef struct {
-    uint32_t angle_udeg, sample, tick_ms;
+    float angle_deg;
+    uint32_t sample, tick_ms;
     uint16_t sector;
     uint8_t error, encoder_state, valid;
 } frame_t;
 static frame_t latest, frozen;
+static uint32_t frozen_angle_udeg;
 static uint16_t frozen_seq;
 static uint8_t frozen_ready;
 
@@ -43,11 +45,7 @@ void snapshot_publish(float angle_deg, uint16_t sector, uint8_t error,
 {
     latest.valid = !error && sector < 144 &&
                    (angle_deg >= 0.0f) && (angle_deg < 360.0f);
-    /* Умножаем в double: float на больших углах теряет единицы
-     * микроградусов уже при масштабировании. Точность исходного angle_deg
-     * остаётся float; формат передачи сам по себе её не увеличивает. */
-    if (latest.valid)
-        latest.angle_udeg = (uint32_t)((double)angle_deg * 1000000.0 + 0.5);
+    latest.angle_deg = angle_deg;
     latest.sector = sector;
     latest.error = error;
     latest.encoder_state = encoder_state;
@@ -65,10 +63,21 @@ void snapshot_publish(float angle_deg, uint16_t sector, uint8_t error,
  */
 void snapshot_latch(uint16_t seq)
 {
-    if (frozen_ready && frozen_seq == seq) return;
+    if (frozen_ready && frozen_seq == seq)
+        return;
+
     memcpy(&frozen, &latest, sizeof frozen);
+
     frozen_seq = seq;
     frozen_ready = frozen.valid && frozen.sample != 0;
+
+    if (frozen_ready) {
+        /*
+         * Перевод выполняется один раз на новый валидный SNAP.
+         */
+        frozen_angle_udeg =
+            (uint32_t)((float)frozen.angle_deg * 1000000.0f);
+    }
 }
 
 /*
@@ -82,8 +91,8 @@ uint16_t snapshot_register(uint16_t address)
     switch (address) {
     case SNAP_SEQ: return frozen_seq;               /* номер SNAP */
     case SNAP_READY: return frozen_ready;           /* можно ли принимать ACK */
-    case SNAP_ANGLE_HI: return (uint16_t)(frozen.angle_udeg >> 16);
-    case SNAP_ANGLE_LO: return (uint16_t)frozen.angle_udeg;
+    case SNAP_ANGLE_HI: return (uint16_t)(frozen_angle_udeg >> 16);
+    case SNAP_ANGLE_LO: return (uint16_t)frozen_angle_udeg;
     case SNAP_SECTOR: return frozen.sector;
     case SNAP_ERROR: return frozen.error;
     case SNAP_ENCODER_STATE: return frozen.encoder_state;

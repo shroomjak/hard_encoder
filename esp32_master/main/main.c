@@ -40,9 +40,31 @@
 
 /* У каждого slave свой MB_SLAVE_ADDRESS. Список выбирается в консоли. */
 #define REG_COUNT 11       /* полная карта входных регистров 0..10 */
-#define STATUS_COUNT 2     /* только seq и ready */
 static const char *TAG = "encoder";
 static void *master;
+
+
+#define MB_INTERFRAME_GAP_US 1800U
+
+static esp_timer_handle_t bus_gap_timer;
+static TaskHandle_t bus_gap_waiter;
+
+static void bus_gap_expired(void *arg)
+{
+    (void)arg;
+    xTaskNotifyGive(bus_gap_waiter);
+}
+
+static void bus_gap_wait(void)
+{
+    bus_gap_waiter = xTaskGetCurrentTaskHandle();
+
+    ESP_ERROR_CHECK(
+        esp_timer_start_once(bus_gap_timer, MB_INTERFRAME_GAP_US)
+    );
+
+    (void)ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+}
 
 /* В версии 2.1.4 библиотека требует хотя бы один дескриптор перед start(),
  * даже если все запросы отправляются напрямую через send_request(). Этот
@@ -61,69 +83,23 @@ static esp_err_t request(uint8_t id, uint8_t function, uint16_t first,
                          uint16_t count, uint16_t *words)
 {
     mb_param_request_t req = {
-        .slave_addr = id, .command = function,
-        .reg_start = first, .reg_size = count
+        .slave_addr = id,
+        .command = function,
+        .reg_start = first,
+        .reg_size = count
     };
+
     esp_err_t err = mbc_master_send_request(master, &req, words);
 
-    /* Запас по времени на шине */
-    vTaskDelay(pdMS_TO_TICKS(20));
+    /*
+     * Для broadcast задержку обработки выдерживает сам ESP-Modbus.
+     * Для успешного адресного запроса сохраняем межкадровый интервал.
+     * Обработку тайм-аутов и восстановления транспорта оставляем стеку.
+     */
+    if (id != 0 && err == ESP_OK)
+        bus_gap_wait();
 
     return err;
-}
-
-/* Диагностика головки, которая получила SNAP, но вернула ready=0.
- * Читаем все поля зафиксированного кадра, чтобы увидеть причину:
- *   sample=0          — ещё не обработан ни один кадр АЦП;
- *   error!=0          — декодирование кадра не удалось;
- *   sector>=144       — недопустимый сектор;
- *   иначе             — угол вне [0,360) или NaN.
- * Угол при ready=0 не выводим: при невалидном кадре он не обновляется. */
-static void log_not_ready(uint8_t id, uint16_t seq)
-{
-    uint16_t r[REG_COUNT] = {0};
-    esp_err_t err = request(id, 0x04, 0, REG_COUNT, r);
-    if (err != ESP_OK) {
-        ESP_LOGW(TAG, "DIAG id=%u seq=%u: read failed: %s",
-                 (unsigned)id, (unsigned)seq, esp_err_to_name(err));
-        return;
-    }
-    if (r[0] != seq || r[1] != 0) {
-        ESP_LOGW(TAG, "DIAG id=%u: snapshot changed (expected=%u got=%u ready=%u)",
-                 (unsigned)id, (unsigned)seq, (unsigned)r[0], (unsigned)r[1]);
-        return;
-    }
-    uint32_t sample = ((uint32_t)r[7] << 16) | r[8];
-    uint32_t time_ms = ((uint32_t)r[9] << 16) | r[10];
-    const char *reason = sample == 0 ? "no frame processed yet"
-                       : r[5] != 0   ? "decode error (errorflag)"
-                       : r[4] >= 144 ? "invalid sector"
-                                     : "angle outside [0,360) or NaN";
-    ESP_LOGW(TAG, "DIAG id=%u seq=%u sector=%u error=%u encoder_state=0x%02x "
-             "sample=%lu tick_ms=%lu -> %s",
-             (unsigned)id, (unsigned)seq, (unsigned)r[4], (unsigned)r[5],
-             (unsigned)r[6], (unsigned long)sample, (unsigned long)time_ms, reason);
-}
-
-
-/* STATUS адресной головки: FC04 читает регистры 0 и 1. ACK означает
- * одновременно совпадение seq и ready=1; один только успешный ответ Modbus
- * НЕ подтверждает, что эта головка сохранила нужный кадр. При тайм-ауте,
- * старом seq или невалидном кадре возвращаем false, пояснение пишем в лог. */
-static bool status_ack(uint8_t id, uint16_t seq)
-{
-    uint16_t status[STATUS_COUNT] = {0};
-    esp_err_t err = request(id, 0x04, 0, STATUS_COUNT, status);
-    if (err != ESP_OK || status[0] != seq || status[1] != 1) {
-        ESP_LOGW(TAG, "STATUS id=%u seq=%u error=%s got=%u ready=%u",
-                 (unsigned)id, (unsigned)seq, esp_err_to_name(err),
-                 (unsigned)status[0], (unsigned)status[1]);
-        if (err == ESP_OK && status[0] == seq && status[1] != 1)
-            log_not_ready(id, seq);
-        return false;
-    }
-    ESP_LOGI(TAG, "ACK id=%u seq=%u", (unsigned)id, (unsigned)seq);
-    return true;
 }
 
 /* Полный цикл опроса одного номера кадра.
@@ -132,52 +108,122 @@ static bool status_ack(uint8_t id, uint16_t seq)
  * задержку обработки (150 мс), прежде чем принимать следующий запрос.
  * Даже при ошибке одной головки спрашиваем STATUS оставшихся для диагностики,
  * но НЕ выдаём READ ни одной из них до полного набора подтверждений. */
-static void poll_heads(const uint8_t *head_ids, size_t head_count, uint16_t seq)
+static void poll_heads(const uint8_t *head_ids,
+                       size_t head_count, uint16_t seq)
 {
+    /*
+     * Рабочий буфер принадлежит только worker.
+     * Потребителю передаём данные лишь после проверки всей группы.
+     */
+    static uint16_t frame[ENCODER_MAX_ID][REG_COUNT];
+
+    static uint32_t cycles;
+    static uint32_t complete_cycles;
+    static uint32_t transport_errors;
+    static uint32_t invalid_frames;
+    static int64_t last_report_us;
+
+    const int64_t started_us = esp_timer_get_time();
+    bool complete = true;
     uint16_t command = seq;
+
+    if (head_count == 0 || head_count > ENCODER_MAX_ID)
+        return;
+
+    ++cycles;
+
     esp_err_t err = request(0, 0x06, 0, 1, &command);
+
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "SNAP seq=%u: broadcast failed: %s", (unsigned)seq, esp_err_to_name(err));
-        return;
-    }
-    ESP_LOGI(TAG, "SNAP seq=%u", (unsigned)seq);
-    bool all_ack = true;
-    for (unsigned i = 0; i < head_count; ++i) {
-        /* При сбое STATUS одна повторная попытка; повтор не делает SNAP. */
-        if (!status_ack(head_ids[i], seq) && !status_ack(head_ids[i], seq))
-            all_ack = false;
-    }
-    if (!all_ack) {
-        ESP_LOGW(TAG, "seq=%u: not all ACK; skip all READ", (unsigned)seq);
-        return;
+        ++transport_errors;
+        complete = false;
+    } else {
+        /*
+         * Дополнительной прикладной задержки здесь нет:
+         * conversion delay после SNAP уже выдерживает ESP-Modbus.
+         */
+        for (size_t i = 0; i < head_count; ++i) {
+            uint16_t *r = frame[i];
+
+            memset(r, 0, REG_COUNT * sizeof r[0]);
+
+            err = request(head_ids[i], 0x04, 0, REG_COUNT, r);
+
+            if (err != ESP_OK) {
+                ++transport_errors;
+                complete = false;
+                continue;
+            }
+
+            const uint32_t angle_udeg =
+                ((uint32_t)r[2] << 16) | r[3];
+
+            if (r[0] != seq ||
+                r[1] != 1 ||
+                r[4] >= 144 ||
+                r[5] != 0 ||
+                angle_udeg >= 360000000U) {
+                ++invalid_frames;
+                complete = false;
+            }
+        }
     }
 
-    /* READ обращается только к уже зафиксированному frozen-кадру.
-     * Повторно проверяем seq/ready, поскольку между STATUS и READ могли
-     * произойти ошибка обмена или изменение состояния у slave. */
-    for (unsigned i = 0; i < head_count; ++i) {
-        uint16_t r[REG_COUNT] = {0};
-        err = request(head_ids[i], 0x04, 0, REG_COUNT, r);
-        if (err != ESP_OK || r[0] != seq || r[1] != 1 || r[4] >= 144) {
-            ESP_LOGE(TAG, "READ id=%u seq=%u failed: %s (got=%u ready=%u)",
-                     (unsigned)head_ids[i], (unsigned)seq, esp_err_to_name(err),
-                     (unsigned)r[0], (unsigned)r[1]);
-            continue;
+    if (complete) {
+        ++complete_cycles;
+
+        /*
+         * ТОЧКА ПЕРЕДАЧИ ДАННЫХ ПРИЛОЖЕНИЮ.
+         *
+         * Здесь frame[0..head_count-1] — полный проверенный набор seq.
+         * Для отдельной задачи-потребителя копировать набор в очередь
+         * или использовать собственный double buffer.
+         *
+         * Нельзя передавать указатель на frame и продолжать перезаписывать
+         * этот буфер, пока другая задача его читает.
+         */
+    }
+
+    /*
+     * Не печатаем каждую транзакцию.
+     * Это диагностический вывод примерно раз в секунду.
+     */
+    const int64_t finished_us = esp_timer_get_time();
+
+    if (finished_us - last_report_us >= 1000000) {
+        last_report_us = finished_us;
+
+        ESP_LOGI(TAG,
+                 "POLL cycles=%lu complete=%lu transport_err=%lu "
+                 "invalid=%lu last_cycle_us=%lld",
+                 (unsigned long)cycles,
+                 (unsigned long)complete_cycles,
+                 (unsigned long)transport_errors,
+                 (unsigned long)invalid_frames,
+                 (long long)(finished_us - started_us));
+
+        if (complete) {
+            for (size_t i = 0; i < head_count; ++i) {
+                const uint16_t *r = frame[i];
+
+                const uint32_t angle_udeg =
+                    ((uint32_t)r[2] << 16) | r[3];
+                const uint32_t sample =
+                    ((uint32_t)r[7] << 16) | r[8];
+
+                ESP_LOGI(TAG,
+                         "DATA id=%u seq=%u angle=%u.%06u "
+                         "sample=%lu",
+                         (unsigned)head_ids[i],
+                         (unsigned)seq,
+                         (unsigned)(angle_udeg / 1000000U),
+                         (unsigned)(angle_udeg % 1000000U),
+                         (unsigned long)sample);
+            }
         }
-        /* Пары 16-битных регистров передаются старшим словом первым.
-         * Угол — uint32 микроградусов, sample и time_ms — uint32.
-         * tick_ms каждой головки считается от ЕЁ перезагрузки; он не
-         * синхронизирован со временем другой головки или ESP32. */
-        uint32_t udeg = ((uint32_t)r[2] << 16) | r[3];
-        uint32_t sample = ((uint32_t)r[7] << 16) | r[8];
-        uint32_t time_ms = ((uint32_t)r[9] << 16) | r[10];
-        ESP_LOGI(TAG, "DATA id=%u seq=%u angle=%u.%06u deg sector=%u "
-                 "error=%u encoder_state=0x%02x sample=%lu tick_ms=%lu",
-                 (unsigned)head_ids[i], (unsigned)seq, (unsigned)(udeg / 1000000U),
-                 (unsigned)(udeg % 1000000U), (unsigned)r[4], (unsigned)r[5],
-                 (unsigned)r[6], (unsigned long)sample, (unsigned long)time_ms);
     }
 }
+
 
 /* Консоль не обращается к Modbus: команды передаются единственной задаче
  * через очередь. Поэтому stop/next можно вводить во время обмена. */
@@ -230,8 +276,12 @@ static void worker(void *arg)
     for (;;) {
         /* Очередь проверяется между запросами поиска / этапами калибровки /
          * полными циклами poll. stop не прерывает Modbus-транзакцию. */
-        if (xQueueReceive(commands, &command, pdMS_TO_TICKS(100)) == pdTRUE)
-            workflow_command(&workflow, &command);
+        TickType_t wait_ticks =
+            workflow.state == WF_POLL ? 0 : pdMS_TO_TICKS(100);
+
+        if (xQueueReceive(commands, &command, wait_ticks) == pdTRUE)
+             workflow_command(&workflow, &command);
+             
         workflow_tick(&workflow);
     }
 }
@@ -260,6 +310,18 @@ void app_main(void)
     /* Сначала запускаем транспорт и задачу, затем консоль. Автомат остаётся
      * в IDLE: до команды оператора никакие головки не опрашиваются. */
     commands = xQueueCreate(4, sizeof(command_t));
+
+    const esp_timer_create_args_t gap_timer_config = {
+        .callback = bus_gap_expired,
+        .arg = NULL,
+        .dispatch_method = ESP_TIMER_TASK,
+        .name = "encoder_gap"
+    };
+
+    ESP_ERROR_CHECK(
+        esp_timer_create(&gap_timer_config, &bus_gap_timer)
+    );
+
     ESP_ERROR_CHECK(commands ? ESP_OK : ESP_ERR_NO_MEM);
     workflow_init(&workflow, (workflow_io_t){workflow_request, poll_heads, workflow_log, now_ms});
     if (xTaskCreate(worker, "encoder_bus", 6144, NULL, 5, NULL) != pdPASS)
@@ -277,7 +339,7 @@ void app_main(void)
     const char *names[] = {"scan", "poll", "calib", "next", "stop"};
     const char *help[] = {
         "Scan all IDs 1..247 without writes",
-        "poll [id,id,...]: SNAP/STATUS/READ without scan; omitted IDs = cached scan",
+        "poll [id,id,...]: SNAP/READ without scan; omitted IDs = cached scan",
         "calib [id,id,...]: no scan; omitted IDs = cached scan (EEPROM writes!)",
         "Confirm the displayed calibration stage / next head; set rotation first",
         "Stop current mode; active calibration receives addressed 0x10"

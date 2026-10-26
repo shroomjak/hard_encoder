@@ -296,7 +296,7 @@ uint8_t lasdac_rdy=0;
    потому что у Cortex-M7 включён кэш данных (D-Cache), а инвалидация кэша
    работает строками по 32 байта (SCB_InvalidateDCache_by_Addr).              */
 //ADC1
-__attribute__((aligned(32))) uint16_t aADCxConvertedData[1];
+__attribute__((aligned(32))) uint16_t aADCxConvertedData[16] = {0};
 __attribute__((aligned(4))) float Vsense;
 __attribute__((aligned(4))) float V25 = 0.76f;
 __attribute__((aligned(4))) float Avg_Slope = 2.5f;
@@ -314,10 +314,11 @@ __attribute__((aligned(4))) float Temperature;
    132 = 128 рабочих пикселей + служебные отсчёты в начале (первые 2 отбрасываются,
    см. adc_addr = ADC_VAL + 2).                                               */
 //ADC2
-__attribute__((aligned(32))) uint16_t ADC_VAL[132] = {0};
-__attribute__((aligned(32))) uint16_t ADC_VAL2[132] = {0};
+__attribute__((aligned(32))) uint16_t ADC_VAL[144] = {0};
+__attribute__((aligned(32))) uint16_t ADC_VAL2[144] = {0};
+
 uint16_t *adc_addr;
-unsigned char adc_rdy;                                                          // ADC frame ready flag (1 = в buf_x0 лежит свежий кадр)
+volatile uint8_t adc_rdy = 0U;                                                         // ADC frame ready flag (1 = в buf_x0 лежит свежий кадр)
 
 /* ---- Управление яркостью подсветки (АРУ) --------------------------------
    DAC (Digital-to-Analog Converter) - ЦАП. Исторически яркость лазера задавалась
@@ -1521,6 +1522,8 @@ void find_startpixel(void) {
   //find main startpixel
   max1_cor=0;
   max2_cor=0;
+  max1_pos = STARTPIXEL_MIN;
+  max2_pos = STARTPIXEL_MIN;
   for (unsigned char i=STARTPIXEL_MIN;i<STARTPIXEL_MAX;i++) {               //build correlation table for startpixel
 
     scor[i]=(max_data-buf_x1[i+0])+(max_data-buf_x1[i+1])+(max_data-buf_x1[i+2])+(max_data-buf_x1[i+3])
@@ -1975,78 +1978,75 @@ void bit_err_corr(void) {
   * @retval none
   */
 /*-----------------------------------------------------------------------------------*/
-void err_corr(void) {
 
-        
-        if ( (sec_cnt<50) ) {                                                   //if less then 50 measurements
+/* История пригодна только после принятого кадра.
+   Сбрасывать также при отбраковке геометрии кадра. */
+static uint8_t sector_history_valid = 0U;
 
-          sec_cnt++;
-          
-          cursec=rem_sec;                                                       //save current sector
-          if(rem_sec==0) {                                                      //find left sector
-            lsec=BIT_TAB_SIZE-1;
-          }
-          else {
-              lsec=rem_sec-1;
-          }
-          if(rem_sec==BIT_TAB_SIZE-1) {                                         //find right sector
-            rsec=0;
-          }
-          else {
-            rsec=rem_sec+1;
-          }  
-          errorflag=0;                                                          //clear error flag
+void err_corr(void)
+{
+    const uint8_t raw_sec = rem_sec;
+    uint8_t accepted = 0U;
 
-      
+    errorflag = 1U;
+
+    /* Обычный кадр либо первое измерение после разрыва. */
+    if (raw_sec < BIT_TAB_SIZE) {
+        if ((!sector_history_valid) ||
+            (raw_sec == cursec) ||
+            (raw_sec == lsec) ||
+            (raw_sec == rsec)) {
+            accepted = 1U;
         }
-        else {                                                                  //if more then 50 measurements
-     
-          if( (rem_sec==255) || ((rem_sec!=cursec)&&(rem_sec!=lsec)&&(rem_sec!=rsec)) ) { //if error found
+    }
 
-            serrcnt2++;                                                         //increment bit error counter
-            bit_err_corr();                                                     //bit error correction
+    if (!accepted) {
+        serrcnt2++;
 
-            if( (rem_sec==255) || ((rem_sec!=cursec)&&(rem_sec!=lsec)&&(rem_sec!=rsec)) ) { //if error found
-              serrcnt1++;                                                       //increment unrecoverable error counter
-              errorflag=1;                                                      //set error flag
+        /* Корректировать можно только относительно
+           действительной истории. Исходный код не меняем. */
+        if (sector_history_valid &&
+            (badbit_value < 1000) &&
+            ((uint32_t)badbit_pos < 9U)) {
 
-              cursec=rem_sec;                                                   //save current sector
-              if(rem_sec==0) {                                                  //find left sector
-                lsec=BIT_TAB_SIZE-1;
-              }
-              else {
-                  lsec=rem_sec-1;
-              }
-              if(rem_sec==BIT_TAB_SIZE-1) {                                     //find right sector
-                rsec=0;
-              }
-              else {
-                rsec=rem_sec+1;
-              }
+            const uint16_t corrected =
+                data_byte ^
+                (uint16_t)(0x100U >> (uint32_t)badbit_pos);
 
-            }
-            else {
-              save_sector();                                                    //save sector
+            int16_t candidate = -1;
+
+            if (corrected == bit_tab[cursec]) {
+                candidate = cursec;
+            } else if (corrected == bit_tab[lsec]) {
+                candidate = lsec;
+            } else if (corrected == bit_tab[rsec]) {
+                candidate = rsec;
             }
 
-          }
-          else {                                                                //if no errors
-            save_sector();                                                      //save sector
-          }
+            if (candidate >= 0) {
+                rem_sec = (uint8_t)candidate;
+                accepted = 1U;
+            }
+        }
+    }
 
-         }
-        
-        sector=cursec;
-        lsector=lsec;
-        rsector=rsec;
-        
-        
+    if (!accepted) {
+        serrcnt1++;
+        sector_history_valid = 0U;
+
+        /* cursec/lsec/rsec и sector/lsector/rsector
+           остаются от последнего принятого измерения. */
+        return;
+    }
+
+    /* Сюда попадают только номера 0..BIT_TAB_SIZE-1. */
+    save_sector();
+
+    sector  = cursec;
+    lsector = lsec;
+    rsector = rsec;
+
 }
-
-
-
-
-
 
 
 
@@ -3662,9 +3662,11 @@ int main(void)
     /* Флаг выставляется из DMA2_Stream3_IRQHandler: в buf_x0 лежит свежий
        кадр линейки. Весь расчёт ниже должен уложиться в период кадра (~80 мкс),
        контроль - по счётчику тактов DWT (cycles / cycles_max).              */
-    if (adc_rdy == 1) {                                                         // ADC frame ready flag
+    if (adc_rdy == 1U) {                                                         // ADC frame ready flag
 
       copy_data();                                                              // (??? cycles) copy TAOS data
+      __DMB();
+      adc_rdy = 0U;
 
       find_startpixel();                                                        // (??? cycles) find 1-st startpixel
 
@@ -3683,6 +3685,10 @@ int main(void)
       if (errorflag==0) {
 
         calc_ang();                                                             // (??? cycles) calculate angle
+        if (!(cur_ang_X >= 0.0f && cur_ang_X < 360.0f)) {
+            errorflag = 1U;
+            sector_history_valid = 0U;
+        }
 
         find_avg();                                                             // average calculation
 
@@ -3711,16 +3717,27 @@ int main(void)
       KIN1_DisableCycleCounter();                                               // disable counting if not used any more
       if (cycles>cycles_max) cycles_max=cycles;                                 // find maximum cycle counter
 
-      adc_rdy=0;                                                                // ADC frame ready flag
-
     }
 
     /* Разбор Modbus в том же суперцикле: SNAP фиксирует последний кадр,
        FC06 holding[1] вызывает encoder_calibration_command(). Обработчик
        задаёт флаги/фазы; offset_cal/angk_cal/angtab_cal выше выполняют шаги
        по валидным кадрам и выставляют состояния завершения. SPI не нужен. */
-    if (eMBPoll() != MB_ENOERR) Error_Handler();
+        /*
+     * Обычно первый вызов разбирает EV_FRAME_RECEIVED,
+     * второй — поставленный им EV_EXECUTE.
+     * Ограничение оставляет время обработке энкодера.
+     */
+    for (unsigned mb_step = 0; mb_step < 2U; ++mb_step) {
+        eMBErrorCode mb_status = eMBPoll();
 
+        /*
+         * Повреждённый RTU-кадр — ошибка обмена, не причина
+         * останавливать измерения или считать периферию неисправной.
+         */
+        if (mb_status != MB_ENOERR && mb_status != MB_EIO)
+            Error_Handler();
+    }
   }
 
 }
@@ -4294,11 +4311,10 @@ void DMA2_Stream3_IRQHandler(void)
     LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_7);
 
     // copy data to buffer
-    if (LL_DMA_GetCurrentTargetMem(DMA2, LL_DMA_STREAM_3)==LL_DMA_CURRENTTARGETMEM0) {
-      adc_addr=ADC_VAL+2;
-    }
-    else {
-      adc_addr=ADC_VAL2+2;
+    if (LL_DMA_GetCurrentTargetMem(DMA2, LL_DMA_STREAM_3) == LL_DMA_CURRENTTARGETMEM0) {
+        adc_addr = ADC_VAL2 + 2;
+    } else {
+        adc_addr = ADC_VAL + 2;
     }
     if (adc_rdy == 0) {
       memcpy(buf_x0,adc_addr,256);                                                
