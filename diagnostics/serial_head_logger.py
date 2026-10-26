@@ -17,216 +17,233 @@
 """
 
 from __future__ import annotations
-
 import argparse
 import csv
+import json
+import math
 import re
-import signal
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Set
 
-import serial
-
-
-_RE_SNAP = re.compile(r"\bSNAP\s+seq=(\d+)")
-_RE_ACK = re.compile(r"\bACK\s+id=(\d+)\s+seq=(\d+)")
-_RE_DATA = re.compile(r"\bDATA\s+id=(\d+)\s+seq=(\d+)\s+angle=([0-9]+(?:\.[0-9]+)?)\s*deg")
+ANSI = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+HEADER = re.compile(r"\bDATA\s+seq=(\d+)\b")
+ITEM = re.compile(r"\s+id=(\d+)\s+ang=([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)")
+BOOT = re.compile(r"(?:\bMB config:|\bESP-ROM:|\brst:0x|^ets\s)")
 
 
-def _normalize_output_name(name: str) -> Path:
-    name = name.strip()
-    if not name:
-        raise ValueError("Пустое имя файла")
-    p = Path(name)
-    stem = p.stem if p.suffix.lower() == ".csv" else p.name
-    if not stem.startswith("log_"):
-        stem = "log_" + stem
-    return Path(stem + ".csv")
-
-
-def _parse_ids(text: str) -> List[int]:
-    ids: List[int] = []
-    seen: Set[int] = set()
-    for part in text.replace(";", ",").split(","):
-        part = part.strip()
-        if not part:
-            continue
-        try:
-            val = int(part)
-        except ValueError:
-            raise ValueError(f"Некорректный id: {part!r}")
-        if val < 1 or val > 247:
-            raise ValueError(f"Id вне диапазона 1..247: {val}")
-        if val in seen:
-            raise ValueError(f"Повторяющийся id: {val}")
-        seen.add(val)
-        ids.append(val)
-    if not ids:
-        raise ValueError("Список id пуст")
+def _parse_ids(text):
+    parts = text.replace(';', ',').split(',')
+    if not parts or any(not re.fullmatch(r'\s*\d+\s*', p) for p in parts):
+        raise ValueError('IDs must be a nonempty comma-separated list')
+    ids = [int(p) for p in parts]
+    if any(not 1 <= h <= 247 for h in ids) or len(set(ids)) != len(ids):
+        raise ValueError('IDs must be unique and within 1..247')
     return ids
 
 
-class SeqAggregator:
-    def __init__(self, seq: int, ids: List[int]):
-        self.seq = seq
-        self.ids = ids
-        self.acks: Set[int] = set()
-        self.angles: Dict[int, float] = {}
-
-    def add_ack(self, head_id: int, seq: int) -> None:
-        if seq == self.seq and head_id in self.ids:
-            self.acks.add(head_id)
-
-    def add_data(self, head_id: int, seq: int, angle: float) -> None:
-        if seq == self.seq and head_id in self.ids:
-            self.angles[head_id] = angle
+def _normalize_output_name(name):
+    p = Path(name.strip())
+    if not p.name:
+        raise ValueError('Empty output name')
+    stem = p.stem if p.suffix.lower() == '.csv' else p.name
+    return p.with_name(('' if stem.startswith('log_') else 'log_') + stem + '.csv')
 
 
-def run(args: argparse.Namespace) -> None:
-    # Список id.
-    ids_text = args.ids
-    if not ids_text:
-        try:
-            ids_text = input("Введите список id головок (например 1,2): ").strip()
-        except EOFError:
-            ids_text = ""
-    try:
-        ids = _parse_ids(ids_text)
-    except ValueError as exc:
-        print(f"[ERROR] {exc}", file=sys.stderr)
-        sys.exit(2)
+def parse_data_line(text):
+    """Return (wire seq, angles), None for non-DATA, ValueError for bad DATA."""
+    text = ANSI.sub('', text).strip()
+    m = HEADER.search(text)
+    if m is None:
+        if re.search(r'\bDATA\b', text):
+            raise ValueError('Unsupported or malformed DATA header')
+        return None
+    seq = int(m[1])
+    if not 0 <= seq <= 65535:
+        raise ValueError('seq outside uint16')
+    pos, angles = m.end(), {}
+    while text[pos:].strip():
+        item = ITEM.match(text, pos)
+        if item is None:
+            raise ValueError('Malformed/truncated DATA element')
+        hid, value = int(item[1]), float(item[2])
+        if not 1 <= hid <= 247 or hid in angles:
+            raise ValueError('Invalid/duplicate head ID')
+        if not math.isfinite(value) or not 0 <= value < 360:
+            raise ValueError('Invalid angle')
+        angles[hid] = value
+        pos = item.end()
+    if not angles:
+        raise ValueError('DATA has no heads')
+    return seq, angles
 
-    # Имя выходного файла.
-    if args.output:
-        output_path = Path(args.output)
-    else:
-        name = args.name
-        if not name and args.name_pos:
-            name = args.name_pos
-        if not name:
-            try:
-                name = input("Введите название лог-файла (без префикса log_): ").strip()
-            except EOFError:
-                name = ""
-        if not name:
-            print("[ERROR] Не указано имя файла", file=sys.stderr)
-            sys.exit(2)
-        output_path = _normalize_output_name(name)
 
-    print(f"[INFO] Головки (id): {ids}", flush=True)
-    print(f"[INFO] Выходной файл: {output_path}", flush=True)
+class LineBuffer:
+    """Keep fragments across serial timeouts; never parse a partial line."""
+    def __init__(self, limit=65536):
+        self.pending = bytearray()
+        self.limit = limit
+        self.discarding = False
+        self.oversized = 0
 
-    file_new = not output_path.exists() or output_path.stat().st_size == 0
+    def feed(self, chunk):
+        result = []
+        for part in chunk.splitlines(keepends=True):
+            ended = part.endswith(b'\n')
+            if not self.discarding:
+                self.pending.extend(part)
+                if len(self.pending) > self.limit:
+                    self.pending.clear()
+                    self.discarding = True
+                    self.oversized += 1
+            if ended:
+                if not self.discarding:
+                    result.append(self.pending.decode('utf-8', errors='replace'))
+                self.pending.clear()
+                self.discarding = False
+        return result
 
-    current: Optional[SeqAggregator] = None
-    rows_written = 0
 
-    csv_file = open(output_path, "a", newline="", buffering=1)
-    writer = csv.writer(csv_file)
-    if file_new:
-        writer.writerow(["seq"] + [f"ang_{i}" for i in range(1, len(ids) + 1)] + ["status"])
-        csv_file.flush()
+class SeqTracker:
+    def __init__(self, extended=None, session=0):
+        self.previous = None
+        self.extended = extended
+        self.session = session
+        self.reset_pending = False
 
-    _stop = [False]
+    def mark_restart(self):
+        self.reset_pending = self.previous is not None
 
-    def _sigint(sig, frame):
-        _stop[0] = True
-
-    signal.signal(signal.SIGINT, _sigint)
-
-    print(f"[INFO] Open {args.port} @ {args.baud} baud", flush=True)
-    try:
-        ser = serial.Serial(args.port, args.baud, timeout=1.0)
-    except serial.SerialException as exc:
-        print(f"[ERROR] {exc}", file=sys.stderr)
-        csv_file.close()
-        sys.exit(1)
-
-    time.sleep(1.0)
-    print("[INFO] Чтение. Ctrl-C для завершения.", flush=True)
-
-    def _finalize(agg: SeqAggregator) -> None:
-        nonlocal rows_written
-        if agg is None:
-            return
-        status = 1 if all(hid in agg.acks for hid in ids) else 0
-        values = []
-        for hid in ids:
-            if hid in agg.angles:
-                values.append(f"{agg.angles[hid]:.6f}")
+    def accept(self, raw):
+        if self.previous is None:
+            self.extended = raw if self.extended is None else self.extended + 1
+        elif self.reset_pending:
+            self.session += 1
+            self.extended += 1
+        else:
+            delta = (raw - self.previous) & 0xffff
+            if delta == 0:
+                return None
+            if delta >= 32768:
+                self.session += 1
+                self.extended += 1
             else:
-                values.append("")
-        writer.writerow([agg.seq] + values + [status])
-        csv_file.flush()
-        rows_written += 1
-        print(f"[OK] seq={agg.seq} status={status} angles={values}", flush=True)
-
-    ser.write("poll 1,2\r\n".encode("utf-8"))
-    try:
-        while not _stop[0]:
-            raw = ser.readline()
-            if not raw:
-                continue
-            try:
-                text = raw.decode("utf-8", errors="replace")
-            except Exception:
-                continue
-            
-            m_snap = _RE_SNAP.search(text)
-            if m_snap:
-                if current is not None:
-                    _finalize(current)
-                    current = None
-                current = SeqAggregator(int(m_snap.group(1)), ids)
-                continue
-
-            if current is None:
-                continue
-
-            m_ack = _RE_ACK.search(text)
-            if m_ack:
-                current.add_ack(int(m_ack.group(1)), int(m_ack.group(2)))
-                continue
-
-            m_data = _RE_DATA.search(text)
-            if m_data:
-                hid = int(m_data.group(1))
-                seq = int(m_data.group(2))
-                angle = float(m_data.group(3))
-                current.add_data(hid, seq, angle)
-                print("[DATA]", hid, seq, angle, flush=True)
-                continue
-
-        if current is not None:
-            _finalize(current)
-            current = None
-
-    finally:
-        ser.close()
-        csv_file.close()
-        print(f"\n[INFO] Done. rows={rows_written}.", flush=True)
+                self.extended += delta
+        self.previous = raw
+        self.reset_pending = False
+        return self.extended, self.session
 
 
-def build_argparser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Чтение показаний головок с serial-порта ESP32 master")
-    src = p.add_argument_group("Serial port")
-    src.add_argument("--port", required=True, help="COM-порт или TTY")
-    src.add_argument("--baud", type=int, default=115200, help="Скорость, бод")
-    ids = p.add_argument_group("Heads")
-    ids.add_argument("--ids", default=None, help="Список id головок, напр. 1,2")
-    out = p.add_argument_group("Output")
-    out.add_argument("--name", default=None, help="Имя лога (без префикса log_)")
-    out.add_argument("name_pos", nargs="?", default=None, help="Имя лога (позиционный)")
-    out.add_argument("--output", default=None, help="Полный путь/имя выходного CSV")
+def build_argparser():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--port', required=True)
+    p.add_argument('--baud', type=int, default=115200, help='ESP32 console baud, not RS485 baud')
+    p.add_argument('--ids', help='ID order in CSV, e.g. 7,1')
+    p.add_argument('--name')
+    p.add_argument('name_pos', nargs='?')
+    p.add_argument('--output')
+    p.add_argument('--append', action='store_true', help='Append only to matching schema/ID mapping')
+    p.add_argument('--no-poll', action='store_true', help='Do not send poll command')
+    p.add_argument('--startup-delay', type=float, default=1.0)
+    p.add_argument('--flush-interval', type=float, default=0.5)
     return p
 
 
-def main() -> None:
-    args = build_argparser().parse_args()
-    run(args)
+def run(args):
+    import serial
+    ids = _parse_ids(args.ids or input('Head IDs (e.g. 1,2): '))
+    name = args.name or args.name_pos
+    path = Path(args.output) if args.output else _normalize_output_name(name or input('Log name: '))
+    if args.baud <= 0 or args.startup_delay < 0 or args.flush_interval <= 0:
+        raise ValueError('Invalid baud/delay/flush interval')
+    header = ['seq'] + [f'ang_{i+1}' for i in range(len(ids))] + ['status', 'seq_raw', 'session', 'host_time_s']
+    meta_path = path.with_suffix('.meta.json')
+    extended, session = None, 0
+    existing = path.exists() and path.stat().st_size > 0
+    if existing:
+        if not args.append:
+            raise ValueError('Output exists; choose another name or use --append')
+        meta = json.loads(meta_path.read_text(encoding='utf-8'))
+        if meta.get('ids') != ids:
+            raise ValueError('Existing CSV has a different ID mapping')
+        with path.open(encoding='utf-8-sig', newline='') as f:
+            reader = csv.DictReader(f)
+            if reader.fieldnames != header:
+                raise ValueError('Existing CSV has a different schema')
+            last = None
+            for row in reader:
+                last = row
+            if last:
+                extended, session = int(last['seq']), int(last['session']) + 1
+    if not existing and meta_path.exists():
+        raise ValueError('Metadata already exists without a populated CSV; choose another output')
+    with serial.Serial(args.port, args.baud, timeout=0.2) as ser:
+        with path.open('a' if args.append else 'x', encoding='utf-8', newline='') as f:
+            writer = csv.writer(f)
+            if not existing:
+                writer.writerow(header)
+                meta_path.write_text(json.dumps({
+                    'schema': 2, 'ids': ids, 'angle_unit': 'degree',
+                    'status': 'all requested heads present in a valid DATA line',
+                    'seq': 'extended counter; gaps preserved within a session',
+                    'host_time_s': 'host receive time since this logger invocation; not acquisition time',
+                    'restart_detection': 'boot markers or uint16 modular delta >=32768; not infallible'
+                }, ensure_ascii=False, indent=2), encoding='utf-8')
+            tracker, buffer = SeqTracker(extended, session), LineBuffer()
+            counters = dict(rows=0, invalid=0, duplicate=0, incomplete=0)
+            start = last_report = last_flush = time.monotonic()
+            poll_at = start + args.startup_delay
+            poll_sent = args.no_poll
+            try:
+                while True:
+                    now = time.monotonic()
+                    if not poll_sent and now >= poll_at:
+                        ser.write(('poll ' + ','.join(map(str, ids)) + '\r\n').encode('ascii'))
+                        poll_sent = True
+                    chunk = ser.read(min(max(ser.in_waiting, 1), 65536))
+                    for text in buffer.feed(chunk):
+                        if BOOT.search(ANSI.sub('', text)):
+                            tracker.mark_restart()
+                        try:
+                            parsed = parse_data_line(text)
+                            print(parsed)
+                        except ValueError:
+                            counters['invalid'] += 1
+                            continue
+                        if parsed is None:
+                            continue
+                        raw_seq, angles = parsed
+                        accepted = tracker.accept(raw_seq)
+                        if accepted is None:
+                            counters['duplicate'] += 1
+                            continue
+                        seq, session = accepted
+                        status = int(all(h in angles for h in ids))
+                        values = [f'{angles[h]:.6f}' if h in angles else '' for h in ids]
+                        writer.writerow([seq, *values, status, raw_seq, session, f'{time.monotonic()-start:.9f}'])
+                        counters['rows'] += 1
+                        counters['incomplete'] += not status
+                    now = time.monotonic()
+                    if now - last_flush >= args.flush_interval:
+                        f.flush()
+                        last_flush = now
+                    if now - last_report >= 1:
+                        print(f'{counters} oversized={buffer.oversized}', file=sys.stderr, flush=True)
+                        last_report = now
+            except KeyboardInterrupt:
+                pass
+            finally:
+                f.flush()
+                print(f'Done: {counters}; trailing_bytes={len(buffer.pending)}', file=sys.stderr)
 
 
-if __name__ == "__main__":
+def main():
+    try:
+        run(build_argparser().parse_args())
+    except (OSError, ValueError, ImportError) as exc:
+        print(f'[ERROR] {exc}', file=sys.stderr)
+        raise SystemExit(1)
+
+
+if __name__ == '__main__':
     main()

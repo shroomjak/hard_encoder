@@ -36,10 +36,10 @@
 #define MB_TX_GPIO 17
 #define MB_RX_GPIO 16
 #define MB_RTS_GPIO 4
-#define MB_BAUD 115200
+#define MB_BAUD 230400U
 
 /* У каждого slave свой MB_SLAVE_ADDRESS. Список выбирается в консоли. */
-#define REG_COUNT 11       /* полная карта входных регистров 0..10 */
+#define REG_COUNT 9       /* полная карта входных регистров 0..8 */
 static const char *TAG = "encoder";
 static void *master;
 
@@ -172,31 +172,63 @@ static void poll_heads(const uint8_t *head_ids,
     if (complete) {
         ++complete_cycles;
 
-        /* Выводим каждый полностью проверенный набор измерений. */
+        /*
+        * Заголовок + до ENCODER_MAX_ID элементов.
+        * На один элемент с запасом выделено 32 байта:
+        * " id=247 ang=359.999999"
+        *
+        * Буфер статический: не занимает стек worker.
+        * Используется только задачей worker.
+        */
+        static char line[32U + 32U * ENCODER_MAX_ID];
+
+        int written = snprintf(line, sizeof line,
+                            "DATA seq=%u", (unsigned)seq);
+
+        if (written < 0 || (size_t)written >= sizeof line) {
+            ESP_LOGE(TAG, "DATA header formatting failed");
+            return;
+        }
+
+        size_t used = (size_t)written;
+
         for (size_t i = 0; i < head_count; ++i) {
             const uint16_t *r = frame[i];
 
             const uint32_t angle_udeg =
                 ((uint32_t)r[2] << 16) | r[3];
 
-            const uint32_t sample =
-                ((uint32_t)r[7] << 16) | r[8];
+            const size_t available = sizeof line - used;
 
-            ESP_LOGI(TAG,
-                    "DATA id=%u seq=%u angle=%u.%06u sample=%lu",
-                    (unsigned)head_ids[i],
-                    (unsigned)seq,
-                    (unsigned)(angle_udeg / 1000000U),
-                    (unsigned)(angle_udeg % 1000000U),
-                    (unsigned long)sample);
+            written = snprintf(
+                line + used,
+                available,
+                " id=%u ang=%u.%06u",
+                (unsigned)head_ids[i],
+                (unsigned)(angle_udeg / 1000000U),
+                (unsigned)(angle_udeg % 1000000U)
+            );
+
+            if (written < 0 || (size_t)written >= available) {
+                /*
+                * Не выводим обрезанную строку как полноценный набор.
+                */
+                ESP_LOGE(TAG, "DATA line overflow: heads=%u",
+                        (unsigned)head_count);
+                return;
+            }
+
+            used += (size_t)written;
         }
+
+        ESP_LOGI(TAG, "%s", line);
     }
 
     /*
      * Не печатаем каждую транзакцию.
      * Это диагностический вывод примерно раз в секунду.
      */
-    /*const int64_t finished_us = esp_timer_get_time();
+    const int64_t finished_us = esp_timer_get_time();
 
     if (finished_us - last_report_us >= 1000000) {
         last_report_us = finished_us;
@@ -209,7 +241,7 @@ static void poll_heads(const uint8_t *head_ids,
                 (unsigned long)transport_errors,
                 (unsigned long)invalid_frames,
                 (long long)(finished_us - started_us));
-    }*/
+    }
 }
 
 

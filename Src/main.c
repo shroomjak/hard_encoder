@@ -3684,14 +3684,15 @@ int main(void)
 
       /* Угол и все калибровки считаются ТОЛЬКО по достоверному кадру.
          При errorflag==1 наружу продолжает отдаваться прежнее cur_ang_E.     */
-      if (errorflag==0) {
+      if (errorflag == 0U) {
 
         calc_ang();                                                             // (??? cycles) calculate angle
         if (!(cur_ang_X >= 0.0f && cur_ang_X < 360.0f)) {
             errorflag = 1U;
             sector_history_valid = 0U;
         }
-
+      }
+      if (errorflag == 0U){
         find_avg();                                                             // average calculation
 
         offset_cal();                                                           // offset calibration

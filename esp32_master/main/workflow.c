@@ -116,7 +116,7 @@ static void abort_calibration(workflow_t *w, const char *reason)
 static void confirm_step(workflow_t *w)
 {
     w->state = WF_CONFIRM;
-    message(w, "CALIB head %u/%u id=%u step %u/6: %s. Type next to confirm, stop to cancel.",
+    message(w, "CALIB head %u/%u id=%u step %u/4: %s. Type next to confirm, stop to cancel.",
             (unsigned)w->head + 1, (unsigned)w->count, w->ids[w->head],
             (unsigned)w->step + 1, steps[w->step].instruction);
 }
@@ -269,7 +269,7 @@ void workflow_tick(workflow_t *w)
         if (r[0] != steps[w->step].done || r[1] != 1) return;
         if (++w->step == sizeof steps / sizeof steps[0]) {
             if (!stop_head(w)) { w->state = WF_IDLE; return; }
-            message(w, "CALIB id=%u COMPLETE (6 stages, EEPROM transfer complete)", w->ids[w->head]);
+            message(w, "CALIB id=%u COMPLETE (4 stages, EEPROM transfer complete)", w->ids[w->head]);
             if (++w->head == w->count) {
                 message(w, "CALIB list complete. Verify EEPROM CRC after head reboot via SWD.");
                 w->state = WF_IDLE;
