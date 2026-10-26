@@ -76,7 +76,7 @@ void snapshot_latch(uint16_t seq)
          * Перевод выполняется один раз на новый валидный SNAP.
          */
         frozen_angle_udeg =
-            (uint32_t)((float)frozen.angle_deg * 1000000.0f);
+            (uint32_t)((float)frozen.angle_deg * 1000000.0 + 0.5);
     }
 }
 

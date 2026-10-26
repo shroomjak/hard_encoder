@@ -96,7 +96,7 @@ static esp_err_t request(uint8_t id, uint8_t function, uint16_t first,
      * Для успешного адресного запроса сохраняем межкадровый интервал.
      * Обработку тайм-аутов и восстановления транспорта оставляем стеку.
      */
-    if (id != 0 && err == ESP_OK)
+    if (id != 0)
         bus_gap_wait();
 
     return err;
@@ -172,56 +172,44 @@ static void poll_heads(const uint8_t *head_ids,
     if (complete) {
         ++complete_cycles;
 
-        /*
-         * ТОЧКА ПЕРЕДАЧИ ДАННЫХ ПРИЛОЖЕНИЮ.
-         *
-         * Здесь frame[0..head_count-1] — полный проверенный набор seq.
-         * Для отдельной задачи-потребителя копировать набор в очередь
-         * или использовать собственный double buffer.
-         *
-         * Нельзя передавать указатель на frame и продолжать перезаписывать
-         * этот буфер, пока другая задача его читает.
-         */
+        /* Выводим каждый полностью проверенный набор измерений. */
+        for (size_t i = 0; i < head_count; ++i) {
+            const uint16_t *r = frame[i];
+
+            const uint32_t angle_udeg =
+                ((uint32_t)r[2] << 16) | r[3];
+
+            const uint32_t sample =
+                ((uint32_t)r[7] << 16) | r[8];
+
+            ESP_LOGI(TAG,
+                    "DATA id=%u seq=%u angle=%u.%06u sample=%lu",
+                    (unsigned)head_ids[i],
+                    (unsigned)seq,
+                    (unsigned)(angle_udeg / 1000000U),
+                    (unsigned)(angle_udeg % 1000000U),
+                    (unsigned long)sample);
+        }
     }
 
     /*
      * Не печатаем каждую транзакцию.
      * Это диагностический вывод примерно раз в секунду.
      */
-    const int64_t finished_us = esp_timer_get_time();
+    /*const int64_t finished_us = esp_timer_get_time();
 
     if (finished_us - last_report_us >= 1000000) {
         last_report_us = finished_us;
 
         ESP_LOGI(TAG,
-                 "POLL cycles=%lu complete=%lu transport_err=%lu "
-                 "invalid=%lu last_cycle_us=%lld",
-                 (unsigned long)cycles,
-                 (unsigned long)complete_cycles,
-                 (unsigned long)transport_errors,
-                 (unsigned long)invalid_frames,
-                 (long long)(finished_us - started_us));
-
-        if (complete) {
-            for (size_t i = 0; i < head_count; ++i) {
-                const uint16_t *r = frame[i];
-
-                const uint32_t angle_udeg =
-                    ((uint32_t)r[2] << 16) | r[3];
-                const uint32_t sample =
-                    ((uint32_t)r[7] << 16) | r[8];
-
-                ESP_LOGI(TAG,
-                         "DATA id=%u seq=%u angle=%u.%06u "
-                         "sample=%lu",
-                         (unsigned)head_ids[i],
-                         (unsigned)seq,
-                         (unsigned)(angle_udeg / 1000000U),
-                         (unsigned)(angle_udeg % 1000000U),
-                         (unsigned long)sample);
-            }
-        }
-    }
+                "POLL cycles=%lu complete=%lu transport_err=%lu "
+                "invalid=%lu last_cycle_us=%lld",
+                (unsigned long)cycles,
+                (unsigned long)complete_cycles,
+                (unsigned long)transport_errors,
+                (unsigned long)invalid_frames,
+                (long long)(finished_us - started_us));
+    }*/
 }
 
 
@@ -281,7 +269,7 @@ static void worker(void *arg)
 
         if (xQueueReceive(commands, &command, wait_ticks) == pdTRUE)
              workflow_command(&workflow, &command);
-             
+
         workflow_tick(&workflow);
     }
 }
@@ -290,6 +278,15 @@ static void worker(void *arg)
  * seq не сбрасывается при смене режимов, но после reboot снова 42 (см. docs). */
 void app_main(void)
 {
+    ESP_LOGI(TAG,
+         "MB config: baud=%d response=%d ms convert=%d ms "
+         "cooldown=%d ms tick=%d Hz",
+         MB_BAUD,
+         CONFIG_FMB_MASTER_TIMEOUT_MS_RESPOND,
+         CONFIG_FMB_MASTER_DELAY_MS_CONVERT,
+         CONFIG_FMB_MASTER_TIMEOUT_COOLDOWN_MS,
+         CONFIG_FREERTOS_HZ);
+
     mb_communication_info_t comm = {
         .ser_opts.port = MB_UART,
         .ser_opts.mode = MB_RTU,

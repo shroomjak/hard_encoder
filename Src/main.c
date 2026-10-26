@@ -2045,7 +2045,9 @@ void err_corr(void)
     sector  = cursec;
     lsector = lsec;
     rsector = rsec;
-
+  
+    sector_history_valid = 1U;
+    errorflag = 0U;
 }
 
 
