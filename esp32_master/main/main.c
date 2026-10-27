@@ -1,8 +1,6 @@
 /*
  * ESP32 — ведущий узел (master) многоточечной шины Modbus RTU / RS485.
  * Библиотека: официальный компонент Espressif esp-modbus v2.1.4.
- * Прошивка собирается и загружается ESP-IDF, НЕ IAR: подробная инструкция
- * и схема соединений приведены в docs/modbus_rtu.md.
  *
  * Режимы poll / calib выбираются через USB-консоль ESP-IDF.
  * Поиск ID 1..247 выполняется только по отдельной команде scan.
@@ -21,17 +19,13 @@
 #include "esp_timer.h"
 #include "freertos/queue.h"
 #include "workflow.h"
+#include "pc_link.h"
 #include "esp_log.h"
 #include "esp_modbus_master.h"
 #include "driver/uart.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-/* ПРИМЕР разводки для классической ESP32, а не проверенная схема изделия.
- * UART TX -> DI, RX <- RO, RTS -> DE и /RE преобразователя RS485;
- * уровни сигнала RTS и возможность совместного управления DE и /RE нужно
- * сверить с установленным преобразователем. USB платы используется для
- * прошивки/лога, UART2 — исключительно для обмена с головками. */
 #define MB_UART UART_NUM_2
 #define MB_TX_GPIO 17
 #define MB_RX_GPIO 16
@@ -173,77 +167,26 @@ static void poll_heads(const uint8_t *head_ids,
         ++complete_cycles;
 
         /*
-        * Заголовок + до ENCODER_MAX_ID элементов.
-        * На один элемент с запасом выделено 32 байта:
-        * " id=247 ang=359.999999"
-        *
-        * Буфер статический: не занимает стек worker.
-        * Используется только задачей worker.
-        */
-        static char line[32U + 32U * ENCODER_MAX_ID];
+         * Core0 не форматирует и не печатает: только копирует углы
+         * в кольцевой буфер (~5 байт на головку, единицы мкс).
+         * Строку DATA в прежнем формате печатает задача pc_link на Core1.
+         */
+        static uint32_t angles[ENCODER_MAX_ID];
+        for (size_t i = 0; i < head_count; ++i)
+            angles[i] = ((uint32_t)frame[i][2] << 16) | frame[i][3];
 
-        int written = snprintf(line, sizeof line,
-                            "DATA seq=%u", (unsigned)seq);
-
-        if (written < 0 || (size_t)written >= sizeof line) {
-            ESP_LOGE(TAG, "DATA header formatting failed");
-            return;
-        }
-
-        size_t used = (size_t)written;
-
-        for (size_t i = 0; i < head_count; ++i) {
-            const uint16_t *r = frame[i];
-
-            const uint32_t angle_udeg =
-                ((uint32_t)r[2] << 16) | r[3];
-
-            const size_t available = sizeof line - used;
-
-            written = snprintf(
-                line + used,
-                available,
-                " id=%u ang=%u.%06u",
-                (unsigned)head_ids[i],
-                (unsigned)(angle_udeg / 1000000U),
-                (unsigned)(angle_udeg % 1000000U)
-            );
-
-            if (written < 0 || (size_t)written >= available) {
-                /*
-                * Не выводим обрезанную строку как полноценный набор.
-                */
-                ESP_LOGE(TAG, "DATA line overflow: heads=%u",
-                        (unsigned)head_count);
-                return;
-            }
-
-            used += (size_t)written;
-        }
-
-        ESP_LOGI(TAG, "%s", line);
+        (void)pc_link_put_data(seq, head_ids, angles, head_count);
     }
 
-    /*
-     * Не печатаем каждую транзакцию.
-     * Это диагностический вывод примерно раз в секунду.
-     */
+    /* Статистика примерно раз в секунду, тоже через Core1. */
     const int64_t finished_us = esp_timer_get_time();
 
     if (finished_us - last_report_us >= 1000000) {
         last_report_us = finished_us;
-
-        ESP_LOGI(TAG,
-                "POLL cycles=%lu complete=%lu transport_err=%lu "
-                "invalid=%lu last_cycle_us=%lld",
-                (unsigned long)cycles,
-                (unsigned long)complete_cycles,
-                (unsigned long)transport_errors,
-                (unsigned long)invalid_frames,
-                (long long)(finished_us - started_us));
+        (void)pc_link_put_stats(cycles, complete_cycles, transport_errors,
+                                invalid_frames, finished_us - started_us);
     }
 }
-
 
 /* Консоль не обращается к Modbus: команды передаются единственной задаче
  * через очередь. Поэтому stop/next можно вводить во время обмена. */
@@ -353,7 +296,10 @@ void app_main(void)
 
     ESP_ERROR_CHECK(commands ? ESP_OK : ESP_ERR_NO_MEM);
     workflow_init(&workflow, (workflow_io_t){workflow_request, poll_heads, workflow_log, now_ms});
-    if (xTaskCreate(worker, "encoder_bus", 6144, NULL, 5, NULL) != pdPASS)
+    /* Вывод на ПК — Core1; Modbus (worker + задача порта esp-modbus,
+     * CONFIG_FMB_PORT_TASK_AFFINITY_CPU0) — Core0. */
+    pc_link_start();
+    if (xTaskCreatePinnedToCore(worker, "encoder_bus", 6144, NULL, 5, NULL, 0) != pdPASS)
         ESP_ERROR_CHECK(ESP_ERR_NO_MEM);
 
     esp_console_repl_t *repl = NULL;
