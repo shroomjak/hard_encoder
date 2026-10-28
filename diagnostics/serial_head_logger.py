@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""ESP32 DATA -> CSV: seq,ang_1,...,ang_k (IDs follow --ids order).
-Requires: python -m pip install pyserial
-Example: python serial_angle_logger.py --port COM5 --ids 7,1 --output angles.csv
-seq is the original uint16 value, including wrap/restarts/repetitions.
-Only complete, valid DATA frames containing exactly the selected IDs are saved.
-No metadata files, timestamps, status columns or per-frame terminal output.
+"""Запись ESP32 DATA в diagnostics/<имя>/<имя>.csv.
+
+python diagnostics/serial_head_logger.py --port COM5 --ids 2,7 --output run_01
+Без --output имя запрашивается при запуске. CSV: seq,ang_2,ang_7.
 """
 from __future__ import annotations
 
@@ -16,6 +14,7 @@ import re
 import sys
 import time
 
+DIAGNOSTICS = Path(__file__).resolve().parent
 ANSI = re.compile(rb'\x1b\[[0-?]*[ -/]*[@-~]')
 HEADER = re.compile(rb'\bDATA seq=(\d{1,5})\b')
 ITEM = re.compile(rb' id=(\d{1,3}) ang=([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)')
@@ -26,19 +25,27 @@ FLUSH_SECONDS = 0.5
 
 def parse_ids(text: str) -> tuple[int, ...]:
     try:
-        parts = text.split(',')
-        if any(not re.fullmatch(r'\s*[0-9]{1,3}\s*', p) for p in parts):
-            raise ValueError
-        ids = tuple(int(p) for p in parts)
+        ids = tuple(int(p) for p in text.split(','))
         if not ids or len(set(ids)) != len(ids) or any(not 1 <= i <= 247 for i in ids):
             raise ValueError
         return ids
     except ValueError:
-        raise argparse.ArgumentTypeError('IDs must be unique integers 1..247, e.g. 7,1') from None
+        raise argparse.ArgumentTypeError('Укажите уникальные ID 1..247: 2,7') from None
+
+
+def output_path(name: str) -> Path:
+    name = name.strip()
+    if not name or '/' in name or '\\' in name or name in ('.', '..'):
+        raise ValueError('Укажите имя эксперимента без пути')
+    stem = name[:-4] if name.lower().endswith('.csv') else name
+    if not stem or stem in ('.', '..'):
+        raise ValueError('Укажите непустое имя эксперимента')
+    folder = DIAGNOSTICS / stem
+    folder.mkdir(exist_ok=True)
+    return folder / f'{stem}.csv'
 
 
 def parse_data(line: bytes, ids: tuple[int, ...], selected: frozenset[int]):
-    """Ignore log prefixes, reject malformed DATA and incomplete groups."""
     if b'DATA' not in line:
         return None
     line = ANSI.sub(b'', line).rstrip(b'\r\n')
@@ -68,7 +75,6 @@ def parse_data(line: bytes, ids: tuple[int, ...], selected: frozenset[int]):
 
 
 class LineBuffer:
-    """Bounded newline framing; discard oversized lines through next LF."""
     def __init__(self):
         self.pending = bytearray()
         self.discarding = False
@@ -93,12 +99,12 @@ class LineBuffer:
 
 
 def build_parser():
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('--port', required=True, help='COM5 or /dev/ttyUSB0')
-    parser.add_argument('--ids', required=True, type=parse_ids, help='CSV column order, e.g. 7,1')
-    parser.add_argument('--output', required=True, type=Path, help='New CSV file; existing files are never overwritten')
-    parser.add_argument('--baud', type=int, default=115200, help='PC console baud, not Modbus baud (default: 115200)')
-    parser.add_argument('--no-poll', action='store_true', help='Read only; do not send poll command')
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--port', required=True, help='COM5 или /dev/ttyUSB0')
+    parser.add_argument('--ids', required=True, type=parse_ids, help='ID головок и порядок столбцов: 2,7')
+    parser.add_argument('--output', help='Имя CSV/эксперимента; иначе запрос при запуске')
+    parser.add_argument('--baud', type=int, default=115200, help='Скорость консоли ПК (115200)')
+    parser.add_argument('--no-poll', action='store_true', help='Только читать, не отправлять poll')
     return parser
 
 
@@ -106,13 +112,13 @@ def run(args):
     import serial
 
     if args.baud <= 0:
-        raise ValueError('--baud must be positive')
+        raise ValueError('--baud должен быть положительным')
+    path = output_path(args.output or input('Имя CSV: '))
     ids = args.ids
     selected = frozenset(ids)
-    # Exclusive creation prevents accidental overwrite and races.
-    with args.output.open('x', encoding='ascii', newline='', buffering=65536) as output:
+    with path.open('x', encoding='ascii', newline='', buffering=65536) as output:
         writer = csv.writer(output, lineterminator='\n')
-        writer.writerow(('seq', *(f'ang_{i + 1}' for i in range(len(ids)))))
+        writer.writerow(('seq', *(f'ang_{head}' for head in ids)))
         output.flush()
         try:
             with serial.Serial(args.port, args.baud, timeout=0.1, write_timeout=2) as port:
@@ -121,11 +127,10 @@ def run(args):
                 poll_sent = args.no_poll
                 last_flush = time.monotonic()
                 while True:
-                    now = time.monotonic()
-                    if not poll_sent and now >= poll_at:
+                    if not poll_sent and time.monotonic() >= poll_at:
                         command = ('poll ' + ','.join(map(str, ids)) + '\r\n').encode('ascii')
                         if port.write(command) != len(command):
-                            raise OSError('Incomplete poll command write')
+                            raise OSError('Команда poll передана не полностью')
                         poll_sent = True
                     chunk = port.read(min(max(port.in_waiting, 1), READ_SIZE))
                     for line in buffer.feed(chunk):
@@ -146,7 +151,7 @@ def main():
         run(args)
     except KeyboardInterrupt:
         return 0
-    except (OSError, ValueError, ImportError) as exc:
+    except (OSError, ValueError, ImportError, EOFError) as exc:
         print(f'Error: {exc}', file=sys.stderr)
         return 1
     return 0
