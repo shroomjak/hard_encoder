@@ -1,15 +1,31 @@
 #!/usr/bin/env python3
-"""Анализ группового лога энкодеров: CSV -> участки -> тренд -> периоды -> профиль.
+"""Анализ периода сигналов головок энкодера из CSV-лога.
 
-Ось x — номер SNAP (seq), а не время в секундах.
-Вычисляется остаток относительно равномерного вращения, не ошибка относительно
-эталонного энкодера. Неравномерность двигателя тоже входит в этот остаток.
+Обрабатываются все угловые столбцы ang_1..ang_k, а также круговое среднее
+по всем головкам circular_mean(ang_1..ang_k) — при одной головке оно совпадает
+с её сигналом. Для каждого сигнала:
+0. Сигнал берётся из CSV-лога, ось x — счётчик seq.
+1. По разностям соседних отсчётов находятся переходы через нуль:
+   |diff| > 180° — это скачки около ±360°.
+2. Берутся только полные периоды: между первым и последним таким переходом.
+3. Сигнал разворачивается (unwrap), по МНК ищется наклон (град/отсчёт)
+   для последующего детрендирования.
+4. Период P = (последний переход - первый) / число полных периодов.
+   Значения восстанавливаются линейной интерполяцией на общую сетку
+   отсчётов внутри периода; пропусков на сетке нет.
+5. Периоды накладываются друг на друга по модулю P: k-я строка сдвинута
+   относительно первой ровно на k*P отсчётов.
+6. После вычитания тренда считаются среднее и СКО в каждой точке периода.
+7. Три графика на сигнал: среднее ± СКО; СКО от положения внутри периода;
+   все периоды вместе со средним.
+
+Запуск:
+    python head_period_analysis_v2.py log_example.csv
 """
 from __future__ import annotations
 
 import argparse
 import csv
-import json
 import re
 import sys
 from dataclasses import dataclass
@@ -18,403 +34,219 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-
-# ============================================================================
-# 1. Настройки алгоритма
-# ============================================================================
-# Статистические коэффициенты: это не параметры конкретной головки.
-MAD_TO_NORMAL_STD = 1.4826  # 1 / Phi^(-1)(0.75): перевод MAD в масштаб sigma
-                           # при нормальном распределении; не обещает нормальность.
-HUBER_THRESHOLD_SIGMA = 1.345  # Порог снижения веса больших остатков, в sigma.
-                              # Обычный выбор: ~95% эффективности МНК при нормальности.
-
-# Инженерные пороги. Их можно менять под реальные условия вращения.
-MOTION_SPEED_PERCENTILE = 75   # Опорная скорость: 75-й процентиль ненулевых скоростей.
-MOTION_SPEED_FRACTION = 0.05    # Движение: скорость не меньше 5% опорной.
-MAX_REVERSE_FRACTION = 0.02     # Не больше 2% движущихся интервалов против направления.
-MIN_SIGNAL_SAMPLES = 8         # Минимальная длина участка для запуска анализа.
-MIN_MOVING_INTERVALS = 4       # Одного случайного скачка недостаточно для движения.
-MIN_CYCLES_FOR_CLIPPING = 5    # Медианная отбраковка по оборотам требует выборки.
-
-# Численные допуски и ограничения памяти, а не физические пороги датчика.
-MIN_POSITIVE_SPEED = 1e-9      # град / SNAP: отсеиваем численный ноль скорости.
-MIN_MOTION_SPEED = 1e-8        # Нижняя граница порога выделения движения.
-MIN_ABS_SLOPE = 1e-12          # град / SNAP: защита деления 360 / slope.
-FIT_TOLERANCE = 1e-10         # Допуск изменения коэффициентов в нормированной задаче.
-MIN_RESIDUAL_SCALE = 1e-10     # град: ниже этого MAD не используем для перевзвешивания.
-WEIGHT_DENOMINATOR_FLOOR = 1e-15  # Защита деления на нулевой остаток.
-BOUNDARY_TOLERANCE = 1e-10     # Относительный допуск попадания границ в участок.
-MAX_FIT_ITERATIONS = 30
-MIN_PHASE_POINTS = 8
-DEFAULT_MIN_PHASE_POINTS = 16
-MAX_PHASE_POINTS = 4096
-MAX_FOLD_ELEMENTS = 2_000_000  # Предел размера одной матрицы наложения.
-
-# Размер счётчика протокола. Для старых CSV границу wrap распознаём эвристически.
-SEQ_MODULUS = 1 << 16
-SEQ_HALF_RANGE = SEQ_MODULUS // 2
-SEQ_WRAP_HIGH = 3 * SEQ_MODULUS // 4
-SEQ_WRAP_LOW = SEQ_MODULUS // 4
+# Порог перехода через нуль: |diff| > 180° (скачок около ±360°).
+# Предположение метода: реальное перемещение между соседними доступными
+# отсчётами меньше 180°, иначе число оборотов между ними неоднозначно.
+WRAP_DIFF_DEG = 180.0
+MIN_SAMPLES = 4
+# Круговое среднее не определено только при численно нулевом среднем векторе.
+# Слабый, но ненулевой вектор даёт определённое, хотя и зашумлённое среднее —
+# оно сохраняется, количество таких строк выводится предупреждением.
+ZERO_RESULTANT = 1e-9
+WEAK_RESULTANT = 0.1
 
 
-# ============================================================================
-# 2. Результат и угловые операции
-# ============================================================================
 @dataclass
-class PeriodAnalysisResult:
-    # Сохраняем поля предыдущей версии для совместимости с построением графиков.
-    period_samples: float
-    n_periods: int
-    phase_samples: np.ndarray
-    phase_deg: np.ndarray
-    mean_error: np.ndarray
-    statistical_std: np.ndarray
-    single_frame_std: np.ndarray
-    total_std: np.ndarray
-    error_matrix: np.ndarray
-    period_mask: np.ndarray
-    fitted_slope: float
-    rotation_direction: str
-    active_range: tuple[float, float]
-    period_boundaries: np.ndarray
-    standard_error: np.ndarray
+class PeriodProfile:
+    period_samples: float          # период, отсчётов seq
+    n_periods: int                # число полных периодов
+    n_points: int                 # точек сетки внутри периода
+    slope_deg_per_sample: float   # наклон МНК, град/отсчёт
+    intercept_deg: float          # смещение МНК-прямой, град
+    direction: str                # 'угол растёт' / 'угол убывает'
+    sample_position: np.ndarray   # положение внутри периода, отсчёты (n_points,)
+    phase_deg: np.ndarray         # то же в градусах фазы, 0..360 (n_points,)
+    mean_deg: np.ndarray          # среднее по периодам (n_points,)
+    std_deg: np.ndarray           # СКО по периодам (n_points,)
+    stderr_deg: np.ndarray        # ошибка среднего (n_points,)
+    period_rows: np.ndarray      # все периоды, (n_periods, n_points)
 
 
-def wrap_deg(angle):
-    return np.mod(angle, 360.0)
+# ============================================================================
+# 0. Загрузка лога и сигналов
+# ============================================================================
+def angle_columns(df: pd.DataFrame) -> list[str]:
+    """Столбцы ang_1..ang_k в порядке номеров."""
+    columns = [c for c in df.columns if re.fullmatch(r'ang_\d+', str(c), re.I)]
+    return sorted(columns, key=lambda c: int(str(c).split('_')[-1]))
 
 
-def angle_diff(a, b):
-    """Кратчайшая знаковая разность углов, диапазон [-180, 180)."""
-    return (np.asarray(a) - np.asarray(b) + 180.0) % 360.0 - 180.0
+def load_log(path: Path) -> tuple[pd.DataFrame, list[str]]:
+    df = pd.read_csv(path, encoding='utf-8-sig')
+    df.columns = [str(c).strip() for c in df.columns]
+    if 'seq' not in df.columns:
+        raise ValueError('CSV должен содержать столбец seq')
+    columns = angle_columns(df)
+    if not columns:
+        raise ValueError('CSV должен содержать столбцы ang_1..ang_k')
+    if 'session' in df.columns:
+        session = pd.to_numeric(df['session'], errors='coerce').to_numpy(dtype=float)
+        if np.unique(session[np.isfinite(session)]).size > 1:
+            raise ValueError('В логе несколько сессий (перезапуск): разделите файл')
+    return df, columns
 
 
-def unwrap_deg(angle):
+def circular_mean_deg(matrix: np.ndarray) -> np.ndarray:
+    """Круговое среднее углов по строкам; NaN только при численно нулевом векторе.
+
+    Результат гарантированно в [0, 360): возможное после взятия модуля ровно
+    360.0 (округление крошечного отрицательного угла) приводится к нулю.
+    """
+    vector = np.mean(np.exp(1j * np.deg2rad(matrix)), axis=1)
+    angle = np.rad2deg(np.angle(vector)) % 360.0
+    angle = np.where(angle >= 360.0, 0.0, angle)
+    return np.where(np.abs(vector) >= ZERO_RESULTANT, angle, np.nan)
+
+
+def build_signals(df: pd.DataFrame, columns: list[str],
+                  offsets: np.ndarray | None = None) -> dict[str, tuple[np.ndarray, np.ndarray]]:
+    """Сигналы: каждый столбец ang_k и circular_mean по всем головкам.
+
+    Строки с пустым значением сигнала пропускаются, значения seq сохраняются.
+    Круговое среднее строится по строкам, где все исходные углы конечны и лежат
+    в [0, 360); проверка выполняется до вычитания смещений (--offsets).
+    """
+    seq = pd.to_numeric(df['seq'], errors='coerce').to_numpy(dtype=float)
+    matrix = df[columns].apply(lambda c: pd.to_numeric(c, errors='coerce')).to_numpy(dtype=float)
+    signals: dict[str, tuple[np.ndarray, np.ndarray]] = {}
+    for j, name in enumerate(columns):
+        ok = np.isfinite(seq) & np.isfinite(matrix[:, j])
+        signals[name] = (seq[ok], matrix[ok, j])
+
+    rows = (np.isfinite(matrix).all(axis=1)
+            & ((matrix >= 0) & (matrix < 360)).all(axis=1))
+    centered = matrix if offsets is None else matrix - offsets
+    mean_angle = np.full(len(seq), np.nan)
+    if rows.any():
+        mean_angle[rows] = circular_mean_deg(centered[rows])
+        vector = np.mean(np.exp(1j * np.deg2rad(centered[rows])), axis=1)
+        n_weak = int((np.abs(vector) < WEAK_RESULTANT).sum())
+        if n_weak:
+            print(f'[WARN] circular_mean: {n_weak} строк со слабым средним вектором '
+                  f'(< {WEAK_RESULTANT}): среднее существует, но зашумлено', file=sys.stderr)
+    ok = np.isfinite(seq) & np.isfinite(mean_angle)
+    signals['circular_mean'] = (seq[ok], mean_angle[ok])
+    return signals
+
+
+# ============================================================================
+# 1-2. Переходы через нуль и развёрнутый сигнал
+# ============================================================================
+def unwrap_signal(angle: np.ndarray) -> np.ndarray:
     return np.rad2deg(np.unwrap(np.deg2rad(angle)))
 
 
-def circular_mean_deg(matrix, min_resultant=0.1):
-    """Круговое среднее. При взаимной компенсации направлений возвращаем NaN."""
-    matrix = np.asarray(matrix, dtype=float)
-    if matrix.ndim != 2 or matrix.shape[1] == 0:
-        raise ValueError('Для кругового среднего нужна непустая матрица')
-    vector = np.mean(np.exp(1j * np.deg2rad(matrix)), axis=1)
-    valid = np.isfinite(matrix).all(axis=1) & (np.abs(vector) >= min_resultant)
-    return np.where(valid, np.rad2deg(np.angle(vector)) % 360.0, np.nan)
+def find_zero_transitions(seq: np.ndarray, angle: np.ndarray,
+                          unwrapped: np.ndarray) -> np.ndarray:
+    """Координаты переходов через нуль (пересечения уровней 360*n), в отсчётах seq.
 
-
-# ============================================================================
-# 3. Подготовка одного непрерывного сигнала
-# ============================================================================
-def _prepare_signal(x, angle, std, max_gap, max_step):
-    """Одна проверка входных массивов и отсечение неподвижных краёв.
-
-    Пропуски/перезапуски разделяет split_signal() до вызова анализатора.
-    Здесь остаётся проверка контракта: analyze_signal() можно вызвать напрямую.
-    std: либо известные неотрицательные СКО, либо целиком NaN (неизвестны).
+    Переход обнаруживается по |diff| > 180° между соседними углами, положение
+    уточняется линейной интерполяцией по развёрнутому сигналу.
     """
-    x, angle, std = [np.asarray(a, dtype=float) for a in (x, angle, std)]
-    if any(a.ndim != 1 for a in (x, angle, std)):
-        raise ValueError('x, angle и std должны быть одномерными')
-    if not len(x) == len(angle) == len(std) or len(x) < MIN_SIGNAL_SAMPLES:
-        raise ValueError(f'Нужны массивы одинаковой длины, не менее {MIN_SIGNAL_SAMPLES} точек')
-    if not (np.isfinite(x).all() and np.isfinite(angle).all()):
-        raise ValueError('В x/angle есть NaN или бесконечность')
+    raw_diff = np.diff(angle)
+    wrap_idx = np.flatnonzero(np.abs(raw_diff) > WRAP_DIFF_DEG)
+    if len(np.unique(np.sign(raw_diff[wrap_idx]))) > 1:
+        raise ValueError('Переходы через нуль в обе стороны: колебания, а не вращение')
+
+    crossings = []
+    for i in wrap_idx:
+        y0, y1 = unwrapped[i], unwrapped[i + 1]
+        # Пересекаемый уровень 360*n — ближайший к середине интервала;
+        # он может совпадать с концом интервала (точный нуль угла).
+        level = round((y0 + y1) / 2.0 / 360.0) * 360.0
+        if not (min(y0, y1) - 1e-9 <= level <= max(y0, y1) + 1e-9):
+            raise ValueError(f'Скачок {raw_diff[i]:.1f}° без пересечения уровня 360°')
+        fraction = (level - y0) / (y1 - y0)
+        crossings.append(seq[i] + fraction * (seq[i + 1] - seq[i]))
+    return np.asarray(crossings, dtype=float)
+
+
+# ============================================================================
+# 3-6. Основной расчёт
+# ============================================================================
+def analyze(seq: np.ndarray, angle: np.ndarray) -> PeriodProfile:
+    seq = np.asarray(seq, dtype=float)
+    angle = np.asarray(angle, dtype=float)
+    if len(seq) < MIN_SAMPLES:
+        raise ValueError(f'Нужно не менее {MIN_SAMPLES} отсчётов')
+    if np.any(np.diff(seq) <= 0):
+        raise ValueError('seq должен строго возрастать (перезапуск/повтор строк)')
     if np.any((angle < 0) | (angle >= 360)):
         raise ValueError('Углы должны находиться в [0, 360)')
-    std_known = np.isfinite(std).all()
-    if not (std_known or np.isnan(std).all()) or (std_known and np.any(std < 0)):
-        raise ValueError('std: неотрицательные конечные значения или целиком NaN')
 
-    dx = np.diff(x)
-    delta_angle = angle_diff(angle[1:], angle[:-1])
-    if np.any(dx <= 0) or np.any(dx > max_gap) or np.any(np.abs(delta_angle) > max_step):
-        raise ValueError('Участок не непрерывный: повтор x, пропуск или угловой скачок')
-
-    speed = np.abs(delta_angle / dx)
-    positive_speed = speed[speed > MIN_POSITIVE_SPEED]
-    if len(positive_speed) < MIN_MOVING_INTERVALS:
-        raise ValueError('Нет устойчивого движения')
-    reference_speed = np.percentile(positive_speed, MOTION_SPEED_PERCENTILE)
-    motion_threshold = max(MIN_MOTION_SPEED, MOTION_SPEED_FRACTION * reference_speed)
-    moving = np.flatnonzero(speed >= motion_threshold)
-    if len(moving) < MIN_MOVING_INTERVALS:
-        raise ValueError('Недостаточно движущихся интервалов')
-
-    # Интервал i соединяет точки i и i+1; stop сдвигаем на 2 для Python slice.
-    active_slice = slice(int(moving[0]), int(moving[-1]) + 2)
-    return x[active_slice], angle[active_slice], std[active_slice], motion_threshold
-
-
-# ============================================================================
-# 4. Робастная прямая и границы полных периодов модели
-# ============================================================================
-def robust_line(x, y):
-    """Прямая y = slope*x + intercept, итеративное МНК с весами Huber.
-
-    Малые остатки имеют вес 1. Для больших вес уменьшается как threshold/|r|.
-    Центрирование x улучшает обусловленность при больших номерах seq.
-    Ни исходные углы, ни отдельные точки здесь не удаляются и не сглаживаются.
-    """
-    center = float(np.mean(x))
-    x_span = float(np.ptp(x))
-    if x_span <= 0:
-        raise ValueError('Нулевой диапазон x')
-    design = np.column_stack(((x - center) / x_span, np.ones(len(x))))
-    coefficients = np.linalg.lstsq(design, y, rcond=None)[0]
-
-    for _ in range(MAX_FIT_ITERATIONS):
-        residual = y - design @ coefficients
-        mad = np.median(np.abs(residual - np.median(residual)))
-        residual_scale = MAD_TO_NORMAL_STD * mad
-        if residual_scale < MIN_RESIDUAL_SCALE:
-            break
-
-        threshold = HUBER_THRESHOLD_SIGMA * residual_scale
-        weights = np.minimum(1.0, threshold / np.maximum(np.abs(residual), WEIGHT_DENOMINATOR_FLOOR))
-        root_weights = np.sqrt(weights)
-        updated = np.linalg.lstsq(design * root_weights[:, None], y * root_weights, rcond=None)[0]
-        change = np.max(np.abs(updated - coefficients))
-        coefficients = updated
-        if change < FIT_TOLERANCE:
-            break
-
-    slope = float(coefficients[0] / x_span)
-    intercept = float(coefficients[1] - slope * center)
-    return slope, intercept
-
-
-def find_period_boundaries(x, slope, intercept):
-    """Пересечения прямой с уровнями 360*n внутри доступного участка.
-
-    Это границы модели равномерного вращения, не измеренные события оборота.
-    Границы на концах участка сохраняем с численным допуском.
-    """
-    if not np.isfinite(slope) or abs(slope) < MIN_ABS_SLOPE:
-        raise ValueError('Наклон близок к нулю')
-    endpoints = slope * np.asarray([x[0], x[-1]]) + intercept
-    first_turn = np.ceil(np.min(endpoints) / 360.0 - BOUNDARY_TOLERANCE)
-    last_turn = np.floor(np.max(endpoints) / 360.0 + BOUNDARY_TOLERANCE)
-    turn_numbers = np.arange(first_turn, last_turn + 1)
-    boundaries = np.sort((360.0 * turn_numbers - intercept) / slope)
-    tolerance = max(1.0, float(np.ptp(x))) * BOUNDARY_TOLERANCE
-    inside = (boundaries >= x[0] - tolerance) & (boundaries <= x[-1] + tolerance)
-    return np.clip(boundaries[inside], x[0], x[-1])
-
-
-def _fold_periods(x, unwrapped, std, boundaries, slope, intercept, n_phase):
-    """Одна строка матрицы — один оборот, один столбец — одна фаза.
-
-    Интерполируем только внутри предварительно проверенного непрерывного участка.
-    Узлы находятся в центрах фазовых ячеек: (i+0.5)/N.
-    Для обратного вращения переставляем столбцы в порядок возрастания угловой фазы.
-    """
-    fraction = (np.arange(n_phase) + 0.5) / n_phase
-    query_x = boundaries[:-1, None] + np.diff(boundaries)[:, None] * fraction
-    measured = np.interp(query_x.ravel(), x, unwrapped).reshape(query_x.shape)
-    residuals = measured - (slope * query_x + intercept)
-
-    if np.isnan(std).all():
-        instrument_std = np.full_like(residuals, np.nan)
-    else:
-        instrument_std = np.interp(query_x.ravel(), x, std).reshape(query_x.shape)
-
-    phase_deg = fraction * 360.0 if slope > 0 else 360.0 - fraction * 360.0
-    order = np.argsort(phase_deg)
-    return fraction[order], phase_deg[order], residuals[:, order], instrument_std[:, order]
-
-
-def _select_periods(residuals, clip):
-    """Необязательная отбраковка целых оборотов, не отдельных точек.
-
-    Оценка оборота — RMS отклонения от медианного профиля.
-    clip=0 сохраняет все обороты; иначе порог = median(score) + clip*sigma_MAD.
-    Это инженерный фильтр, а не гарантия вероятности ложного срабатывания.
-    """
-    keep = np.ones(len(residuals), dtype=bool)
-    if clip <= 0 or len(residuals) < MIN_CYCLES_FOR_CLIPPING:
-        return keep
-    median_profile = np.median(residuals, axis=0)
-    scores = np.sqrt(np.mean((residuals - median_profile) ** 2, axis=1))
-    median_score = np.median(scores)
-    score_scale = MAD_TO_NORMAL_STD * np.median(np.abs(scores - median_score))
-    return scores <= median_score + clip * max(score_scale, MIN_RESIDUAL_SCALE)
-
-
-# ============================================================================
-# 5. Основной расчёт: только последовательность этапов
-# ============================================================================
-def analyze_signal(x, angle, std, args):
-    """Анализ одного непрерывного участка. Настройки args проверяет validate_options()."""
-    x, angle, std, motion_threshold = _prepare_signal(x, angle, std, args.max_gap, args.max_step)
-
-    # 1. Оцениваем тренд и период по развёрнутому углу.
-    unwrapped = unwrap_deg(angle)
-    slope, intercept = robust_line(x, unwrapped)
-    if not np.isfinite(slope) or abs(slope) < MIN_ABS_SLOPE:
-        raise ValueError('Нельзя определить период: наклон близок к нулю')
-    period = 360.0 / abs(slope)
-    if args.min_period is not None and period < args.min_period:
-        raise ValueError(f'Период {period:g} меньше --min-period')
-    if args.max_period is not None and period > args.max_period:
-        raise ValueError(f'Период {period:g} больше --max-period')
-
-    # 2. Один участок должен иметь преимущественно одно направление вращения.
-    signed_speed = angle_diff(angle[1:], angle[:-1]) / np.diff(x)
-    moving_speed = signed_speed[np.abs(signed_speed) >= motion_threshold]
-    reverse_fraction = np.mean(moving_speed * np.sign(slope) < 0)
-    if reverse_fraction > MAX_REVERSE_FRACTION:
-        raise ValueError('На участке есть существенный разворот; разделите измерение')
-
-    # 3. Выбираем фазовую сетку и полные периоды, без искусственного clamp периода.
-    points_per_turn = period / np.median(np.diff(x))
-    if points_per_turn < args.min_points:
-        raise ValueError('Недостаточно измерений на оборот')
-    n_phase = args.n_phase
-    if n_phase is None:
-        n_phase = min(MAX_PHASE_POINTS, max(DEFAULT_MIN_PHASE_POINTS, int(round(points_per_turn))))
-    boundaries = find_period_boundaries(x, slope, intercept)
-    n_periods = len(boundaries) - 1
+    unwrapped = unwrap_signal(angle)
+    crossings = find_zero_transitions(seq, angle, unwrapped)
+    n_periods = len(crossings) - 1
     if n_periods < 1:
-        raise ValueError('Нет полного периода модели внутри участка')
-    if n_periods * n_phase > MAX_FOLD_ELEMENTS:
-        raise ValueError('Слишком большая матрица; уменьшите --n-phase или разделите лог')
+        raise ValueError('Нужно минимум два перехода через нуль (один полный период)')
 
-    # 4. Накладываем обороты и, только по явному запросу, исключаем выбросы.
-    fraction, phase_deg, residuals, instrument_std = _fold_periods(
-        x, unwrapped, std, boundaries, slope, intercept, n_phase)
-    keep = _select_periods(residuals, 0.0 if args.no_filter else args.clip)
-    selected = residuals[keep]
-    n_selected = len(selected)
-    if n_selected == 0:
-        raise ValueError('Отбракованы все обороты')
+    # 4. Период по переходам; тренд — одна МНК-прямая по всему диапазону.
+    period = (crossings[-1] - crossings[0]) / n_periods
+    fit_mask = (seq >= crossings[0]) & (seq <= crossings[-1])
+    slope, intercept = np.polyfit(seq[fit_mask], unwrapped[fit_mask], 1)
 
-    # 5. Наблюдаемый разброс не складываем повторно с инструментальным шумом.
-    mean_residual = np.mean(selected, axis=0)
-    observed_std = (np.std(selected, axis=0, ddof=1) if n_selected > 1
-                    else np.full(n_phase, np.nan))
-    supplied_std = np.sqrt(np.mean(instrument_std[keep] ** 2, axis=0))
+    # 5. Общая сетка: k-я строка сдвинута ровно на k*P, без растяжения периодов.
+    n_points = max(2, int(round(period)))
+    sample_position = np.arange(n_points) * period / n_points
+    grid = crossings[0] + np.arange(n_periods)[:, None] * period + sample_position[None, :]
+    # Все точки сетки лежат строго внутри данных, np.interp не выходит за края.
+    period_rows = np.interp(grid, seq, unwrapped) - (slope * grid + intercept)
 
-    return PeriodAnalysisResult(
-        period_samples=float(period), n_periods=n_selected,
-        phase_samples=fraction * period, phase_deg=phase_deg,
-        mean_error=mean_residual, statistical_std=observed_std,
-        single_frame_std=supplied_std, total_std=observed_std.copy(),
-        error_matrix=selected, period_mask=keep, fitted_slope=slope,
-        rotation_direction='increasing' if slope > 0 else 'decreasing',
-        active_range=(float(x[0]), float(x[-1])), period_boundaries=boundaries,
-        # Эта оценка ошибки среднего предполагает независимость оборотов.
-        standard_error=observed_std / np.sqrt(n_selected))
+    # 6. Среднее и СКО в каждой точке периода.
+    mean = period_rows.mean(axis=0)
+    if n_periods > 1:
+        std = period_rows.std(axis=0, ddof=1)
+        stderr = std / np.sqrt(n_periods)
+    else:
+        print('[WARN] Только один полный период: СКО не определено', file=sys.stderr)
+        std = np.full(n_points, np.nan)
+        stderr = np.full(n_points, np.nan)
 
-
-# ============================================================================
-# 6. CSV и разделение потока: не сортировать данные по seq
-# ============================================================================
-def _angle_columns(df):
-    return sorted([c for c in df.columns if re.fullmatch(r'ang_\d+', c, re.I)],
-                  key=lambda c: int(c.split('_')[-1]))
-
-
-def prepare_log(path):
-    """Сохраняем порядок строк. Для legacy CSV восстанавливаем wrap uint16.
-
-    session надёжнее эвристики wrap: его пишет новый логгер при обнаружении reset.
-    Если boot-маркер потерян, reset может быть неразличим с обычным ходом seq.
-    """
-    df = pd.read_csv(path, encoding='utf-8-sig', on_bad_lines='error')
-    df.columns = [str(c).strip() for c in df.columns]
-    if 'seq' not in df.columns or not _angle_columns(df):
-        raise ValueError('CSV должен содержать seq и ang_1..ang_k')
-    for column in ['seq', 'status', 'session', *_angle_columns(df)]:
-        if column in df:
-            df[column] = pd.to_numeric(df[column], errors='coerce')
-    if 'status' not in df:
-        print('[WARN] Нет status: проверяем только числовые значения', file=sys.stderr)
-        df['status'] = 1
-
-    sessions = df['session'].to_numpy() if 'session' in df else np.zeros(len(df))
-    x = np.full(len(df), np.nan)
-    segments = np.zeros(len(df), dtype=int)
-    previous_seq, previous_session, previous_x, segment = None, None, 0.0, 0
-    for i, seq in enumerate(df['seq'].to_numpy()):
-        session = sessions[i]
-        if not np.isfinite(seq) or seq < 0 or seq != np.floor(seq) or not np.isfinite(session):
-            segment += 1
-            previous_seq = None
-            segments[i] = segment
-            continue
-        if previous_seq is None or session != previous_session:
-            segment += 1
-            value = float(seq)
-        elif seq > previous_seq:
-            value = previous_x + seq - previous_seq
-        elif (SEQ_WRAP_HIGH <= previous_seq < SEQ_MODULUS and seq < SEQ_WRAP_LOW
-              and 0 < (seq - previous_seq) % SEQ_MODULUS < SEQ_HALF_RANGE):
-            value = previous_x + (seq - previous_seq) % SEQ_MODULUS
-        else:
-            segment += 1
-            value = float(seq)
-        x[i], segments[i] = value, segment
-        previous_seq, previous_session, previous_x = seq, session, value
-    df['_x'], df['_segment'] = x, segments
-    return df
-
-
-def split_signal(x, angle, valid, labels, max_gap=3.0, max_step=90.0):
-    """Разрывы не интерполируем. Одиночный выброс может отделить два хороших участка."""
-    pieces, start = [], None
-    for i in range(len(x)):
-        good = bool(valid[i]) and np.isfinite(x[i]) and np.isfinite(angle[i]) and 0 <= angle[i] < 360
-        boundary = False
-        if good and start is not None:
-            dx = x[i] - x[i - 1]
-            boundary = (labels[i] != labels[i - 1] or not 0 < dx <= max_gap
-                        or abs(angle_diff(angle[i], angle[i - 1])) > max_step)
-        if (not good or boundary) and start is not None:
-            pieces.append(slice(start, i))
-            start = None
-        if good and start is None:
-            start = i
-    if start is not None:
-        pieces.append(slice(start, len(x)))
-    return pieces
+    return PeriodProfile(
+        period_samples=float(period), n_periods=n_periods, n_points=n_points,
+        slope_deg_per_sample=float(slope), intercept_deg=float(intercept),
+        direction='угол растёт' if slope > 0 else 'угол убывает',
+        sample_position=sample_position, phase_deg=sample_position / period * 360.0,
+        mean_deg=mean, std_deg=std, stderr_deg=stderr, period_rows=period_rows)
 
 
 # ============================================================================
-# 7. Сохранение результатов
+# 7. Сохранение и графики
 # ============================================================================
-def save_csv(result, path):
+def save_csv(profile: PeriodProfile, path: Path) -> None:
     with open(path, 'w', encoding='utf-8', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(['phase_samples', 'phase_deg', 'mean_residual_deg', 'observed_std_deg',
-                         'mean_stderr_independent_turns_deg', 'supplied_instrument_std_deg'])
-        writer.writerows(zip(result.phase_samples, result.phase_deg, result.mean_error,
-                             result.statistical_std, result.standard_error, result.single_frame_std))
+        writer.writerow(['sample_position', 'phase_deg', 'mean_deg', 'std_deg', 'stderr_deg'])
+        writer.writerows(zip(profile.sample_position, profile.phase_deg,
+                             profile.mean_deg, profile.std_deg, profile.stderr_deg))
 
 
-def plot_result(result, out_path=None):
+def plot_result(profile: PeriodProfile, name: str, out_path: Path | None = None):
     import matplotlib.pyplot as plt
+    x = profile.sample_position
     fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True, constrained_layout=True)
-    phase = result.phase_deg
-    axes[0].plot(phase, result.mean_error, 'k', label='Mean residual')
-    axes[0].fill_between(phase, result.mean_error - result.statistical_std,
-                         result.mean_error + result.statistical_std,
-                         alpha=0.25, label='Observed inter-turn SD')
-    axes[0].set_title(f'Period={result.period_samples:.5g} SNAP cycles; N={result.n_periods}; {result.rotation_direction}')
-    axes[0].set_ylabel('Residual, deg')
+
+    axes[0].plot(x, profile.mean_deg, 'k-', label='Среднее')
+    axes[0].fill_between(x, profile.mean_deg - profile.std_deg,
+                         profile.mean_deg + profile.std_deg, alpha=0.25, label='±СКО')
+    axes[0].set_title(f'{name}: период = {profile.period_samples:.6g} отсчётов; '
+                      f'полных периодов: {profile.n_periods}; {profile.direction}')
+    axes[0].set_ylabel('Остаток, град')
     axes[0].legend()
-    axes[1].plot(phase, result.statistical_std, label='Observed SD')
-    if np.isfinite(result.single_frame_std).any():
-        axes[1].plot(phase, result.single_frame_std, label='Supplied instrument SD (not added)')
-    axes[1].set_ylabel('SD, deg')
-    axes[1].legend()
-    for row in result.error_matrix[:20]:
-        axes[2].plot(phase, row, lw=0.6, alpha=0.6)
-    axes[2].plot(phase, result.mean_error, 'k', lw=2)
-    axes[2].set_xlabel('Model phase, deg')
-    axes[2].set_ylabel('Residual, deg')
+
+    axes[1].plot(x, profile.std_deg)
+    axes[1].set_ylabel('СКО, град')
+    axes[1].set_title('СКО от положения внутри периода')
+
+    for row in profile.period_rows:
+        axes[2].plot(x, row, lw=0.4, alpha=0.4)
+    axes[2].plot(x, profile.mean_deg, 'k-', lw=2, label='Среднее')
+    axes[2].set_xlabel('Положение внутри периода, отсчёты')
+    axes[2].set_ylabel('Остаток, град')
+    axes[2].set_title('Все периоды и среднее')
+    axes[2].legend()
+
     for ax in axes:
-        ax.set_xlim(0, 360)
         ax.grid(alpha=0.3)
     if out_path:
         fig.savefig(out_path, dpi=150)
@@ -422,109 +254,58 @@ def plot_result(result, out_path=None):
 
 
 # ============================================================================
-# 8. CLI: проверяем настройки один раз, до обработки сигналов
+# CLI
 # ============================================================================
-def build_argparser():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('csv')
-    parser.add_argument('--min-period', type=float)
-    parser.add_argument('--max-period', type=float)
-    parser.add_argument('--n-phase', type=int)
-    parser.add_argument('--max-gap', type=float, default=3.0, help='Максимальный интервал seq внутри участка')
-    parser.add_argument('--max-step', type=float, default=90.0, help='Максимальный круговой шаг, град; меньше 180')
-    parser.add_argument('--min-points', type=int, default=12, help='Минимум измерений на оборот')
-    parser.add_argument('--clip', type=float, default=0.0, help='MAD-порог отбраковки оборотов; 0 = выключено')
-    parser.add_argument('--no-filter', action='store_true', help='Не отбраковывать обороты')
-    parser.add_argument('--n-hint', type=float, default=None, help='Устаревшая опция, выдаёт предупреждение')
-    parser.add_argument('--offsets', help='Вычитаемые смещения перед круговым средним, например 0,180')
-    parser.add_argument('--min-resultant', type=float, default=0.1, help='Минимальная длина среднего единичных векторов')
-    parser.add_argument('--no-show', action='store_true')
-    parser.add_argument('--no-plots', action='store_true', help='Только CSV и JSON, без matplotlib')
+def build_argparser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('csv', help='CSV-файл лога (seq, ang_1..ang_k)')
+    parser.add_argument('--offsets', help='Смещения головок перед круговым средним, '
+                                         'например 0,180 (по одному на столбец ang)')
+    parser.add_argument('--no-plots', action='store_true', help='Только CSV, без графиков')
+    parser.add_argument('--no-show', action='store_true', help='Не открывать окна графиков')
     return parser
 
 
-def validate_options(args):
-    """Проверка параметров вызова. В вычислительных этапах её не дублируем."""
-    if not np.isfinite(args.max_gap) or args.max_gap <= 0 or not 0 < args.max_step < 180:
-        raise ValueError('Нужны max-gap > 0 и 0 < max-step < 180')
-    if not np.isfinite(args.clip) or args.clip < 0 or args.min_points < 4:
-        raise ValueError('Некорректные clip/min-points')
-    if args.n_phase is not None and not MIN_PHASE_POINTS <= args.n_phase <= MAX_PHASE_POINTS:
-        raise ValueError(f'n-phase должен быть в {MIN_PHASE_POINTS}..{MAX_PHASE_POINTS}')
-    if not 0 < args.min_resultant <= 1:
-        raise ValueError('min-resultant должен быть в (0, 1]')
-    bounds = [v for v in (args.min_period, args.max_period) if v is not None]
-    if any(not np.isfinite(v) or v <= 0 for v in bounds):
-        raise ValueError('Границы периода должны быть конечными и положительными')
-    if len(bounds) == 2 and args.min_period > args.max_period:
-        raise ValueError('min-period больше max-period')
-    if args.n_hint is not None:
-        print('[WARN] --n-hint устарел и не используется', file=sys.stderr)
-
-
-def run(args):
-    validate_options(args)
+def run(args) -> None:
     path = Path(args.csv)
-    df = prepare_log(path)
-    columns = _angle_columns(df)
-    offsets = (np.zeros(len(columns)) if args.offsets is None
-               else np.array([float(v) for v in args.offsets.split(',')]))
-    if len(offsets) != len(columns) or not np.isfinite(offsets).all():
-        raise ValueError('Нужно одно конечное смещение на каждый угловой столбец')
+    df, columns = load_log(path)
+    offsets = None
+    if args.offsets is not None:
+        offsets = np.array([float(v) for v in args.offsets.split(',')])
+        if len(offsets) != len(columns) or not np.isfinite(offsets).all():
+            raise ValueError('Нужно одно конечное смещение на каждый угловой столбец')
 
-    out_dir = path.parent / path.stem
-    out_dir.mkdir(parents=True, exist_ok=True)
-    x, labels = df['_x'].to_numpy(), df['_segment'].to_numpy()
-    valid = df['status'].to_numpy() == 1
-    matrix = df[columns].to_numpy(dtype=float)
-    signals = [(column, matrix[:, i]) for i, column in enumerate(columns)]
-    if len(columns) > 1:
-        valid_angles = np.isfinite(matrix).all(axis=1) & ((matrix >= 0) & (matrix < 360)).all(axis=1)
-        mean_angle = circular_mean_deg(wrap_deg(matrix - offsets), args.min_resultant)
-        mean_angle[~valid_angles] = np.nan
-        signals.append(('circular_mean', mean_angle))
+    signals = build_signals(df, columns, offsets)
+    n_ok = 0
+    for name, (seq, angle) in signals.items():
+        stem = f'{path.stem}_{name}_profile'
+        try:
+            profile = analyze(seq, angle)
+        except ValueError as exc:
+            print(f'[WARN] {name}: {exc}', file=sys.stderr)
+            continue
+        save_csv(profile, path.with_name(stem + '.csv'))
+        print(f'{name}: период {profile.period_samples:.6g} отсчётов; '
+              f'полных периодов: {profile.n_periods}')
+        if not args.no_plots:
+            figure = plot_result(profile, name, path.with_name(stem + '.png'))
+            if args.no_show:
+                import matplotlib.pyplot as plt
+                plt.close(figure)
+        n_ok += 1
 
-    summary = []
-    for name, angle in signals:
-        pieces = split_signal(x, angle, valid, labels, args.max_gap, args.max_step)
-        for number, piece in enumerate(pieces, 1):
-            size = piece.stop - piece.start
-            if size < MIN_SIGNAL_SAMPLES:
-                continue
-            stem = f'{name}_segment_{number:03d}'
-            try:
-                result = analyze_signal(x[piece], angle[piece], np.full(size, np.nan), args)
-            except ValueError as exc:
-                summary.append({'signal': name, 'segment': number, 'status': 'rejected', 'reason': str(exc)})
-                print(f'[WARN] {stem}: {exc}', file=sys.stderr)
-                continue
-            save_csv(result, out_dir / f'{stem}_profile.csv')
-            if not args.no_plots:
-                figure = plot_result(result, out_dir / f'{stem}.png')
-                if args.no_show:
-                    import matplotlib.pyplot as plt
-                    plt.close(figure)
-            summary.append({'signal': name, 'segment': number, 'status': 'ok',
-                            'period_snap_cycles': result.period_samples, 'turns': result.n_periods,
-                            'rejected_turns': int((~result.period_mask).sum()),
-                            'direction': result.rotation_direction, 'range': result.active_range})
-            print(f'{stem}: period={result.period_samples:.6g} SNAP cycles; turns={result.n_periods}')
-
-    (out_dir / 'analysis_summary.json').write_text(json.dumps({
-        'warning': 'Residual against a constant-speed model, not true encoder error. seq is not seconds. '
-                   'Hidden turns cannot be uniquely recovered. SEM assumes independent turns. '
-                   'Legacy reset/wrap detection is heuristic.',
-        'source': str(path), 'results': summary}, ensure_ascii=False, indent=2), encoding='utf-8')
-    if not any(item['status'] == 'ok' for item in summary):
-        raise ValueError('Нет пригодного участка: смотрите analysis_summary.json')
+    if n_ok == 0:
+        raise ValueError('Ни один сигнал не проанализирован: смотрите предупреждения выше')
     if not args.no_show and not args.no_plots:
         import matplotlib.pyplot as plt
         plt.show()
 
 
-def main():
+def main() -> None:
+    args = build_argparser().parse_args()
     try:
-        run(build_argparser().parse_args())
+        run(args)
     except (OSError, ValueError, pd.errors.ParserError) as exc:
         print(f'[ERROR] {exc}', file=sys.stderr)
         raise SystemExit(1)

@@ -119,8 +119,6 @@
 #define CENTER_PIXEL            60
 
 
-
-
 #ifndef M_PI_4
 #define M_PI_4 (3.1415926535897932384626433832795/4.0)
 #endif
@@ -131,13 +129,6 @@
 #define A 0.0776509570923569
 #define B -0.287434475393028
 #define C (M_PI_4 - A - B)
-
-
-
-
-
-
-
 
 
 
@@ -329,23 +320,30 @@ volatile uint8_t adc_rdy = 0U;                                                  
    buf_k, чтобы яркость не "уползала" в процессе измерений).                  */
 //DAC
 uint8_t backlight_width_en=1;
+volatile uint8_t agc_test_disable = 0U;
 int max_level = MAX_LEVEL_PIX;
 int adc_offset=ADC_OFFSET;
 int max_level_pix = MAX_LEVEL_PIX - ADC_OFFSET;
 uint16_t lasdac=700;                                                            // Laser DAC setpoint (initial value)
 uint32_t lasdac_counter=0;
 uint32_t avg_amaxX_summ=0;
-uint32_t avg_amaxX_num=1000;
+uint32_t avg_amaxX_num=10000;
 uint32_t avg_max_data;
 
 #define BACKLIGHT_STATE_IDLE   0
 #define BACKLIGHT_STATE_DELAY  1
 #define BACKLIGHT_STATE_WIDTH  2
-#define BACKLIGHT_WIDTH_MIN_TICKS 2
-#define BACKLIGHT_WIDTH_MAX_TICKS 9400
+
+#define AGC_LEVEL_LOW   2000U
+#define AGC_LEVEL_HIGH  2400U
+
+#define AGC_WIDTH_MIN_TICKS   500U
+#define AGC_WIDTH_MAX_TICKS  2000U
+
+volatile uint32_t backlight_overlap_count = 0U;
 
 volatile uint16_t backlight_delay_ticks = 1220;
-volatile uint16_t backlight_width_ticks = 2500;
+volatile uint16_t backlight_width_ticks = 2100;
 volatile uint8_t backlight_timer_state = BACKLIGHT_STATE_IDLE;
 
 
@@ -906,7 +904,7 @@ int offset_snum=7;
    пикселя i: buf_x2[i] = buf_x1[i] * buf_k[i]. Без него субпиксельный алгоритм
    BR4 даёт смещение, зависящее от того, на какие пиксели попал репер.        */
 int start_angk_cal=0;
-int anglek_phase=0;
+int anglek_phase=101;
 int anglek_cur=0;
 float anglek_minmax[4];
 float anglek_data[4];
@@ -3388,31 +3386,42 @@ void angk_cal() {
   * @retval none
   */
 /*-----------------------------------------------------------------------------------*/
-void dac_ctrl() {
+void dac_ctrl(void)
+{  
+    adc_offset = avg_max_data / 5; 
+    /* adc_offset задаётся независимо и здесь не изменяется. */
+    max_level_pix = max_level - adc_offset;
 
-   adc_offset=avg_max_data/5;                                                   //ADC offset calculation
-   max_level_pix = max_level - adc_offset;                                      //max_level_pix calculation
-        
-   lasdac_counter++;
-   avg_amaxX_summ += max_data;
+    lasdac_counter++;
+    avg_amaxX_summ += max_data;
+
+    if (lasdac_counter < avg_amaxX_num) {
+        return;
+    }
+
+    avg_max_data = avg_amaxX_summ / lasdac_counter;
+
+    lasdac_counter = 0U;
+    avg_amaxX_summ = 0U;
+
+    if (!backlight_width_en) {
+        return;
+    }
     
-    if(lasdac_counter>=avg_amaxX_num) {      
-      lasdac_counter=0;    
-      avg_max_data = avg_amaxX_summ/avg_amaxX_num;
-      if (avg_max_data < max_level_pix - 200) {
-        if (backlight_width_ticks < BACKLIGHT_WIDTH_MAX_TICKS) {
-          if (backlight_width_en) backlight_width_ticks++;
-        }
-      }
-      else if (avg_max_data > max_level_pix) {
-        if (backlight_width_ticks > BACKLIGHT_WIDTH_MIN_TICKS) {
-          if (backlight_width_en) backlight_width_ticks--;
-        }
-      }
-      avg_amaxX_summ = 0;
-  }
+    if (agc_test_disable) {
+        return;
+    }
 
-  
+    if (avg_max_data < AGC_LEVEL_LOW) {
+        if (backlight_width_ticks < AGC_WIDTH_MAX_TICKS) {
+            backlight_width_ticks++;
+        }
+    }
+    else if (avg_max_data > AGC_LEVEL_HIGH) {
+        if (backlight_width_ticks > AGC_WIDTH_MIN_TICKS) {
+            backlight_width_ticks--;
+        }
+    }
 }
 
 
@@ -3656,7 +3665,7 @@ int main(void)
 
   __enable_irq();                                                               // enable interrupts
   cycles_max=0;
-
+ 
   // Infinite loop
   while (1)
   {
@@ -4291,7 +4300,9 @@ void DMA2_Stream3_IRQHandler(void)
     KIN1_EnableCycleCounter();                                                  // start counting
 
     __disable_irq ();
-
+    if (backlight_timer_state != BACKLIGHT_STATE_IDLE) {
+        backlight_overlap_count++;
+    }
     SCB_InvalidateDCache_by_Addr((uint32_t *)ADC_VAL,((132*2+31)/32)*32);//force to let update caches again with memory content to see the changes
     SCB_InvalidateDCache_by_Addr((uint32_t *)ADC_VAL2,((132*2+31)/32)*32);//force to let update caches again with memory content to see the changes
 

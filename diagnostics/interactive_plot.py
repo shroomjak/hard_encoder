@@ -10,7 +10,7 @@ def plot_angles(csv_path: Path, html_path: Path, auto_open: bool = True):
     df = pd.read_csv(csv_path, sep=None, engine="python")
     df.columns = df.columns.str.strip()
 
-    required = ["seq", "ang_1", "ang_2"]
+    required = ["seq"]
     missing = [column for column in required if column not in df.columns]
 
     if missing:
@@ -25,9 +25,6 @@ def plot_angles(csv_path: Path, html_path: Path, auto_open: bool = True):
     if df["seq"].notna().sum() == 0:
         raise ValueError("В столбце seq нет числовых значений.")
 
-    if not df[["ang_1", "ang_2"]].notna().any().any():
-        raise ValueError("В столбцах ang_1 и ang_2 нет числовых значений.")
-
     # Сохраняем исходный порядок строк и все точки.
     fig = go.Figure()
 
@@ -37,21 +34,22 @@ def plot_angles(csv_path: Path, html_path: Path, auto_open: bool = True):
     }
 
     for column, color in colors.items():
-        fig.add_trace(
-            go.Scatter(
-                x=df["seq"],
-                y=df[column],
-                mode="lines",
-                name=column,
-                line=dict(color=color, width=1.3),
-                connectgaps=False,
-                hovertemplate=(
-                    f"{column}: %{{y:.6f}}°"
-                    "<br>seq: %{x}"
-                    "<extra></extra>"
-                ),
+        if column in df.columns:
+            fig.add_trace(
+                go.Scatter(
+                    x=df["seq"],
+                    y=df[column],
+                    mode="lines",
+                    name=column,
+                    line=dict(color=color, width=1.3),
+                    connectgaps=False,
+                    hovertemplate=(
+                        f"{column}: %{{y:.6f}}°"
+                        "<br>seq: %{x}"
+                        "<extra></extra>"
+                    ),
+                )
             )
-        )
 
     fig.update_layout(
         title=dict(
