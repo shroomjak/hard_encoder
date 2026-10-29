@@ -267,14 +267,25 @@ def build_signals(df, columns, x_column='seq'):
     ok_all = finite & np.isfinite(matrix).all(axis=1)
 
     if m >= 2 and ok_all.sum() >= 4:
-        # Приводим начальные разности к [0, 360) и вычитаем геометрический шаг равного деления
-        # 360° * j / M: это исключает переброс ветви на 180° при старте в разных полуоборотах,
-        # сохраняет привязку к нулю первой головки и удерживает фазу на пропусках.
-        nom = np.arange(m, dtype=float) * (360.0 / m)
+        # Приводим начальные разности к [0, 360) и вычитаем кратный 360°/M геометрический слот
+        # установки головки: это исключает переброс ветви на 180° при старте в разных полуоборотах,
+        # не зависит от порядка нумерации ID по окружности, сохраняет привязку к нулю первой
+        # головки и удерживает фазу при пропусках пакетов.
         rel = np.mod(matrix[ok_all] - matrix[ok_all, :1], 360.0)
-        aligned_diffs = np.unwrap(rel, axis=0, period=360.0) - nom
+        unwrapped_rel = np.unwrap(rel, axis=0, period=360.0)
+        step_m = 360.0 / m
+        nom = np.round(np.median(unwrapped_rel, axis=0) / step_m) * step_m
+        nom[0] = 0.0
+        aligned_diffs = unwrapped_rel - nom
 
-        for j, name in enumerate(columns):
+        signals[columns[0]] = SignalData(
+            x=x[ok0],
+            unwrapped=u0_full[ok0],
+            detrend=True,
+            title=columns[0],
+        )
+        for j in range(1, m):
+            name = columns[j]
             signals[name] = SignalData(
                 x=x[ok_all],
                 unwrapped=u0_full[ok_all] + aligned_diffs[:, j],
