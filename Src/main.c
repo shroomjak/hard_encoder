@@ -3445,6 +3445,7 @@ static void DelayTim4Ticks(uint16_t ticks)
   LL_TIM_EnableCounter(TIM4);
 
   while (LL_TIM_IsActiveFlag_UPDATE(TIM4) == 0) {
+    modbus_poll_rx_cyccnt();
   }
 
   LL_TIM_DisableCounter(TIM4);
@@ -4282,6 +4283,7 @@ void DMA2_Stream3_IRQHandler(void)
        относительно пикселя 0 линейки (рост serrcnt1/serrcnt2). Полная длительность
        обработчика (~22.5 мкс) вдвое меньше байта USART1 на 230400 8E1 (47.74 мкс). */
     __disable_irq();
+    modbus_poll_rx_cyccnt();
     LL_DMA_ClearFlag_TC3(DMA2);
 
     if (backlight_timer_state != BACKLIGHT_STATE_IDLE) {
@@ -4307,6 +4309,7 @@ void DMA2_Stream3_IRQHandler(void)
     }
 
     LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_7);
+    modbus_poll_rx_cyccnt();
 
     /* Середина оптической экспозиции нового кадра в тактах SYSCLK (216 МГц):
        1 тик TIM4 (108 МГц) = 2 такта SYSCLK; delay * 2 + (width * 2) / 2 = 2*delay + width. */
@@ -4333,6 +4336,7 @@ void DMA2_Stream3_IRQHandler(void)
     } else {
       adc_dropped_frames++;
     }
+    modbus_poll_rx_cyccnt();
     __enable_irq();
   }
 

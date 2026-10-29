@@ -9,6 +9,7 @@
  */
 #include "main.h"
 #include "modbus_board.h"
+#include "encoder_protocol.h"
 #include "mb.h"
 #include "mbport.h"
 #include "snapshot_registers.h"
@@ -20,9 +21,12 @@ static volatile CHAR rx_byte;
  * последний байт ещё может передаваться; DE сбрасывается только по TC. */
 static volatile BOOL tx_finishing;
 
-/* Тактовая метка DWT->CYCCNT (216 МГц) прихода последнего байта по USART1 RX
+/* Тактовая метка DWT->CYCCNT (216 МГц) прихода последнего байта по USART1 RX,
+ * промежуточная защёлка для опроса RXNE внутри DMA2_Stream3_IRQHandler
  * и счётчик аппаратных ошибок приёма (ORE/FE/NE/PE) для диагностики по SWD. */
 static volatile uint32_t usart1_last_rx_cyccnt;
+volatile uint32_t modbus_rxne_probe_cyccnt;
+volatile uint8_t modbus_rxne_probe_valid;
 volatile uint32_t modbus_uart_error_count;
 
 /* События рождаются в прерываниях UART/TIM2, а разбираются eMBPoll() из main. */
@@ -112,6 +116,7 @@ void vMBPortSerialEnable(BOOL rx, BOOL tx)
 {
     LL_USART_DisableIT_RXNE(USART1);
     LL_USART_DisableIT_TXE(USART1);
+    modbus_rxne_probe_valid = 0U;
     if (tx) {
         tx_finishing = FALSE;
         LL_USART_DisableIT_TC(USART1);
@@ -146,7 +151,7 @@ BOOL xMBPortTimersInit(USHORT timeout_50us)
     LL_TIM_EnableIT_UPDATE(TIM2);
     LL_TIM_GenerateEvent_UPDATE(TIM2);
     LL_TIM_ClearFlag_UPDATE(TIM2);
-    NVIC_SetPriority(TIM2_IRQn, 2);
+    NVIC_SetPriority(TIM2_IRQn, 3);
     NVIC_EnableIRQ(TIM2_IRQn);
     return TRUE;
 }
@@ -170,8 +175,20 @@ void USART1_IRQHandler(void)
     if (err) modbus_uart_error_count++;
 
     if (LL_USART_IsEnabledIT_RXNE(USART1) && LL_USART_IsActiveFlag_RXNE(USART1)) {
-        usart1_last_rx_cyccnt = DWT->CYCCNT;
+        const uint32_t now_cyccnt = DWT->CYCCNT;
+        /* Сначала вычитываем RDR, аппаратно снимая флаг RXNE до сброса защёлки probe:
+         * это исключает ложное повторное срабатывание при вытеснении на границе инструкций. */
         rx_byte = (CHAR)LL_USART_ReceiveData8(USART1);
+        if (modbus_rxne_probe_valid) {
+            const uint32_t probed = modbus_rxne_probe_cyccnt;
+            modbus_rxne_probe_valid = 0U;
+            const uint32_t delta = now_cyccnt - probed;
+            usart1_last_rx_cyccnt = (delta < (48U * ENCODER_DWT_TICKS_PER_US))
+                ? probed
+                : now_cyccnt;
+        } else {
+            usart1_last_rx_cyccnt = now_cyccnt;
+        }
         pxMBFrameCBByteReceived();
     }
     if (LL_USART_IsEnabledIT_TXE(USART1) && LL_USART_IsActiveFlag_TXE(USART1))
@@ -182,6 +199,7 @@ void USART1_IRQHandler(void)
         tx_finishing = FALSE;
         if (LL_USART_IsActiveFlag_RXNE(USART1))
             (void)LL_USART_ReceiveData8(USART1);
+        modbus_rxne_probe_valid = 0U;
         transceiver_rx();
         LL_USART_EnableIT_RXNE(USART1);
     }
