@@ -364,15 +364,27 @@ static void core1_io_init_task(void *arg)
     uart_config.baud_rate = (int)PC_UART_BAUD;
     ESP_ERROR_CHECK(esp_console_new_repl_uart(&uart_config, &repl_config, &repl));
 
-    /* 3. На гарантированно пустом передатчике фиксируем точную частоту 921600 бод,
-     *    максимальную нагрузочную способность выходного каскада GPIO1 (40 мА, крутые фронты)
-     *    и 2 стоп-бита (8N2 полностью совместим с 8N1 на стороне ПК, но даёт мосту USB-UART
-     *    паузу 2.17 мкс после каждого байта при пакетной выдаче из 128-байтного TX FIFO). */
+    /* 3. Обход бага ESP-IDF v5.x в esp_console_new_repl_uart() (esp_console_repl_chip.c):
+     *    для всех скоростей <= 1 000 000 бод функция жёстко выбирает источник тактирования
+     *    UART_SCLK_REF_TICK (1 МГц)! На 921600 бод делитель от 1 МГц вырождается в
+     *    div_int=1, div_frag=1 (фактическая частота ~1 Мбод, ошибка +8.5% -> сдвиг битов),
+     *    а вызов uart_set_baudrate() читает обратно тот же REF_TICK и не меняет источник.
+     *    Явный вызов uart_param_config() с source_clk = UART_SCLK_DEFAULT (APB = 80 МГц)
+     *    переключает UART0 обратно на шину APB (делитель 86.75 -> 922190 бод, погрешность
+     *    всего +0.064%, один в один с чистым выводом загрузчика). */
     esp_rom_output_tx_wait_idle((uint8_t)PC_UART_NUM);
-    ESP_ERROR_CHECK(uart_set_baudrate((uart_port_t)PC_UART_NUM, PC_UART_BAUD));
-    ESP_ERROR_CHECK(uart_set_stop_bits((uart_port_t)PC_UART_NUM, UART_STOP_BITS_2));
+    const uart_config_t apb_uart_cfg = {
+        .baud_rate = (int)PC_UART_BAUD,
+        .data_bits = UART_DATA_8_BITS,
+        .parity = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+        .rx_flow_ctrl_thresh = 0,
+        .source_clk = UART_SCLK_DEFAULT,
+    };
+    ESP_ERROR_CHECK(uart_param_config((uart_port_t)PC_UART_NUM, &apb_uart_cfg));
     ESP_ERROR_CHECK(gpio_set_drive_capability((gpio_num_t)PC_UART_TX_GPIO, GPIO_DRIVE_CAP_3));
-    esp_rom_delay_us(2000);
+    esp_rom_delay_us(1000);
 
     pc_link_start();
 
@@ -395,7 +407,7 @@ static void core1_io_init_task(void *arg)
 
     uint32_t actual_baud = 0U;
     (void)uart_get_baudrate((uart_port_t)PC_UART_NUM, &actual_baud);
-    ESP_LOGI(TAG, "Ready: RS485=%u (Core0 direct RTU), PC_UART=%" PRIu32 " 8N2 (Core1), "
+    ESP_LOGI(TAG, "Ready: RS485=%u (Core0 direct RTU), PC_UART=%" PRIu32 " 8N1 APB (Core1), "
              "grid=%u us, tick=%d Hz, timer=%s",
              MB_BAUD, actual_baud, DEFAULT_POLL_PERIOD_US, CONFIG_FREERTOS_HZ,
              (POLL_TIMER_DISPATCH == ESP_TIMER_ISR) ? "ISR" : "TASK");
