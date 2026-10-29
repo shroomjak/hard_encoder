@@ -99,10 +99,11 @@ BOOL xMBPortSerialInit(UCHAR port, ULONG baud, UCHAR data_bits,
     LL_USART_SetStopBitsLength(USART1, LL_USART_STOPBITS_1);
     LL_USART_SetBaudRate(USART1, HAL_RCC_GetPCLK2Freq(), LL_USART_OVERSAMPLING_16, baud);
     LL_USART_Enable(USART1);
-    /* Высший приоритет (0) короткому обработчику байтов USART1 (~80 тактов):
-     * исключает потерю байтов (ORE) во время 20-мкс выдержки tqt в DMA2_Stream3 (приоритет 1)
-     * и фиксирует момент прихода последнего байта SNAP с джиттером < 0.8 мкс. */
-    NVIC_SetPriority(USART1_IRQn, 0);
+    /* Приоритет 2 (ниже DMA2_Stream3=0 фотолинейки и TIM4=1 подсветки):
+     * длительность атомарного DMA2_Stream3_IRQHandler (~22.5 мкс) более чем вдвое
+     * меньше периода одного байта на 230400 8E1 (47.74 мкс), поэтому потерь ORE нет,
+     * а тактирование T-CLK/SI линейки TSL1401CL никогда не сбивается прерываниями UART. */
+    NVIC_SetPriority(USART1_IRQn, 2);
     NVIC_EnableIRQ(USART1_IRQn);
     return TRUE;
 }

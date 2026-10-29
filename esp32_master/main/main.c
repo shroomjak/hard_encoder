@@ -4,9 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "driver/gpio.h"
 #include "driver/uart.h"
 #include "esp_console.h"
 #include "esp_log.h"
+#include "esp_rom_sys.h"
+#include "esp_rom_uart.h"
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
@@ -21,7 +24,24 @@
 #define MB_RX_GPIO              16
 #define MB_RTS_GPIO             4
 #define MB_BAUD                 RS485_BAUD_RATE
+
+#ifdef CONFIG_ESP_CONSOLE_UART_BAUDRATE
+#define PC_UART_BAUD            ((uint32_t)CONFIG_ESP_CONSOLE_UART_BAUDRATE)
+#else
 #define PC_UART_BAUD            921600U
+#endif
+
+#ifdef CONFIG_ESP_CONSOLE_UART_NUM
+#define PC_UART_NUM             CONFIG_ESP_CONSOLE_UART_NUM
+#else
+#define PC_UART_NUM             0
+#endif
+
+#ifdef CONFIG_ESP_CONSOLE_UART_TX_GPIO
+#define PC_UART_TX_GPIO         CONFIG_ESP_CONSOLE_UART_TX_GPIO
+#else
+#define PC_UART_TX_GPIO         1
+#endif
 
 /* Период аппаратной сетки SNAP по умолчанию: 10 000 мкс (строго 100.000 Гц) для 1..4 головок. */
 #define DEFAULT_POLL_PERIOD_US  10000U
@@ -322,15 +342,17 @@ static void core1_io_init_task(void *arg)
 {
     SemaphoreHandle_t done = (SemaphoreHandle_t)arg;
 
-    /* Дожидаемся полного опустошения аппаратного TX FIFO UART0 перед перенастройкой
-     * драйвера консоли (защита от «битых символов» на стыке загрузчика и приложения,
-     * даже если проект был собран со старым sdkconfig на 115200 бод). */
+    /* 1. Дожидаемся полного опустошения сдвигового регистра ROM UART0 (не вызывая
+     *    uart_wait_tx_done до установки драйвера!) и подавляем INFO-сообщение
+     *    драйвера UART ("ESP_INTR_FLAG_IRAM flag not set..."), которое иначе
+     *    печатается ВНУТРИ uart_driver_install на сброшенной скорости 115200 бод
+     *    прямо перед вызовом uart_param_config(921600) и сбивает конечный автомат TX. */
     fflush(stdout);
-    (void)uart_wait_tx_done(UART_NUM_0, pdMS_TO_TICKS(50));
+    esp_rom_output_tx_wait_idle((uint8_t)PC_UART_NUM);
+    esp_rom_delay_us(2000);
+    esp_log_level_set("uart", ESP_LOG_WARN);
 
-    /* Инициализация UART0 (921600) и REPL выполняется на Core 1, чтобы прерывания
-     * передачи потока в ПК обслуживались Core 1 и никогда не вытесняли Core 0 (SNAP).
-     * Пины -1 (UART_PIN_NO_CHANGE) удерживают штатный прямой тракт IOMUX (GPIO1/GPIO3). */
+    /* 2. Инициализация драйвера UART0 и консоли на Core 1 (изоляция от Core 0). */
     esp_console_repl_t *repl = NULL;
     esp_console_repl_config_t repl_config = ESP_CONSOLE_REPL_CONFIG_DEFAULT();
     repl_config.prompt = "encoder>";
@@ -338,11 +360,19 @@ static void core1_io_init_task(void *arg)
     repl_config.task_core_id = CONSOLE_INIT_CORE;
 
     esp_console_dev_uart_config_t uart_config = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
-    uart_config.channel = UART_NUM_0;
+    uart_config.channel = PC_UART_NUM;
     uart_config.baud_rate = (int)PC_UART_BAUD;
-    uart_config.tx_gpio_num = -1;
-    uart_config.rx_gpio_num = -1;
     ESP_ERROR_CHECK(esp_console_new_repl_uart(&uart_config, &repl_config, &repl));
+
+    /* 3. На гарантированно пустом передатчике фиксируем точную частоту 921600 бод,
+     *    максимальную нагрузочную способность выходного каскада GPIO1 (40 мА, крутые фронты)
+     *    и 2 стоп-бита (8N2 полностью совместим с 8N1 на стороне ПК, но даёт мосту USB-UART
+     *    паузу 2.17 мкс после каждого байта при пакетной выдаче из 128-байтного TX FIFO). */
+    esp_rom_output_tx_wait_idle((uint8_t)PC_UART_NUM);
+    ESP_ERROR_CHECK(uart_set_baudrate((uart_port_t)PC_UART_NUM, PC_UART_BAUD));
+    ESP_ERROR_CHECK(uart_set_stop_bits((uart_port_t)PC_UART_NUM, UART_STOP_BITS_2));
+    ESP_ERROR_CHECK(gpio_set_drive_capability((gpio_num_t)PC_UART_TX_GPIO, GPIO_DRIVE_CAP_3));
+    esp_rom_delay_us(2000);
 
     pc_link_start();
 
@@ -363,6 +393,15 @@ static void core1_io_init_task(void *arg)
         ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
     }
 
+    uint32_t actual_baud = 0U;
+    (void)uart_get_baudrate((uart_port_t)PC_UART_NUM, &actual_baud);
+    ESP_LOGI(TAG, "Ready: RS485=%u (Core0 direct RTU), PC_UART=%" PRIu32 " 8N2 (Core1), "
+             "grid=%u us, tick=%d Hz, timer=%s",
+             MB_BAUD, actual_baud, DEFAULT_POLL_PERIOD_US, CONFIG_FREERTOS_HZ,
+             (POLL_TIMER_DISPATCH == ESP_TIMER_ISR) ? "ISR" : "TASK");
+    fflush(stdout);
+    (void)uart_wait_tx_done((uart_port_t)PC_UART_NUM, pdMS_TO_TICKS(50));
+
     ESP_ERROR_CHECK(esp_console_start_repl(repl));
     xSemaphoreGive(done);
     vTaskDelete(NULL);
@@ -382,21 +421,18 @@ void app_main(void)
     SemaphoreHandle_t init_sem = xSemaphoreCreateBinary();
     ESP_ERROR_CHECK(init_sem ? ESP_OK : ESP_ERR_NO_MEM);
 
-    if (xTaskCreatePinnedToCore(core1_io_init_task, "core1_io_init", CONSOLE_INIT_STACK,
-                                init_sem, CONSOLE_INIT_PRIO, NULL, CONSOLE_INIT_CORE) != pdPASS) {
-        ESP_ERROR_CHECK(ESP_ERR_NO_MEM);
-    }
-    (void)xSemaphoreTake(init_sem, portMAX_DELAY);
-
+    /* Сначала поднимаем шину RS-485 и таймер SNAP на Core 0 (пока UART0 ещё работает
+     * через чистый ROM-вывод без гонки двух ядер), затем переключаем консоль на Core 1. */
     if (xTaskCreatePinnedToCore(worker, "encoder_bus", BUS_TASK_STACK,
                                 init_sem, BUS_TASK_PRIO, NULL, BUS_TASK_CORE) != pdPASS) {
         ESP_ERROR_CHECK(ESP_ERR_NO_MEM);
     }
     (void)xSemaphoreTake(init_sem, portMAX_DELAY);
-    vSemaphoreDelete(init_sem);
 
-    ESP_LOGI(TAG, "Ready: RS485=%u (Core0 direct RTU), PC_UART=%u (Core1), "
-             "grid=%u us, tick=%d Hz, timer=%s",
-             MB_BAUD, PC_UART_BAUD, DEFAULT_POLL_PERIOD_US, CONFIG_FREERTOS_HZ,
-             (POLL_TIMER_DISPATCH == ESP_TIMER_ISR) ? "ISR" : "TASK");
+    if (xTaskCreatePinnedToCore(core1_io_init_task, "core1_io_init", CONSOLE_INIT_STACK,
+                                init_sem, CONSOLE_INIT_PRIO, NULL, CONSOLE_INIT_CORE) != pdPASS) {
+        ESP_ERROR_CHECK(ESP_ERR_NO_MEM);
+    }
+    (void)xSemaphoreTake(init_sem, portMAX_DELAY);
+    vSemaphoreDelete(init_sem);
 }

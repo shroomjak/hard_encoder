@@ -207,12 +207,15 @@
 /* На ядре Cortex-M7 (STM32F722) регистры DWT заблокированы при холодном старте
    без подключённого отладчика SWD: необходима разблокировка LAR = 0xC5ACCE55. */
 #define KIN1_DWT_LAR                 (*((volatile uint32_t*)0xE0001FB0))
+#define KIN1_DWT_LSR                 (*((volatile uint32_t*)0xE0001FB4))
 #define KIN1_DWT_LAR_KEY             0xC5ACCE55UL
 
-/*!< TRCENA + CoreSight LAR unlock for Cortex-M7 */
+/*!< TRCENA + CoreSight LAR unlock for Cortex-M7 (only when Software Lock is set) */
 #define KIN1_InitCycleCounter() do { \
   KIN1_DEMCR |= KIN1_TRCENA_BIT; \
-  KIN1_DWT_LAR = KIN1_DWT_LAR_KEY; \
+  if ((KIN1_DWT_LSR & 0x03UL) == 0x03UL) { \
+    KIN1_DWT_LAR = KIN1_DWT_LAR_KEY; \
+  } \
 } while (0)
 /*!< Reset cycle counter */
 #define KIN1_ResetCycleCounter() \
@@ -3612,6 +3615,7 @@ int main(void)
 
   // Configure the system clock
   SystemClock_Config();
+  HAL_NVIC_SetPriority(SysTick_IRQn, 4, 0);
   HAL_ResumeTick();
     
   // Enable I-Cache
@@ -3922,7 +3926,7 @@ static void MX_ADC2_Init(void)
 
   /* (3) Configure NVIC for DMA transfer complete/error interrupts */
   LL_DMA_EnableIT_TC(DMA2, LL_DMA_STREAM_3);
-  NVIC_SetPriority(DMA2_Stream3_IRQn, 1);
+  NVIC_SetPriority(DMA2_Stream3_IRQn, 0);
   NVIC_EnableIRQ(DMA2_Stream3_IRQn);
 
   /* Start the DMA transfer */
@@ -4084,7 +4088,7 @@ static void MX_TIM4_Init(void)
   LL_TIM_ClearFlag_UPDATE(TIM4);
   LL_TIM_EnableIT_UPDATE(TIM4);
 
-  NVIC_SetPriority(TIM4_IRQn, 2);
+  NVIC_SetPriority(TIM4_IRQn, 1);
   NVIC_EnableIRQ(TIM4_IRQn);
 }
 /**
@@ -4272,6 +4276,12 @@ void DMA2_Stream3_IRQHandler(void)
   /* USER CODE BEGIN DMA2_Stream3_IRQn 0 */
   if(LL_DMA_IsActiveFlag_TC3(DMA2) == 1)
   {
+    /* Атомарная последовательность останова TIM3 (T-CLK -> PB11 -> EXTI11 -> ADC2/DMA2),
+       выдержки tqt = 20 мкс и выдачи SI: любое вытеснение до LL_TIM_DisableCounter(TIM3)
+       даёт лишний такт T-CLK и навсегда сдвигает кольцевой DMA-буфер 132 отсчётов
+       относительно пикселя 0 линейки (рост serrcnt1/serrcnt2). Полная длительность
+       обработчика (~22.5 мкс) вдвое меньше байта USART1 на 230400 8E1 (47.74 мкс). */
+    __disable_irq();
     LL_DMA_ClearFlag_TC3(DMA2);
 
     if (backlight_timer_state != BACKLIGHT_STATE_IDLE) {
@@ -4280,8 +4290,6 @@ void DMA2_Stream3_IRQHandler(void)
     SCB_InvalidateDCache_by_Addr((uint32_t *)ADC_VAL,((132*2+31)/32)*32);
     SCB_InvalidateDCache_by_Addr((uint32_t *)ADC_VAL2,((132*2+31)/32)*32);
 
-    /* Выдержка tqt = 20 мкс выполняется с разрешёнными прерываниями:
-       USART1_IRQn (приоритет 0) обслуживает байты RS-485 за < 0.8 мкс без потери ORE. */
     while (!LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_6)) {
     }
     while (LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_6)) {
@@ -4290,9 +4298,6 @@ void DMA2_Stream3_IRQHandler(void)
     LL_TIM_DisableCounter(TIM3);                                                 // hold T-CLK low for TSL1401 tqt
     DelayTim4Ticks((uint16_t)TSL1401_TQT_TIM_TICKS);
 
-    /* Запрещаем IRQ строго на короткое окно (~0.65 мкс) формирования импульса SI
-       и старта подсветки, одновременно фиксируя точную тактовую метку SI по DWT. */
-    __disable_irq();
     LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_7);
     const uint32_t si_cyccnt = KIN1_GetCycleCounter();
     Backlight_StartFromSI();
@@ -4302,7 +4307,6 @@ void DMA2_Stream3_IRQHandler(void)
     }
 
     LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_7);
-    __enable_irq();
 
     /* Середина оптической экспозиции нового кадра в тактах SYSCLK (216 МГц):
        1 тик TIM4 (108 МГц) = 2 такта SYSCLK; delay * 2 + (width * 2) / 2 = 2*delay + width. */
@@ -4329,6 +4333,7 @@ void DMA2_Stream3_IRQHandler(void)
     } else {
       adc_dropped_frames++;
     }
+    __enable_irq();
   }
 
   /* USER CODE END DMA2_Stream3_IRQn 0 */
