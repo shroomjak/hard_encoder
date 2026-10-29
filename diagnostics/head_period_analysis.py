@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Глобальный тренд и статистика оборотов без подгонки отдельных периодов.
+"""Глобальный наклон и статистика оборотов с центрированием каждого оборота по среднему.
 Вход: имя эксперимента, папка или CSV. По умолчанию x=seq; --x t_us задаёт время.
 """
 from __future__ import annotations
@@ -10,6 +10,7 @@ import re
 import sys
 import numpy as np
 import pandas as pd
+
 
 def resolve_csv(value):
     """Experiment name, directory, or CSV; independent of working directory."""
@@ -38,6 +39,7 @@ def resolve_csv(value):
         tried.append(str(candidate))
     raise FileNotFoundError('CSV не найден. Проверены пути:\n  ' + '\n  '.join(dict.fromkeys(tried)))
 
+
 @dataclass
 class PeriodProfile:
     period_samples: float
@@ -53,6 +55,7 @@ class PeriodProfile:
     std: np.ndarray
     count: np.ndarray
     native_rows: list
+    period_means: np.ndarray
     x_label: str = 'seq от начала оборота'
 
 
@@ -62,7 +65,7 @@ def angle_columns(df):
 
 
 def unwrap_signal(angle):
-    return np.rad2deg(np.unwrap(np.deg2rad(angle)))
+    return np.unwrap(angle, period=360.0)
 
 
 def find_zero_transitions(x, angle, unwrapped):
@@ -102,27 +105,35 @@ def analyze(x, angle, grid_step=None):
     dx = x[fit] - xc
     slope = np.dot(dx, y[fit] - yc) / np.dot(dx, dx)
     residual = y - (yc + slope * (x - xc))
+
     lengths = np.diff(crossings)
     step = float(grid_step) if grid_step is not None else float(np.median(np.diff(x)))
     if not np.isfinite(step) or step <= 0:
         raise ValueError('Шаг сетки должен быть положительным')
-    relative = np.arange(0., lengths.max(), step)
+    # Общая сетка ограничивается минимальной длительностью оборота, чтобы все обороты
+    # присутствовали в каждой точке (count == n_periods) без краевых скачков СКО.
+    relative = np.arange(0., float(lengths.min()), step)
     if len(relative) < 2:
         raise ValueError('Шаг сетки слишком велик для оборота')
-    rows = np.full((len(lengths), len(relative)), np.nan)
+
+    rows = np.empty((len(lengths), len(relative)), dtype=float)
+    period_means = np.empty(len(lengths), dtype=float)
     native = []
+    max_rel = float(relative[-1])
     for k, (start, stop) in enumerate(zip(crossings[:-1], crossings[1:])):
-        supported = relative < stop - start
-        rows[k, supported] = np.interp(start + relative[supported], x, residual)
-        use = (x >= start) & (x < stop)
-        native.append((x[use] - start, x[use], residual[use]))
+        rel_full = np.arange(0., stop - start, step)
+        vals_full = np.interp(start + rel_full, x, residual)
+        p_mean = float(vals_full.mean()) if len(vals_full) else 0.0
+        period_means[k] = p_mean
+        rows[k] = vals_full[:len(relative)] - p_mean
+        use = (x >= start) & (x < stop) & (x - start <= max_rel)
+        native.append((x[use] - start, x[use], residual[use] - p_mean))
+
     count = np.isfinite(rows).sum(axis=0)
-    mean = np.divide(np.nansum(rows, axis=0), count,
-                     out=np.full(len(relative), np.nan), where=count > 0)
-    variance = np.divide(np.nansum((rows - mean) ** 2, axis=0), count - 1,
-                         out=np.full(len(relative), np.nan), where=count > 1)
+    mean = np.mean(rows, axis=0)
+    std = np.std(rows, axis=0, ddof=1) if len(lengths) > 1 else np.full(len(relative), np.nan)
     return PeriodProfile(float(lengths.mean()), len(lengths), float(slope), float(xc), float(yc),
-                         crossings, lengths, relative, rows, mean, np.sqrt(variance), count, native)
+                         crossings, lengths, relative, rows, mean, std, count, native, period_means)
 
 
 def load_log(path):
@@ -137,31 +148,49 @@ def load_log(path):
 def build_signals(df, columns, offsets=None, x_column='seq'):
     if x_column not in df:
         raise ValueError(f'В CSV нет столбца {x_column}')
-    x = pd.to_numeric(df[x_column], errors='coerce').to_numpy(float)
+    x = pd.to_numeric(df[x_column], errors='coerce').to_numpy(dtype=float, copy=True)
     finite = np.isfinite(x)
     if not finite.any():
         raise ValueError(f'В {x_column} нет числовых значений')
-    if x_column.endswith('_us'):
+    if x_column == 'seq':
+        vals = x[finite]
+        if len(vals) > 1 and np.any(np.diff(vals) < -32768.0):
+            x[finite] = np.unwrap(vals, period=65536.0)
+    elif x_column.endswith('_us'):
         x = (x - x[finite][0]) / 1e6
     elif x_column.endswith('_ms'):
         x = (x - x[finite][0]) / 1e3
-    matrix = df[columns].apply(pd.to_numeric, errors='coerce').to_numpy(float)
+
+    matrix = df[columns].apply(pd.to_numeric, errors='coerce').to_numpy(dtype=float, copy=True)
     for j, name in enumerate(columns):
         flag = 'valid_' + name.split('_')[-1]
         if flag in df:
             valid = pd.to_numeric(df[flag], errors='coerce').to_numpy() == 1
             matrix[~valid, j] = np.nan
+    matrix[np.isfinite(matrix) & ((matrix < 0.0) | (matrix >= 360.0))] = np.nan
+
     signals = {name: (x, matrix[:, j]) for j, name in enumerate(columns)}
-    ok = np.isfinite(matrix).all(axis=1) & ((matrix >= 0) & (matrix < 360)).all(axis=1)
-    centered = matrix if offsets is None else matrix - offsets
-    means = np.full(len(x), np.nan)
-    if ok.any():
-        vector = np.mean(np.exp(1j * np.deg2rad(centered[ok])), axis=1)
-        a = np.rad2deg(np.angle(vector)) % 360
-        a[a >= 360] = 0
-        a[np.abs(vector) < 1e-9] = np.nan
-        means[ok] = a
-    signals['circular_mean'] = (x, means)
+    if len(columns) >= 2:
+        ok = np.isfinite(matrix).all(axis=1)
+        means = np.full(len(x), np.nan)
+        if ok.any():
+            if offsets is None:
+                rel_rad = np.deg2rad(matrix[ok] - matrix[ok, :1])
+                offsets = np.mod(np.rad2deg(np.angle(np.mean(np.exp(1j * rel_rad), axis=0))), 360.0)
+                offsets[0] = 0.0
+                off_src = 'авто'
+            else:
+                off_src = 'заданы'
+            off_str = ', '.join(f'{c}:{v:.4f}°' for c, v in zip(columns, offsets))
+            print(f'circular_mean: смещения головок ({off_src}) = [{off_str}]')
+
+            centered = matrix[ok] - offsets
+            vector = np.mean(np.exp(1j * np.deg2rad(centered)), axis=1)
+            a = np.mod(np.rad2deg(np.angle(vector)), 360.0)
+            a[a >= 360.0] = 0.0
+            a[np.abs(vector) < 1e-3] = np.nan
+            means[ok] = a
+        signals['circular_mean'] = (x, means)
     return signals
 
 
@@ -174,7 +203,7 @@ def save_profile(p, stem):
         native.append(pd.DataFrame({'period': k, 'relative_x': xr, 'absolute_x': xa, 'residual_deg': r}))
         summary.append({'period': k, 'start_x': p.crossings[k], 'stop_x': p.crossings[k + 1],
                         'duration_x': p.lengths[k], 'native_samples': len(r),
-                        'residual_mean_deg': float(r.mean()) if len(r) else np.nan,
+                        'residual_mean_deg': float(p.period_means[k]),
                         'global_slope': p.slope, 'trend_x_center': p.x_center, 'trend_y_center': p.y_center})
     pd.concat(native, ignore_index=True).to_csv(str(stem) + '_native.csv', index=False)
     pd.DataFrame(summary).to_csv(str(stem) + '_periods.csv', index=False)
@@ -187,13 +216,19 @@ def plot_result(p, name, path):
     fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True, constrained_layout=True)
     axes[0].plot(p.relative_x, p.mean, 'k', label='Среднее')
     axes[0].fill_between(p.relative_x, p.mean - p.std, p.mean + p.std, alpha=.25, label='±СКО')
-    axes[0].set_title(f'{name}: средний период={p.period_samples:.6g}; оборотов={p.n_periods}; один глобальный тренд')
+    axes[0].axhline(0, color='black', lw=.5, alpha=.5)
+    axes[0].set_title(
+        f'{name}: средний период={p.period_samples:.6g}; оборотов={p.n_periods}; '
+        f'глобальный наклон, без среднего за оборот'
+    )
     axes[0].legend()
     axes[1].plot(p.relative_x, p.std)
     axes[1].set_ylabel('СКО, град')
     for xr, _, residual in p.native_rows:
         axes[2].plot(xr, residual, lw=.5, alpha=.5)
     axes[2].plot(p.relative_x, p.mean, 'k', lw=2)
+    axes[2].axhline(0, color='black', lw=.5, alpha=.5)
+    axes[2].set_xlim(0.0, float(p.relative_x[-1]))
     axes[2].set_xlabel(p.x_label)
     axes[0].set_ylabel('Остаток, град')
     axes[2].set_ylabel('Остаток, град')
@@ -209,7 +244,7 @@ def build_argparser():
     p.add_argument('--x', default='seq', help='seq или t_us; по умолчанию seq')
     p.add_argument('--run', type=int, help='Только для старых CSV со столбцом run')
     p.add_argument('--grid-step', type=float)
-    p.add_argument('--offsets', help='Смещения для кругового среднего в порядке возрастания ID')
+    p.add_argument('--offsets', help='Смещения для кругового среднего в порядке возрастания ID (по умолчанию авто)')
     p.add_argument('--no-plots', action='store_true')
     p.add_argument('--no-show', action='store_true')
     return p
@@ -266,6 +301,7 @@ def main():
     except (OSError, ValueError, pd.errors.ParserError) as exc:
         print(f'[ERROR] {exc}', file=sys.stderr)
         raise SystemExit(1)
+
 
 if __name__ == '__main__':
     main()
