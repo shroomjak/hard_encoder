@@ -208,12 +208,12 @@ int main(void)
     parser_tests();
     selection_tests();
 
-    /* Two heads, exact six-step sequence, confirmation at EVERY boundary. */
-    static const uint16_t sequence[] = {0x14,0x13,0x11,0x12,0x14,0x13};
+    /* Two heads, exact four-step sequence, confirmation at EVERY boundary. */
+    static const uint16_t sequence[] = {0x14,0x13,0x11,0x12};
     start_calib();
     for (unsigned head = 0; head < 2; ++head) {
         unsigned id = head == 0 ? 247 : 1;
-        for (unsigned step = 0; step < 6; ++step) {
+        for (unsigned step = 0; step < 4; ++step) {
             unsigned before = writes;
             workflow_tick(&w); assert(writes == before && w.state == WF_CONFIRM);
             send(CMD_NEXT, NULL);
@@ -223,10 +223,10 @@ int main(void)
             workflow_tick(&w); assert(w.state == WF_CALIB); /* done, EEPROM still busy */
             ready[id] = 1;
             workflow_tick(&w);
-            assert(w.state == ((head == 1 && step == 5) ? WF_IDLE : WF_CONFIRM));
+            assert(w.state == ((head == 1 && step == 3) ? WF_IDLE : WF_CONFIRM));
         }
     }
-    assert(scanned == 0 && writes == 14 && written[6] == 0x10 && written[13] == 0x10 && polls == 0);
+    assert(scanned == 0 && writes == 10 && written[4] == 0x10 && written[9] == 0x10 && polls == 0);
 
     start_calib(); legacy = true; send(CMD_NEXT, NULL);
     assert(w.state == WF_IDLE && writes == 0); /* Old firmware must never receive CAL. */

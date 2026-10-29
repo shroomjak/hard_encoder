@@ -1,191 +1,402 @@
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include "esp_console.h"
-#include "esp_timer.h"
-#include "esp_log.h"
-#include "esp_modbus_master.h"
 #include "driver/uart.h"
+#include "esp_console.h"
+#include "esp_log.h"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 #include "freertos/queue.h"
-#include "workflow.h"
+#include "freertos/semphr.h"
+#include "freertos/task.h"
 #include "pc_link.h"
+#include "rs485_rtu.h"
+#include "workflow.h"
 
-#define MB_UART UART_NUM_2
-#define MB_TX_GPIO 17
-#define MB_RX_GPIO 16
-#define MB_RTS_GPIO 4
-#define MB_BAUD 230400U
-#define PC_UART_BAUD 115200U
-#define MB_INTERFRAME_GAP_US 1800U
+#define MB_UART                 2   /* UART_NUM_2 */
+#define MB_TX_GPIO              17
+#define MB_RX_GPIO              16
+#define MB_RTS_GPIO             4
+#define MB_BAUD                 RS485_BAUD_RATE
+#define PC_UART_BAUD            921600U
+
+/* Период аппаратной сетки SNAP по умолчанию: 10 000 мкс (строго 100.000 Гц) для 1..4 головок. */
+#define DEFAULT_POLL_PERIOD_US  10000U
+#define MIN_POLL_PERIOD_US      2000U
+#define MAX_POLL_PERIOD_US      1000000U
+
+#define BUS_TASK_CORE           0
+#define BUS_TASK_PRIO           (configMAX_PRIORITIES - 2)
+#define BUS_TASK_STACK          6144
+
+#define CONSOLE_INIT_CORE       1
+#define CONSOLE_INIT_PRIO       5
+#define CONSOLE_INIT_STACK      4096
+
+typedef struct {
+    command_t cmd;
+    uint32_t  period_us; /* 0 = автоматический выбор (10 мс для <=4 головок) */
+} bus_msg_t;
 
 static const char *TAG = "encoder";
-static void *master;
-static esp_timer_handle_t gap_timer;
-static TaskHandle_t gap_waiter;
 static QueueHandle_t commands;
+static TaskHandle_t bus_task_handle;
+static esp_timer_handle_t poll_timer;
 static workflow_t workflow;
-static uint32_t attempted, dropped;
+static pc_head_sync_t sync_state[ENCODER_MAX_ID + 1U];
+static uint32_t attempted, dropped, overruns;
+static uint32_t requested_period_us, active_period_us;
 
-static const mb_parameter_descriptor_t descriptor[] = {
-    {0, "snapshot", "", 1, MB_PARAM_INPUT, 0, PC_REG_COUNT, 0,
-     PARAM_TYPE_U16, 2, {{0}}, PAR_PERMS_READ}
-};
-
-static void gap_expired(void *arg) { (void)arg; xTaskNotifyGive(gap_waiter); }
-static void bus_gap_wait(void)
+static uint32_t choose_poll_period_us(size_t head_count, uint32_t user_period_us)
 {
-    gap_waiter = xTaskGetCurrentTaskHandle();
-    ESP_ERROR_CHECK(esp_timer_start_once(gap_timer, MB_INTERFRAME_GAP_US));
-    (void)ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-}
-
-static esp_err_t request_raw(uint8_t id, uint8_t function, uint16_t first,
-                             uint16_t count, uint16_t *words)
-{
-    mb_param_request_t req = {
-        .slave_addr = id, .command = function, .reg_start = first, .reg_size = count
-    };
-    return mbc_master_send_request(master, &req, words);
+    /* Минимальный физический бюджет шины RS-485 на 230400 8E1:
+     * ~685 мкс (SNAP + 300 мкс settle) + ~2300 мкс на каждую головку. */
+    const uint32_t min_wire_us = 700U + (uint32_t)head_count * 2350U;
+    if (user_period_us != 0U) {
+        return (user_period_us < min_wire_us) ? min_wire_us : user_period_us;
+    }
+    if (min_wire_us <= DEFAULT_POLL_PERIOD_US) {
+        return DEFAULT_POLL_PERIOD_US;
+    }
+    return ((min_wire_us + 999U) / 1000U) * 1000U;
 }
 
 static bool workflow_request(uint8_t id, uint8_t function, uint16_t first,
-                              uint16_t count, uint16_t *words)
+                             uint16_t count, uint16_t *words)
 {
-    esp_err_t err = request_raw(id, function, first, count, words);
-    if (id != 0) bus_gap_wait();
+    esp_err_t err = ESP_FAIL;
+    if (function == 4U) {
+        err = rs485_read_input_regs(id, first, count, words, RS485_CMD_TIMEOUT_US);
+    } else if (function == 6U && count == 1U && words != NULL) {
+        err = rs485_write_single_reg(id, first, words[0], RS485_CMD_TIMEOUT_US);
+    }
+    if (id != 0U) {
+        rs485_interframe_gap(RS485_INTERFRAME_GAP_US);
+    }
     return err == ESP_OK;
 }
 
-/* Core0 records durations; all statistical arithmetic runs on Core1. */
+/* Core 0: детерминированный цикл SNAP -> чтение всех головок -> приведение к t_snap. */
 static void poll_heads(const uint8_t *ids, size_t count, uint16_t seq)
 {
     static pc_head_t heads[ENCODER_MAX_ID];
     uint16_t r[PC_REG_COUNT];
-    pc_poll_t p = {.seq = seq, .count = (uint32_t)count};
+    pc_poll_t p = {
+        .seq = seq,
+        .error = 0U,
+        .count = (uint32_t)count,
+    };
+
     attempted++;
-    memset(heads, 0, count * sizeof heads[0]);
+    memset(heads, 0, count * sizeof(heads[0]));
     for (size_t i = 0; i < count; ++i) {
         heads[i].id = ids[i];
         heads[i].angle_udeg = PC_ANGLE_INVALID;
+        heads[i].raw_angle_udeg = PC_ANGLE_INVALID;
+        heads[i].age_us = PC_AGE_INVALID;
     }
-    uint16_t command = seq;
-    p.t_us = (uint64_t)esp_timer_get_time();
-    esp_err_t err = request_raw(0, 6, 0, 1, &command);
-    p.snap_us = (uint64_t)esp_timer_get_time() - p.t_us;
-    if (err != ESP_OK) p.error |= POLL_ERROR_SNAP;
-    else {
+
+    const uint64_t cycle_start_us = (uint64_t)esp_timer_get_time();
+    uint64_t snap_wire_us = cycle_start_us;
+    uint32_t snap_total_us = 0U;
+    esp_err_t err = rs485_send_snap(seq, &snap_wire_us, &snap_total_us);
+    p.t_us = snap_wire_us;
+    p.snap_us = snap_total_us;
+
+    if (err != ESP_OK) {
+        p.error |= POLL_ERROR_SNAP;
+    } else {
         for (size_t i = 0; i < count; ++i) {
             memset(r, 0, sizeof r);
-            uint64_t before = (uint64_t)esp_timer_get_time();
-            err = request_raw(ids[i], 4, 0, PC_REG_COUNT, r);
-            uint64_t after = (uint64_t)esp_timer_get_time();
-            heads[i].read_us = after - before;
-            bus_gap_wait();
-            heads[i].gap_us = (uint64_t)esp_timer_get_time() - after;
-            if (err != ESP_OK) { p.error |= POLL_ERROR_READ; continue; }
-            uint32_t angle = ((uint32_t)r[2] << 16) | r[3];
+            const uint64_t before_us = (uint64_t)esp_timer_get_time();
+            err = rs485_read_input_regs(ids[i], 0U, PC_REG_COUNT, r, RS485_POLL_TIMEOUT_US);
+            const uint64_t after_us = (uint64_t)esp_timer_get_time();
+            heads[i].read_us = (uint32_t)(after_us - before_us);
+
+            /* Пауза t3.5 нужна между соседними головками; после последней головки
+             * роль паузы до следующего SNAP играет остаток периода таймера 10 мс. */
+            if (i + 1U < count) {
+                rs485_interframe_gap(RS485_INTERFRAME_GAP_US);
+                heads[i].gap_us = (uint32_t)((uint64_t)esp_timer_get_time() - after_us);
+            } else {
+                heads[i].gap_us = 0U;
+            }
+
+            if (err != ESP_OK) {
+                p.error |= POLL_ERROR_READ;
+                continue;
+            }
+
+            const uint32_t raw_angle = ((uint32_t)r[2] << 16) | (uint32_t)r[3];
             if (r[0] != seq || r[1] != 1U || r[4] >= 144U || r[5] != 0U ||
-                angle >= 360000000U) {
+                raw_angle >= 360000000U) {
                 p.error |= POLL_ERROR_FRAME;
                 continue;
             }
-            heads[i].angle_udeg = angle;
+
+            const int32_t age_us = (int32_t)(((uint32_t)r[9] << 16) | (uint32_t)r[10]);
+            heads[i].raw_angle_udeg = raw_angle;
+            heads[i].age_us = age_us;
+            heads[i].angle_udeg = pc_sync_compensate_udeg(
+                &sync_state[ids[i]], raw_angle, p.t_us, age_us);
         }
     }
-    p.poll_us = (uint64_t)esp_timer_get_time() - p.t_us;
-    if (!pc_link_put(&p, heads)) dropped++;
+
+    const uint64_t end_us = (uint64_t)esp_timer_get_time();
+    p.poll_us = (uint32_t)(end_us - cycle_start_us);
+    if (!pc_link_put(&p, heads)) {
+        dropped++;
+    }
 }
 
 static void workflow_log(const char *text) { ESP_LOGI(TAG, "%s", text); }
 static uint32_t now_ms(void) { return (uint32_t)(esp_timer_get_time() / 1000); }
 
+#if defined(CONFIG_ESP_TIMER_SUPPORTS_ISR_DISPATCH_METHOD) && CONFIG_ESP_TIMER_SUPPORTS_ISR_DISPATCH_METHOD
+static void IRAM_ATTR poll_timer_cb(void *arg)
+{
+    (void)arg;
+    BaseType_t hpw = pdFALSE;
+    if (bus_task_handle) {
+        vTaskNotifyGiveFromISR(bus_task_handle, &hpw);
+        if (hpw == pdTRUE) {
+            portYIELD_FROM_ISR();
+        }
+    }
+}
+#define POLL_TIMER_DISPATCH ESP_TIMER_ISR
+#else
+static void poll_timer_cb(void *arg)
+{
+    (void)arg;
+    if (bus_task_handle) {
+        xTaskNotifyGive(bus_task_handle);
+    }
+}
+#define POLL_TIMER_DISPATCH ESP_TIMER_TASK
+#endif
+
+static bool parse_period_arg(const char *s, uint32_t *out_us)
+{
+    if (!s || !*s) return false;
+    char *end = NULL;
+    unsigned long v = strtoul(s, &end, 10);
+    if (*end != '\0' || v < MIN_POLL_PERIOD_US || v > MAX_POLL_PERIOD_US) {
+        return false;
+    }
+    *out_us = (uint32_t)v;
+    return true;
+}
+
 static int console_command(int argc, char **argv)
 {
-    command_t c = {0};
-    if (!strcmp(argv[0], "scan")) c.kind = CMD_SCAN;
-    else if (!strcmp(argv[0], "poll")) c.kind = CMD_POLL;
-    else if (!strcmp(argv[0], "calib")) c.kind = CMD_CALIB;
-    else if (!strcmp(argv[0], "next")) c.kind = CMD_NEXT;
-    else c.kind = CMD_STOP;
-    bool has_ids = c.kind == CMD_POLL || c.kind == CMD_CALIB;
-    if (argc > (has_ids ? 2 : 1) ||
-        (argc == 2 && !parse_head_ids(argv[1], &c))) {
-        printf("Usage: %s%s; decimal IDs 1..247, no duplicates\n", argv[0], has_ids ? " [id,id,...]" : "");
+    bus_msg_t msg = {0};
+    if (!strcmp(argv[0], "scan")) msg.cmd.kind = CMD_SCAN;
+    else if (!strcmp(argv[0], "poll")) msg.cmd.kind = CMD_POLL;
+    else if (!strcmp(argv[0], "calib")) msg.cmd.kind = CMD_CALIB;
+    else if (!strcmp(argv[0], "next")) msg.cmd.kind = CMD_NEXT;
+    else msg.cmd.kind = CMD_STOP;
+
+    if (msg.cmd.kind == CMD_POLL) {
+        if (argc >= 2 && !parse_head_ids(argv[1], &msg.cmd)) {
+            printf("Usage: poll [id,id,...] [period_us %u..%u]\n",
+                   MIN_POLL_PERIOD_US, MAX_POLL_PERIOD_US);
+            return 1;
+        }
+        if (argc == 3 && !parse_period_arg(argv[2], &msg.period_us)) {
+            printf("Invalid period_us: expected integer %u..%u\n",
+                   MIN_POLL_PERIOD_US, MAX_POLL_PERIOD_US);
+            return 1;
+        }
+        if (argc > 3) {
+            printf("Usage: poll [id,id,...] [period_us]\n");
+            return 1;
+        }
+    } else if (msg.cmd.kind == CMD_CALIB) {
+        if (argc > 2 || (argc == 2 && !parse_head_ids(argv[1], &msg.cmd))) {
+            printf("Usage: calib [id,id,...]; decimal IDs 1..247, no duplicates\n");
+            return 1;
+        }
+    } else if (argc > 1) {
+        printf("Usage: %s\n", argv[0]);
         return 1;
     }
-    if (xQueueSend(commands, &c, 0) != pdTRUE) {
+
+    if (xQueueSend(commands, &msg, 0) != pdTRUE) {
         puts("Command queue full; try again");
         return 1;
     }
     return 0;
 }
 
-static void worker(void *arg)
+static void stop_poll_grid(void)
 {
-    (void)arg;
-    command_t c;
-    for (;;) {
-        TickType_t wait = workflow.state == WF_POLL ? 0 : pdMS_TO_TICKS(100);
-        if (xQueueReceive(commands, &c, wait) == pdTRUE) {
-            workflow_state_t old = workflow.state;
-            if (old == WF_POLL && c.kind == CMD_STOP) pc_link_end(attempted, dropped);
-            workflow_command(&workflow, &c);
-            if (old != WF_POLL && workflow.state == WF_POLL) {
-                attempted = dropped = 0;
-                pc_link_begin();
-            }
-        }
-        workflow_tick(&workflow);
+    if (poll_timer) {
+        (void)esp_timer_stop(poll_timer);
+    }
+    (void)ulTaskNotifyTake(pdTRUE, 0);
+}
+
+static void start_poll_grid(size_t head_count, uint32_t user_period_us)
+{
+    active_period_us = choose_poll_period_us(head_count, user_period_us);
+    attempted = dropped = overruns = 0U;
+    pc_sync_reset_all(sync_state);
+    pc_link_begin(active_period_us);
+    (void)ulTaskNotifyTake(pdTRUE, 0);
+    ESP_LOGI(TAG, "POLL grid started: heads=%u period_us=%" PRIu32 " (%.2f Hz)",
+             (unsigned)head_count, active_period_us, 1000000.0 / (double)active_period_us);
+    ESP_ERROR_CHECK(esp_timer_start_periodic(poll_timer, active_period_us));
+}
+
+static void handle_bus_msg(const bus_msg_t *msg)
+{
+    const workflow_state_t old = workflow.state;
+    if (old == WF_POLL && msg->cmd.kind == CMD_STOP) {
+        stop_poll_grid();
+        pc_link_end(attempted, dropped, overruns);
+    }
+    requested_period_us = msg->period_us;
+    workflow_command(&workflow, &msg->cmd);
+    if (old != WF_POLL && workflow.state == WF_POLL) {
+        start_poll_grid(workflow.count, requested_period_us);
     }
 }
 
-void app_main(void)
+static void worker(void *arg)
 {
-    ESP_LOGI(TAG, "MB baud=%u response=%d convert=%d cooldown=%d tick=%d",
-             MB_BAUD, CONFIG_FMB_MASTER_TIMEOUT_MS_RESPOND,
-             CONFIG_FMB_MASTER_DELAY_MS_CONVERT,
-             CONFIG_FMB_MASTER_TIMEOUT_COOLDOWN_MS, CONFIG_FREERTOS_HZ);
-    mb_communication_info_t comm = {
-        .ser_opts.port = MB_UART, .ser_opts.mode = MB_RTU,
-        .ser_opts.baudrate = MB_BAUD, .ser_opts.parity = UART_PARITY_EVEN,
-        .ser_opts.uid = 0, .ser_opts.response_tout_ms = CONFIG_FMB_MASTER_TIMEOUT_MS_RESPOND,
-        .ser_opts.data_bits = UART_DATA_8_BITS, .ser_opts.stop_bits = UART_STOP_BITS_1
+    SemaphoreHandle_t boot_done = (SemaphoreHandle_t)arg;
+    bus_task_handle = xTaskGetCurrentTaskHandle();
+
+    /* Инициализируем UART2 (RS-485) на Core 0 -> прерывания RS-485 живут строго на Core 0. */
+    ESP_ERROR_CHECK(rs485_rtu_init(MB_UART, MB_TX_GPIO, MB_RX_GPIO, MB_RTS_GPIO, MB_BAUD));
+
+    const esp_timer_create_args_t tcfg = {
+        .callback = poll_timer_cb,
+        .dispatch_method = POLL_TIMER_DISPATCH,
+        .name = "snap_grid",
+        .skip_unhandled_events = true,
     };
-    ESP_ERROR_CHECK(mbc_master_create_serial(&comm, &master));
-    ESP_ERROR_CHECK(uart_set_pin(MB_UART, MB_TX_GPIO, MB_RX_GPIO, MB_RTS_GPIO, UART_PIN_NO_CHANGE));
-    ESP_ERROR_CHECK(uart_set_mode(MB_UART, UART_MODE_RS485_HALF_DUPLEX));
-    ESP_ERROR_CHECK(mbc_master_set_descriptor(master, descriptor, 1));
-    ESP_ERROR_CHECK(mbc_master_start(master));
-    commands = xQueueCreate(4, sizeof(command_t));
-    ESP_ERROR_CHECK(commands ? ESP_OK : ESP_ERR_NO_MEM);
-    const esp_timer_create_args_t gap = {
-        .callback = gap_expired, .dispatch_method = ESP_TIMER_TASK, .name = "encoder_gap"
-    };
-    ESP_ERROR_CHECK(esp_timer_create(&gap, &gap_timer));
-    workflow_init(&workflow, (workflow_io_t){workflow_request, poll_heads, workflow_log, now_ms});
+    ESP_ERROR_CHECK(esp_timer_create(&tcfg, &poll_timer));
+    xSemaphoreGive(boot_done);
+
+    bus_msg_t msg;
+    for (;;) {
+        if (workflow.state == WF_POLL) {
+            while (xQueueReceive(commands, &msg, 0) == pdTRUE) {
+                handle_bus_msg(&msg);
+                if (workflow.state != WF_POLL) break;
+            }
+            if (workflow.state != WF_POLL) {
+                continue;
+            }
+            /* Ждём строго тактированный импульс аппаратного таймера (ESP_TIMER_ISR). */
+            const uint32_t ticks = ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(50));
+            if (ticks == 0U) {
+                continue;
+            }
+            if (ticks > 1U) {
+                overruns += (ticks - 1U);
+            }
+            workflow_tick(&workflow);
+        } else if (workflow.state == WF_IDLE || workflow.state == WF_CONFIRM) {
+            if (xQueueReceive(commands, &msg, pdMS_TO_TICKS(100)) == pdTRUE) {
+                handle_bus_msg(&msg);
+            }
+        } else {
+            /* WF_SCAN или WF_CALIB */
+            if (xQueueReceive(commands, &msg, 0) == pdTRUE) {
+                handle_bus_msg(&msg);
+            }
+            if (workflow.state == WF_SCAN || workflow.state == WF_CALIB) {
+                workflow_tick(&workflow);
+            }
+        }
+    }
+}
+
+static void core1_io_init_task(void *arg)
+{
+    SemaphoreHandle_t done = (SemaphoreHandle_t)arg;
+
+    /* Дожидаемся полного опустошения аппаратного TX FIFO UART0 перед перенастройкой
+     * драйвера консоли (защита от «битых символов» на стыке загрузчика и приложения,
+     * даже если проект был собран со старым sdkconfig на 115200 бод). */
+    fflush(stdout);
+    (void)uart_wait_tx_done(UART_NUM_0, pdMS_TO_TICKS(50));
+
+    /* Инициализация UART0 (921600) и REPL выполняется на Core 1, чтобы прерывания
+     * передачи потока в ПК обслуживались Core 1 и никогда не вытесняли Core 0 (SNAP).
+     * Пины -1 (UART_PIN_NO_CHANGE) удерживают штатный прямой тракт IOMUX (GPIO1/GPIO3). */
     esp_console_repl_t *repl = NULL;
     esp_console_repl_config_t repl_config = ESP_CONSOLE_REPL_CONFIG_DEFAULT();
     repl_config.prompt = "encoder>";
     repl_config.max_cmdline_length = 1024;
+    repl_config.task_core_id = CONSOLE_INIT_CORE;
+
     esp_console_dev_uart_config_t uart_config = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
-    uart_config.baud_rate = PC_UART_BAUD;
+    uart_config.channel = UART_NUM_0;
+    uart_config.baud_rate = (int)PC_UART_BAUD;
+    uart_config.tx_gpio_num = -1;
+    uart_config.rx_gpio_num = -1;
     ESP_ERROR_CHECK(esp_console_new_repl_uart(&uart_config, &repl_config, &repl));
+
     pc_link_start();
-    if (xTaskCreatePinnedToCore(worker, "encoder_bus", 6144, NULL, 5, NULL, 0) != pdPASS)
-        ESP_ERROR_CHECK(ESP_ERR_NO_MEM);
+
     const char *names[] = {"scan", "poll", "calib", "next", "stop"};
     const char *help[] = {
-        "Scan Modbus IDs 1..247", "poll [id,id,...]: SNAP/READ",
-        "calib [id,id,...]: calibration writes EEPROM", "Confirm calibration step",
-        "Stop polling and print timing statistics"
+        "Scan Modbus IDs 1..247",
+        "poll [id,id,...] [period_us]: hardware-timed SNAP/READ (default 10000 us = 100 Hz)",
+        "calib [id,id,...]: 4-stage calibration (writes EEPROM)",
+        "Confirm calibration step",
+        "Stop active mode and print timing report",
     };
-    for (unsigned i = 0; i < sizeof names / sizeof names[0]; ++i) {
-        const esp_console_cmd_t cmd = {.command = names[i], .help = help[i], .func = console_command};
+    for (unsigned i = 0U; i < sizeof names / sizeof names[0]; ++i) {
+        const esp_console_cmd_t cmd = {
+            .command = names[i],
+            .help = help[i],
+            .func = console_command,
+        };
         ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
     }
-    ESP_LOGI(TAG, "PC UART=%u; poll 2,7; stop", PC_UART_BAUD);
+
     ESP_ERROR_CHECK(esp_console_start_repl(repl));
+    xSemaphoreGive(done);
+    vTaskDelete(NULL);
+}
+
+void app_main(void)
+{
+    commands = xQueueCreate(8, sizeof(bus_msg_t));
+    ESP_ERROR_CHECK(commands ? ESP_OK : ESP_ERR_NO_MEM);
+    workflow_init(&workflow, (workflow_io_t){
+        .request = workflow_request,
+        .poll = poll_heads,
+        .log = workflow_log,
+        .now_ms = now_ms,
+    });
+
+    SemaphoreHandle_t init_sem = xSemaphoreCreateBinary();
+    ESP_ERROR_CHECK(init_sem ? ESP_OK : ESP_ERR_NO_MEM);
+
+    if (xTaskCreatePinnedToCore(core1_io_init_task, "core1_io_init", CONSOLE_INIT_STACK,
+                                init_sem, CONSOLE_INIT_PRIO, NULL, CONSOLE_INIT_CORE) != pdPASS) {
+        ESP_ERROR_CHECK(ESP_ERR_NO_MEM);
+    }
+    (void)xSemaphoreTake(init_sem, portMAX_DELAY);
+
+    if (xTaskCreatePinnedToCore(worker, "encoder_bus", BUS_TASK_STACK,
+                                init_sem, BUS_TASK_PRIO, NULL, BUS_TASK_CORE) != pdPASS) {
+        ESP_ERROR_CHECK(ESP_ERR_NO_MEM);
+    }
+    (void)xSemaphoreTake(init_sem, portMAX_DELAY);
+    vSemaphoreDelete(init_sem);
+
+    ESP_LOGI(TAG, "Ready: RS485=%u (Core0 direct RTU), PC_UART=%u (Core1), "
+             "grid=%u us, tick=%d Hz, timer=%s",
+             MB_BAUD, PC_UART_BAUD, DEFAULT_POLL_PERIOD_US, CONFIG_FREERTOS_HZ,
+             (POLL_TIMER_DISPATCH == ESP_TIMER_ISR) ? "ISR" : "TASK");
 }

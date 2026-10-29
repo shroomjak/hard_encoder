@@ -204,11 +204,16 @@
 #define KIN1_DEMCR                   (*((volatile uint32_t*)0xE000EDFC))
 /*!< Trace enable bit in DEMCR register */
 #define KIN1_TRCENA_BIT              (1UL<<24)
+/* На ядре Cortex-M7 (STM32F722) регистры DWT заблокированы при холодном старте
+   без подключённого отладчика SWD: необходима разблокировка LAR = 0xC5ACCE55. */
+#define KIN1_DWT_LAR                 (*((volatile uint32_t*)0xE0001FB0))
+#define KIN1_DWT_LAR_KEY             0xC5ACCE55UL
 
-
-/*!< TRCENA: Enable trace and debug block DEMCR (Debug Exception and Monitor Control Register */
-#define KIN1_InitCycleCounter() \
-  KIN1_DEMCR |= KIN1_TRCENA_BIT
+/*!< TRCENA + CoreSight LAR unlock for Cortex-M7 */
+#define KIN1_InitCycleCounter() do { \
+  KIN1_DEMCR |= KIN1_TRCENA_BIT; \
+  KIN1_DWT_LAR = KIN1_DWT_LAR_KEY; \
+} while (0)
 /*!< Reset cycle counter */
 #define KIN1_ResetCycleCounter() \
   KIN1_DWT_CYCCNT = 0
@@ -309,7 +314,11 @@ __attribute__((aligned(32))) uint16_t ADC_VAL[144] = {0};
 __attribute__((aligned(32))) uint16_t ADC_VAL2[144] = {0};
 
 uint16_t *adc_addr;
-volatile uint8_t adc_rdy = 0U;                                                         // ADC frame ready flag (1 = в buf_x0 лежит свежий кадр)
+volatile uint8_t adc_rdy = 0U;
+/* Конвейер меток середины оптической экспозиции TSL1401CL (2 такта SI до DMA буфера, DWT 216 МГц). */
+static volatile uint32_t exp_cyccnt_pipe[2] = {0U, 0U};
+volatile uint32_t buf_x0_exp_cyccnt = 0U;
+volatile uint32_t adc_dropped_frames = 0U;                                                         // ADC frame ready flag (1 = в buf_x0 лежит свежий кадр)
 
 /* ---- Управление яркостью подсветки (АРУ) --------------------------------
    DAC (Digital-to-Analog Converter) - ЦАП. Исторически яркость лазера задавалась
@@ -567,6 +576,44 @@ const uint16_t  bit_tab[BIT_TAB_SIZE] = {                                      /
 //455	,
 //56	,
 //454	,
+};
+
+/* Прямая таблица O(1) декодирования 9-битного кода (0..511) в номер сектора (0..143),
+   255 = недопустимый код. Устраняет линейный поиск по bit_tab[144] в calc_sector()
+   и bit_err_corr(), делая время обработки кадра постоянным по углу вала. */
+const uint8_t sector_by_code[512] = {
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 116, 126, 130, 128, 118, 124, 255, 255,
+  255, 255,  55,  33,  51,  49,  53,  91, 255, 255, 132, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255,  18,  16,   6,   4,  20,  22, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255,  83,  71,  69,  81,  79, 114, 108, 100, 102, 112, 110, 255, 255,
+  255, 255, 255, 255,  73,  75, 255,  77, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255,  37,  43,  41,  61,  39, 255, 140, 136, 138, 120, 122, 255, 255,
+  255, 255,  57,  35,  45,  47,  59,  89, 255, 142, 134, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255,   0,  28,  26,  94, 255, 255, 255,  32, 255,  30, 255,
+  255, 255,  12,  14,   8,   2,  10,  24, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255,  85,  65,  67,  63,  87,  96, 106,  98, 104, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 103,  97, 105,  95,  88,  64,  68,  66,  86, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255,  25,  11,   3,   9,  15,  13, 255, 255,
+  255, 255, 143,  31, 255, 255, 255,  93,  27,  29,   1, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 133, 141, 255,  90,  60,  48,  46,  36,  58, 255, 255,
+  255, 255, 121, 119, 137, 135, 139, 255,  40,  62,  42,  44,  38, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255,  76,  74, 255, 255, 255, 255,
+  255, 255, 109, 111, 101,  99, 107, 113,  78,  80,  70,  72,  84,  82, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255,  23,  21,   5,   7,  17,  19, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 131, 255, 255,  92,  54,  50,  52,  34,  56, 255, 255,
+  255, 255, 123, 117, 127, 129, 125, 115, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255
 };
 
 
@@ -1516,34 +1563,31 @@ void copy_data(void) {
   */
 /*-----------------------------------------------------------------------------------*/
 void find_startpixel(void) {
-        
-  //find main startpixel
-  max1_cor=0;
-  max2_cor=0;
+  /* Префиксные суммы кадра позволяют вычислить точную двухреперную корреляцию
+     за фиксированное время O(1) на сдвиг (10 сложений вместо 36 обращений к ОЗУ). */
+  int32_t pref[129];
+  pref[0] = 0;
+  for (int k = 0; k < 128; k++) {
+    pref[k + 1] = pref[k] + (int32_t)buf_x1[k];
+  }
+  const int32_t base_score = 30 * (int32_t)max_data - 6 * (int32_t)min_data;
+  scor[STARTPIXEL_MIN - 1] = 0;
+  scor[STARTPIXEL_MAX] = 0;
+
+  max1_cor = 0;
+  max2_cor = 0;
   max1_pos = STARTPIXEL_MIN;
   max2_pos = STARTPIXEL_MIN;
-  for (unsigned char i=STARTPIXEL_MIN;i<STARTPIXEL_MAX;i++) {               //build correlation table for startpixel
-
-    scor[i]=(max_data-buf_x1[i+0])+(max_data-buf_x1[i+1])+(max_data-buf_x1[i+2])+(max_data-buf_x1[i+3])
-      +(max_data-buf_x1[i+4])+(max_data-buf_x1[i+5])+(max_data-buf_x1[i+6])+(max_data-buf_x1[i+7])
-        +(max_data-buf_x1[i+8])+(max_data-buf_x1[i+9])
-          +(buf_x1[i+10]-min_data)+(buf_x1[i+11]-min_data)+(buf_x1[i+12]-min_data)
-            +(max_data-buf_x1[i+14])+(max_data-buf_x1[i+15])
-              +(max_data-buf_x1[i+16])+(max_data-buf_x1[i+17])+(max_data-buf_x1[i+18])
-
-    +(max_data-buf_x1[i+51])+(max_data-buf_x1[i+52])+(max_data-buf_x1[i+53])+(max_data-buf_x1[i+54])
-      +(max_data-buf_x1[i+55])+(max_data-buf_x1[i+56])+(max_data-buf_x1[i+57])+(max_data-buf_x1[i+58])
-        +(max_data-buf_x1[i+59])+(max_data-buf_x1[i+60])
-          +(buf_x1[i+61]-min_data)+(buf_x1[i+62]-min_data)+(buf_x1[i+63]-min_data)
-            +(max_data-buf_x1[i+65])+(max_data-buf_x1[i+66])
-              +(max_data-buf_x1[i+67])+(max_data-buf_x1[i+68])+(max_data-buf_x1[i+69]); 
-
-    if(scor[i]>max1_cor) {                                                      //find maximum correlation for startpixel
-      max1_cor=scor[i];
-      max2_pos=max1_pos;
-      max1_pos=i;
-    }  
-          
+  for (unsigned char i = STARTPIXEL_MIN; i < STARTPIXEL_MAX; i++) {
+    const int32_t t1 = pref[i] - 2 * pref[i + 10] + pref[i + 13] + pref[i + 14] - pref[i + 19];
+    const int32_t t2 = pref[i + 51] - 2 * pref[i + 61] + pref[i + 64] + pref[i + 65] - pref[i + 70];
+    const int32_t s = base_score + t1 + t2;
+    scor[i] = s;
+    if (s > max1_cor) {
+      max1_cor = s;
+      max2_pos = max1_pos;
+      max1_pos = i;
+    }
   }
 
   scor_max1=(scor[max1_pos]-scor[max1_pos-1])+(scor[max1_pos]-scor[max1_pos+1])+scor[max1_pos];
@@ -1635,13 +1679,12 @@ void find_startpixel(void) {
   */
 /*-----------------------------------------------------------------------------------*/
 unsigned short get_pix(float pos) {
-  if((pos<0)||(pos>127)) return -1;
-  int left=(int)floor(pos);
-  int right=(int)ceil(pos);
-  float k=pos-left;
-  int dif=(int)((buf_x1[right]-buf_x1[left])*k);
-  return (dif+buf_x1[left]);
-
+  if ((pos < 0.0f) || (pos > 127.0f)) return (unsigned short)-1;
+  int left = (int)pos;
+  int right = (left < 127) ? (left + 1) : 127;
+  float k = pos - (float)left;
+  int dif = (int)((float)((int)buf_x1[right] - (int)buf_x1[left]) * k);
+  return (unsigned short)(dif + (int)buf_x1[left]);
 }
 
 
@@ -1741,54 +1784,28 @@ void find_datablock(void) {
   */
 /*-----------------------------------------------------------------------------------*/
 void calc_sector(void) {
+        /* Единый проход фиксированной длины (9 бит): одновременно пакуем 9-битное
+           слово data_byte и находим наименее достоверный разряд badbit_pos.
+           Декодирование в номер сектора выполняется за O(1) обращением к
+           таблице sector_by_code[512] без итеративного перебора bit_tab[]. */
+        int tmin = 1000000;
+        int min_idx = 0;
+        uint16_t cur_data = 0U;
 
-
-        //search for possible error bit
-        /* Поиск самого ненадёжного бита: минимум |pix[i][1]-pix[i][0]|.
-           Границы цикла ДОЛЖНЫ совпадать с числом информационных бит (9),
-           которое заполняет find_datablock(), и с размером массива pix[9][2].
-           Ранее здесь стояло i<11 (наследие 11-битного варианта кода) - читались
-           элементы pix[9] и pix[10] за границей массива, и badbit_pos мог
-           указать на несуществующий бит. Исправлено. */
-        int tmp1;
-        int tmin=1000000;                                                       
-        int min=0;
-        for (int i=0;i<9;i++) {
-          tmp1=pix[i][1]-pix[i][0];
-          if (tmp1<0) tmp1=-tmp1;
-          if(tmp1<tmin) {
-            tmin=tmp1;
-            min=i;
-          }
-        }
-        badbit_pos=min;
-        badbit_value=tmin;
-
-
-        //reading code byte
-        uint16_t cur_data=0;
-        uint16_t bit_pos=0x100;
-        for (int i=0;i<9;i++) {
-          if (pix[i][1]>pix[i][0]) {
-            cur_data=cur_data|bit_pos;
-          }
-          bit_pos=bit_pos>>1;
-        }
-        data_byte=cur_data;
-
-
-        //searching code table
-        uint8_t tmp_pos2=255;
-        for (unsigned char j=0;j<BIT_TAB_SIZE;j++) {
-          if (bit_tab[j]==data_byte) {
-            tmp_pos2=j;
-            break;
+        for (int i = 0; i < 9; i++) {
+          int diff = (int)pix[i][1] - (int)pix[i][0];
+          cur_data = (uint16_t)((cur_data << 1) | (uint16_t)(diff > 0));
+          int abs_diff = (diff < 0) ? -diff : diff;
+          if (abs_diff < tmin) {
+            tmin = abs_diff;
+            min_idx = i;
           }
         }
 
-        rem_sec=tmp_pos2;
-
-      
+        badbit_pos = min_idx;
+        badbit_value = tmin;
+        data_byte = cur_data;
+        rem_sec = sector_by_code[cur_data & 0x1FFU];
 }
 
 
@@ -1911,36 +1928,15 @@ void startpixel_err_corr(void) {
   */
 /*-----------------------------------------------------------------------------------*/
 void bit_err_corr(void) {
-
-            if(badbit_value<1000) {                                             //error bit correction
-
-              /* Инверсия самого ненадёжного бита (Chase-1).
-                 calc_sector() пакует биты так: pix[0] -> 0x100 (старший),
-                 pix[1] -> 0x080, ... pix[8] -> 0x001. Значит маска разряда с
-                 индексом badbit_pos равна (0x100 >> badbit_pos).
-                 Ранее здесь стоял switch с масками, начинавшимися с 0x400
-                 (наследие 11-битного варианта кода): инвертировался разряд,
-                 сдвинутый на 2 позиции относительно признанного ненадёжным,
-                 из-за чего коррекция почти никогда не срабатывала. Исправлено.
-                 Проверка диапазона - защитная: при i<9 в calc_sector()
-                 badbit_pos всегда лежит в 0..8.                              */
-              if ( (badbit_pos>=0) && (badbit_pos<9) ) {
-                data_byte = data_byte ^ (uint16_t)(0x100 >> badbit_pos);
+            /* Побитовая коррекция Chase-1 за строго константное время O(1):
+               инвертируем наименее надёжный бит и сразу индексируем sector_by_code[512]
+               без линейного сканирования bit_tab[144]. */
+            if (badbit_value < 1000) {
+              if ((badbit_pos >= 0) && (badbit_pos < 9)) {
+                data_byte = (uint16_t)(data_byte ^ (uint16_t)(0x100U >> (uint32_t)badbit_pos));
               }
-
-              uint8_t tmp_pos=255;
-              for (unsigned char j=0;j<BIT_TAB_SIZE;j++) {
-                if (bit_tab[j]==data_byte) {
-                  tmp_pos=j;
-                  break;
-                }
-              }
-
-              rem_sec=tmp_pos;
-
-          }
-
-
+              rem_sec = sector_by_code[data_byte & 0x1FFU];
+            }
 }
 
 
@@ -2001,29 +1997,16 @@ void err_corr(void)
     if (!accepted) {
         serrcnt2++;
 
-        /* Корректировать можно только относительно
-           действительной истории. Исходный код не меняем. */
-        if (sector_history_valid &&
-            (badbit_value < 1000) &&
-            ((uint32_t)badbit_pos < 9U)) {
-
-            const uint16_t corrected =
-                data_byte ^
-                (uint16_t)(0x100U >> (uint32_t)badbit_pos);
-
-            int16_t candidate = -1;
-
-            if (corrected == bit_tab[cursec]) {
-                candidate = cursec;
-            } else if (corrected == bit_tab[lsec]) {
-                candidate = lsec;
-            } else if (corrected == bit_tab[rsec]) {
-                candidate = rsec;
-            }
-
-            if (candidate >= 0) {
-                rem_sec = (uint8_t)candidate;
+        /* Корректировать можно только относительно действительной истории.
+           Вызываем O(1) bit_err_corr(); при непопадании в окно откатываем data_byte. */
+        if (sector_history_valid) {
+            const uint16_t saved_code = data_byte;
+            bit_err_corr();
+            if ((rem_sec == cursec) || (rem_sec == lsec) || (rem_sec == rsec)) {
                 accepted = 1U;
+            } else {
+                data_byte = saved_code;
+                rem_sec = raw_sec;
             }
         }
     }
@@ -2212,17 +2195,17 @@ float BR4_C (float *mas, int centor_int)
   if (g0==g1) 
     g0++;
  
- //compensation BR4
-  delta+=100*g0/(g0-g1)+100; 
-  
-//  if(delta>=1 && delta<200) ampl=delta_cor[delta];
-//  else ampl=0.;
-  if(delta>=1 && delta<200) ampl=k_comp*arm_sin_f32((delta-100)*M_PI/50.+phase);
-  else ampl=0;
-  
-  //ampl=0;
+  //compensation BR4 (single-precision FPU, без эмуляции double)
+  const float frac = g0 / (g0 - g1);
+  delta += (int)(100.0f * frac) + 100;
 
-  return centor_int+g0/(g0-g1) - ampl;
+  if (delta >= 1 && delta < 200) {
+    ampl = k_comp * arm_sin_f32((float)(delta - 100) * (M_PI / 50.0f) + phase);
+  } else {
+    ampl = 0.0f;
+  }
+
+  return (float)centor_int + frac - ampl;
 }
 
 
@@ -2289,33 +2272,25 @@ void find_avg() {
     avg_buf[0]=cur_ang_X;
 
     
-    if ((cur_ang_X>0.5)&&(cur_ang_X<359.5)) {
-    
-      rev_en=1;
-      
-      sum_avg_buf = 0;
-      for (int i=0;i<30;i++) {
-        sum_avg_buf+=avg_buf[i];
-      }
-      avg_ang_X=sum_avg_buf/30;
-    
-      avg_cur=avg_ang_X-avg_buf[15];
-
-
-        if ( (cur_min>avg_cur)&&(avg_cur>0)) {
-          cur_min=avg_cur;
-        }
-        
-        if ( (cur_max<avg_cur)&&(avg_cur<0.1)) {
-          cur_max=avg_cur;
-        }
-        
-    
-    
-    
-    
+    float s_buf = 0.0f;
+    for (int i = 0; i < 30; i++) {
+      s_buf += avg_buf[i];
     }
-    else if ((avg_buf[0]<0.5)&&(avg_buf[29]>359.5)&&(rev_en==1) ) {
+    sum_avg_buf = s_buf;
+
+    if ((cur_ang_X > 0.5f) && (cur_ang_X < 359.5f)) {
+      rev_en = 1;
+      avg_ang_X = s_buf * (1.0f / 30.0f);
+      avg_cur = avg_ang_X - avg_buf[15];
+
+      if ((cur_min > avg_cur) && (avg_cur > 0.0f)) {
+        cur_min = avg_cur;
+      }
+      if ((cur_max < avg_cur) && (avg_cur < 0.1f)) {
+        cur_max = avg_cur;
+      }
+    }
+    else if ((avg_buf[0] < 0.5f) && (avg_buf[29] > 359.5f) && (rev_en == 1)) {
       
       rev_en=0;
       
@@ -2358,7 +2333,7 @@ void find_avg() {
     }
     
 
-    else if ((avg_buf[29]<0.5)&&(avg_buf[0]>359.5)&&(rev_en==1) ) {
+    else if ((avg_buf[29] < 0.5f) && (avg_buf[0] > 359.5f) && (rev_en == 1)) {
       
       rev_en=0;
       
@@ -3675,8 +3650,9 @@ int main(void)
        кадр линейки. Весь расчёт ниже должен уложиться в период кадра (~80 мкс),
        контроль - по счётчику тактов DWT (cycles / cycles_max).              */
     if (adc_rdy == 1U) {                                                         // ADC frame ready flag
-
-      copy_data();                                                              // (??? cycles) copy TAOS data
+      const uint32_t proc_start_cyccnt = KIN1_GetCycleCounter();
+      const uint32_t frame_exp_cyccnt = buf_x0_exp_cyccnt;
+      copy_data();                                                              // copy TAOS data
       __DMB();
       adc_rdy = 0U;
 
@@ -3716,19 +3692,20 @@ int main(void)
       }
 
 
-      /* Обновить текущий результат только после окончания расчёта кадра.
+      /* Публикуем кадр с точной меткой середины экспозиции DWT (216 МГц).
          При errorflag!=0 сохранённый старый угол НЕ считается валидным SNAP. */
-      snapshot_publish(cur_ang_E, (uint16_t)sector, errorflag,
-                       encoder_state, HAL_GetTick());
+      snapshot_publish_timed(cur_ang_E, (uint16_t)sector, errorflag,
+                             encoder_state, frame_exp_cyccnt);
       dac_ctrl();                                                               // DAC ctrl
 
-      SCB_InvalidateDCache_by_Addr((uint32_t *)aADCxConvertedData,((2+31)/32)*32);//force to let update caches again with memory content to see the changes
-      Vsense=(aADCxConvertedData[0]*3.3f)/4095.0f;                              // calculate Temperature
-      Temperature=((Vsense-V25)*1000/Avg_Slope)+25.0f;
+      SCB_InvalidateDCache_by_Addr((uint32_t *)aADCxConvertedData,((2+31)/32)*32);
+      Vsense = (aADCxConvertedData[0] * 3.3f) / 4095.0f;
+      Temperature = ((Vsense - V25) * 1000.0f / Avg_Slope) + 25.0f;
 
-      cycles = KIN1_GetCycleCounter();                                          // get cycle counter
-      KIN1_DisableCycleCounter();                                               // disable counting if not used any more
-      if (cycles>cycles_max) cycles_max=cycles;                                 // find maximum cycle counter
+      /* DWT->CYCCNT работает непрерывно (free-running), обеспечивая единую шкалу
+         времени 4.63 нс между экспозицией линейки и приёмом байтов SNAP в USART1. */
+      cycles = KIN1_GetCycleCounter() - proc_start_cyccnt;
+      if (cycles > cycles_max) cycles_max = cycles;
 
     }
 
@@ -3945,7 +3922,7 @@ static void MX_ADC2_Init(void)
 
   /* (3) Configure NVIC for DMA transfer complete/error interrupts */
   LL_DMA_EnableIT_TC(DMA2, LL_DMA_STREAM_3);
-  NVIC_SetPriority(DMA2_Stream3_IRQn, 0);
+  NVIC_SetPriority(DMA2_Stream3_IRQn, 1);
   NVIC_EnableIRQ(DMA2_Stream3_IRQn);
 
   /* Start the DMA transfer */
@@ -4107,7 +4084,7 @@ static void MX_TIM4_Init(void)
   LL_TIM_ClearFlag_UPDATE(TIM4);
   LL_TIM_EnableIT_UPDATE(TIM4);
 
-  NVIC_SetPriority(TIM4_IRQn, 1);
+  NVIC_SetPriority(TIM4_IRQn, 2);
   NVIC_EnableIRQ(TIM4_IRQn);
 }
 /**
@@ -4297,26 +4274,27 @@ void DMA2_Stream3_IRQHandler(void)
   {
     LL_DMA_ClearFlag_TC3(DMA2);
 
-    KIN1_ResetCycleCounter();                                                   // reset cycle counter
-    KIN1_EnableCycleCounter();                                                  // start counting
-
-    __disable_irq ();
     if (backlight_timer_state != BACKLIGHT_STATE_IDLE) {
         backlight_overlap_count++;
     }
-    SCB_InvalidateDCache_by_Addr((uint32_t *)ADC_VAL,((132*2+31)/32)*32);//force to let update caches again with memory content to see the changes
-    SCB_InvalidateDCache_by_Addr((uint32_t *)ADC_VAL2,((132*2+31)/32)*32);//force to let update caches again with memory content to see the changes
+    SCB_InvalidateDCache_by_Addr((uint32_t *)ADC_VAL,((132*2+31)/32)*32);
+    SCB_InvalidateDCache_by_Addr((uint32_t *)ADC_VAL2,((132*2+31)/32)*32);
 
+    /* Выдержка tqt = 20 мкс выполняется с разрешёнными прерываниями:
+       USART1_IRQn (приоритет 0) обслуживает байты RS-485 за < 0.8 мкс без потери ORE. */
     while (!LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_6)) {
     }
-  
     while (LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_6)) {
     }
 
     LL_TIM_DisableCounter(TIM3);                                                 // hold T-CLK low for TSL1401 tqt
     DelayTim4Ticks((uint16_t)TSL1401_TQT_TIM_TICKS);
 
+    /* Запрещаем IRQ строго на короткое окно (~0.65 мкс) формирования импульса SI
+       и старта подсветки, одновременно фиксируя точную тактовую метку SI по DWT. */
+    __disable_irq();
     LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_7);
+    const uint32_t si_cyccnt = KIN1_GetCycleCounter();
     Backlight_StartFromSI();
     LL_TIM_EnableCounter(TIM3);
 
@@ -4324,21 +4302,33 @@ void DMA2_Stream3_IRQHandler(void)
     }
 
     LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_7);
+    __enable_irq();
 
-    // copy data to buffer
+    /* Середина оптической экспозиции нового кадра в тактах SYSCLK (216 МГц):
+       1 тик TIM4 (108 МГц) = 2 такта SYSCLK; delay * 2 + (width * 2) / 2 = 2*delay + width. */
+    const uint32_t new_exp_cyccnt = (backlight_width_ticks != 0U)
+        ? (si_cyccnt + 2U * (uint32_t)backlight_delay_ticks + (uint32_t)backlight_width_ticks)
+        : si_cyccnt;
+
+    /* Конвейер TSL1401CL: завершённый сейчас буфер DMA содержит заряд, накопленный
+       два импульса SI назад (перенесён на hold-ёмкости на предыдущем SI и только что считан). */
+    const uint32_t completed_exp_cyccnt = exp_cyccnt_pipe[1];
+    exp_cyccnt_pipe[1] = exp_cyccnt_pipe[0];
+    exp_cyccnt_pipe[0] = new_exp_cyccnt;
+
     if (LL_DMA_GetCurrentTargetMem(DMA2, LL_DMA_STREAM_3) == LL_DMA_CURRENTTARGETMEM0) {
         adc_addr = ADC_VAL2 + 2;
     } else {
         adc_addr = ADC_VAL + 2;
     }
-    if (adc_rdy == 0) {
-      memcpy(buf_x0,adc_addr,256);                                                
-      adc_rdy=1;
+    if (adc_rdy == 0U) {
+      memcpy(buf_x0, adc_addr, 256);
+      buf_x0_exp_cyccnt = completed_exp_cyccnt;
+      __DMB();
+      adc_rdy = 1U;
+    } else {
+      adc_dropped_frames++;
     }
-
-   __enable_irq (); 
-
-
   }
 
   /* USER CODE END DMA2_Stream3_IRQn 0 */
@@ -4414,9 +4404,9 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c)
     
     //##-3- Configure the NVIC for I2C ########################################
     // NVIC for I2Cx
-    HAL_NVIC_SetPriority(I2C3_ER_IRQn, 0, 3);
-    HAL_NVIC_EnableIRQ(I2C3_ER_IRQn);     
-    HAL_NVIC_SetPriority(I2C3_EV_IRQn, 0, 4);
+    HAL_NVIC_SetPriority(I2C3_ER_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(I2C3_ER_IRQn);
+    HAL_NVIC_SetPriority(I2C3_EV_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(I2C3_EV_IRQn);
 
 

@@ -31,12 +31,13 @@ static unsigned sent_len;
 BOOL xMBPortEventInit(void) { have_event = FALSE; return TRUE; }
 BOOL xMBPortEventPost(eMBEventType v) { assert(!have_event); event=v; have_event=TRUE; return TRUE; }
 BOOL xMBPortEventGet(eMBEventType *v) { if (!have_event) return FALSE; *v=event; have_event=FALSE; return TRUE; }
+static USHORT last_t35_50us;
 BOOL xMBPortSerialInit(UCHAR port, ULONG baud, UCHAR bits, eMBParity parity, UCHAR stop)
-{ assert(port==1 && baud==115200 && bits==8 && parity==MB_PAR_EVEN && stop==1); return TRUE; }
+{ assert(port==1 && (baud==115200 || baud==230400) && bits==8 && parity==MB_PAR_EVEN && stop==1); return TRUE; }
 void vMBPortSerialEnable(BOOL rx, BOOL tx) { (void)rx; tx_on=tx; }
 BOOL xMBPortSerialGetByte(CHAR *v) { *v=incoming; return TRUE; }
 BOOL xMBPortSerialPutByte(CHAR v) { assert(sent_len<sizeof sent); sent[sent_len++]=(UCHAR)v; return TRUE; }
-BOOL xMBPortTimersInit(USHORT t) { assert(t==35); return TRUE; }
+BOOL xMBPortTimersInit(USHORT t) { last_t35_50us = t; return TRUE; }
 void vMBPortTimersEnable(void) {}
 void vMBPortTimersDisable(void) {}
 
@@ -54,6 +55,7 @@ static void send_request(UCHAR *p, unsigned n)
 int main(void)
 {
     assert(eMBInit(MB_RTU, 1, 1, 115200, MB_PAR_EVEN, 1)==MB_ENOERR);
+    assert(last_t35_50us==35);
     assert(eMBEnable()==MB_ENOERR);
     pxMBPortCBTimerExpired();
     assert(eMBPoll()==MB_ENOERR);
@@ -100,5 +102,59 @@ int main(void)
     assert(sent_len==11 && sent[1]==4 && sent[2]==6);
     assert(sent[3]==0 && sent[4]==0 && sent[6]==1 && sent[7]==0xca && sent[8]==1);
     assert(usMBCRC16(sent, sent_len)==0);
+    sent_len=0;
+
+    /* ISR fast-latch test: broadcast SNAP latches at TIM2 t3.5 expiry BEFORE eMBPoll,
+       so a frame published between ISR and superloop eMBPoll cannot skew the frozen angle! */
+    assert(eMBDisable()==MB_ENOERR);
+    assert(eMBInit(MB_RTU, 1, 1, 230400, MB_PAR_EVEN, 1)==MB_ENOERR);
+    assert(last_t35_50us==4); /* 200 us = 4 * 50 us at 230400 8E1 */
+    assert(eMBEnable()==MB_ENOERR);
+    pxMBPortCBTimerExpired();
+    assert(eMBPoll()==MB_ENOERR);
+
+    snapshot_publish(135.25f, 54, 0, 0x00, 500);
+    UCHAR fast_snap[16]={0,6,0,0,0,99};
+    USHORT crc=usMBCRC16(fast_snap, 6);
+    fast_snap[6]=(UCHAR)crc; fast_snap[7]=(UCHAR)(crc >> 8);
+    for (unsigned i=0; i<8; ++i) { incoming=(CHAR)fast_snap[i]; pxMBFrameCBByteReceived(); }
+    pxMBPortCBTimerExpired(); /* TIM2 ISR runs here — must freeze 135.25 deg immediately! */
+    snapshot_publish(270.75f, 108, 0, 0x00, 501); /* newer frame arrives BEFORE eMBPoll */
+    assert(eMBPoll()==MB_ENOERR);
+    assert(eMBPoll()==MB_ENOERR);
+    assert(eMBPoll()==MB_ENOERR);
+
+    UCHAR read2[16]={1,4,0,0,0,11};
+    send_request(read2, 6);
+    uint32_t frozen_udeg = (uint32_t)sent[7] << 24 | (uint32_t)sent[8] << 16
+                           | (uint32_t)sent[9] << 8 | sent[10];
+    assert(sent[4]==99 && frozen_udeg == 135250000U);
+    sent_len=0;
+
+    /* Back-to-back bus traffic without intervening superloop eMBPoll():
+       1) Broadcast SNAP(100) arrives -> TIM2 ISR fires,
+       2) Foreign Head #2 request + 27-byte reply pass on bus -> TIM2 ISR fires,
+       3) Own Head #1 FC04 arrives -> ONLY now main() calls eMBPoll()!
+       Note: mock xMBPortEventPost has capacity 1 (assert(!have_event)), so this
+       also proves zero stale EV_FRAME_RECEIVED events were queued! */
+    snapshot_publish(315.5f, 126, 0, 0x00, 600);
+    UCHAR snap100[16]={0,6,0,0,0,100};
+    crc=usMBCRC16(snap100, 6);
+    snap100[6]=(UCHAR)crc; snap100[7]=(UCHAR)(crc >> 8);
+    for (unsigned i=0; i<8; ++i) { incoming=(CHAR)snap100[i]; pxMBFrameCBByteReceived(); }
+    pxMBPortCBTimerExpired();
+
+    UCHAR foreign_reply[32]={2,4,22, 0,100, 0,1, 0,0,0,0, 0,1, 0,0, 0,0, 0,0, 0,0, 0,0, 0,80};
+    crc=usMBCRC16(foreign_reply, 25);
+    foreign_reply[25]=(UCHAR)crc; foreign_reply[26]=(UCHAR)(crc >> 8);
+    for (unsigned i=0; i<27; ++i) { incoming=(CHAR)foreign_reply[i]; pxMBFrameCBByteReceived(); }
+    pxMBPortCBTimerExpired();
+
+    UCHAR own_read[16]={1,4,0,0,0,11};
+    send_request(own_read, 6);
+    assert(sent_len==27 && sent[0]==1 && sent[4]==100);
+    frozen_udeg = (uint32_t)sent[7] << 24 | (uint32_t)sent[8] << 16
+                  | (uint32_t)sent[9] << 8 | sent[10];
+    assert(frozen_udeg == 315500000U);
     return 0;
 }
