@@ -145,7 +145,7 @@ def load_log(path):
     return df, columns
 
 
-def build_signals(df, columns, offsets=None, x_column='seq'):
+def build_signals(df, columns, x_column='seq'):
     if x_column not in df:
         raise ValueError(f'В CSV нет столбца {x_column}')
     x = pd.to_numeric(df[x_column], errors='coerce').to_numpy(dtype=float, copy=True)
@@ -174,21 +174,13 @@ def build_signals(df, columns, offsets=None, x_column='seq'):
         ok = np.isfinite(matrix).all(axis=1)
         means = np.full(len(x), np.nan)
         if ok.any():
-            if offsets is None:
-                rel_rad = np.deg2rad(matrix[ok] - matrix[ok, :1])
-                offsets = np.mod(np.rad2deg(np.angle(np.mean(np.exp(1j * rel_rad), axis=0))), 360.0)
-                offsets[0] = 0.0
-                off_src = 'авто'
-            else:
-                off_src = 'заданы'
-            off_str = ', '.join(f'{c}:{v:.4f}°' for c, v in zip(columns, offsets))
-            print(f'circular_mean: смещения головок ({off_src}) = [{off_str}]')
-
-            centered = matrix[ok] - offsets
-            vector = np.mean(np.exp(1j * np.deg2rad(centered)), axis=1)
-            a = np.mod(np.rad2deg(np.angle(vector)), 360.0)
+            # Непрерывное среднее показаний головок (EDA) без приведения offsets:
+            # u0 + mean_j unwrap(ang_j - ang_0) тождественно равно mean_j unwrap(ang_j),
+            # не имеет вырождения при векторной сумме 0 (180°, 120°, 90°) и не рвётся на пропусках.
+            u0 = np.unwrap(matrix[ok, 0], period=360.0)
+            diffs = np.unwrap(matrix[ok] - matrix[ok, :1], axis=0, period=360.0)
+            a = np.mod(u0 + diffs.mean(axis=1), 360.0)
             a[a >= 360.0] = 0.0
-            a[np.abs(vector) < 1e-3] = np.nan
             means[ok] = a
         signals['circular_mean'] = (x, means)
     return signals
@@ -244,7 +236,6 @@ def build_argparser():
     p.add_argument('--x', default='seq', help='seq или t_us; по умолчанию seq')
     p.add_argument('--run', type=int, help='Только для старых CSV со столбцом run')
     p.add_argument('--grid-step', type=float)
-    p.add_argument('--offsets', help='Смещения для кругового среднего в порядке возрастания ID (по умолчанию авто)')
     p.add_argument('--no-plots', action='store_true')
     p.add_argument('--no-show', action='store_true')
     return p
@@ -261,13 +252,8 @@ def run(args):
             df = df[df['run'] == args.run]
     if df.empty:
         raise ValueError('Нет строк для анализа')
-    offsets = None
-    if args.offsets:
-        offsets = np.asarray([float(v) for v in args.offsets.split(',')])
-        if len(offsets) != len(columns) or not np.isfinite(offsets).all():
-            raise ValueError('Нужно одно конечное смещение на угловой столбец')
     print(f'CSV: {path}')
-    signals = build_signals(df, columns, offsets, args.x)
+    signals = build_signals(df, columns, args.x)
     successes = 0
     for name, (x, angle) in signals.items():
         try:
