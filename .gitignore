@@ -62,4 +62,4 @@ esp32_master/sdkconfig.old
 esp32_master/dependencies.lock
 
 # EWARM build output
-EWARM/ 
+EWARM\*

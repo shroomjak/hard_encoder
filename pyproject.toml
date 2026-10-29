@@ -12,7 +12,8 @@ dependencies = [
     "matplotlib",
     "pandas",
     "pyserial",
-    "plotly"
+    "plotly",
+    "statsmodels"
 ]
 
 [project.scripts]

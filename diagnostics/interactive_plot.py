@@ -1,83 +1,106 @@
 #!/usr/bin/env python3
-"""Интерактивные графики выбранных ang_<ID> от seq.
-
-python diagnostics/interactive_plot.py run_01 --ids 2,7,12
-HTML сохраняется в diagnostics/run_01/run_01_interactive.html.
-"""
-from __future__ import annotations
-
+"""Интерактивный график ang_ID от seq: имя эксперимента, папка или CSV."""
 import argparse
 from pathlib import Path
+import re
 import sys
-
 import pandas as pd
 import plotly.graph_objects as go
 
-DIAGNOSTICS = Path(__file__).resolve().parent
+def resolve_csv(value):
+    """Experiment name, directory, or CSV; independent of working directory."""
+    base = Path(__file__).resolve().parent
+    text = str(value).strip().strip('"')
+    if not text:
+        raise ValueError('Не указано имя эксперимента или CSV')
+    p = Path(text.replace('\\', '/')).expanduser()
+    if p.is_absolute():
+        candidates = [p]
+    elif len(p.parts) == 1:
+        stem = p.stem if p.suffix.lower() == '.csv' else p.name
+        candidates = [base / p, base / stem / (stem + '.csv'), base / (stem + '.csv'), p]
+    else:
+        candidates = [p, base / p, base.parent / p]
+    tried = []
+    for candidate in candidates:
+        if candidate.is_dir():
+            candidate = candidate / (candidate.name + '.csv')
+        elif not candidate.suffix:
+            expected = candidate / (candidate.name + '.csv')
+            if expected.is_file():
+                candidate = expected
+        if candidate.is_file():
+            return candidate.resolve()
+        tried.append(str(candidate))
+    raise FileNotFoundError('CSV не найден. Проверены пути:\n  ' + '\n  '.join(dict.fromkeys(tried)))
 
 
-def parse_ids(text: str) -> tuple[int, ...]:
-    try:
-        ids = tuple(int(p) for p in text.split(','))
-        if not ids or len(set(ids)) != len(ids) or any(not 1 <= i <= 247 for i in ids):
-            raise ValueError
-        return ids
-    except ValueError:
-        raise argparse.ArgumentTypeError('Укажите уникальные ID 1..247: 2,7,12') from None
+def angle_columns(df):
+    return sorted([c for c in df if re.fullmatch(r'ang_\d+', str(c), re.I)],
+                  key=lambda name: int(name.split('_')[-1]))
 
 
-def experiment_csv(name: str) -> Path:
-    if not name or '/' in name or '\\' in name or name in ('.', '..'):
-        raise ValueError('Укажите имя папки внутри diagnostics')
-    return DIAGNOSTICS / name / f'{name}.csv'
+def split_values(values):
+    return [item for value in (values or []) for item in re.split(r'[,\s]+', value) if item]
 
 
-def plot_angles(csv_path: Path, html_path: Path, ids: tuple[int, ...], auto_open: bool = True):
-    columns = [f'ang_{head}' for head in ids]
-    df = pd.read_csv(csv_path, encoding='utf-8-sig')
-    df.columns = df.columns.str.strip()
-    df = df[['seq', *columns]].apply(pd.to_numeric, errors='coerce')
+def plot_angles(csv_path, html_path, auto_open=True, columns=None, x_column='seq'):
+    df = pd.read_csv(csv_path, encoding='utf-8-sig', sep=None, engine='python')
+    df.columns = [str(c).strip() for c in df.columns]
+    if x_column not in df:
+        raise ValueError(f'В CSV нет столбца {x_column}')
+    columns = columns or angle_columns(df)
+    if not columns:
+        raise ValueError('В CSV нет столбцов ang_ID')
+    missing = [c for c in columns if c not in df]
+    if missing:
+        raise ValueError('В CSV нет столбцов: ' + ', '.join(missing))
+    x = pd.to_numeric(df[x_column], errors='coerce')
+    if not x.notna().any():
+        raise ValueError(f'В {x_column} нет числовых значений')
     fig = go.Figure()
     for column in columns:
-        fig.add_trace(go.Scattergl(
-            x=df['seq'], y=df[column], mode='lines', name=column,
-            line=dict(width=1.3), connectgaps=False,
-            hovertemplate=f'{column}: %{{y:.6f}}°<br>seq: %{{x}}<extra></extra>',
-        ))
-    fig.update_layout(
-        title=dict(text=f'Углы от seq — {csv_path.name}', x=0.5),
-        template='plotly_white', height=800,
-        margin=dict(l=70, r=30, t=90, b=60),
-        xaxis=dict(title='seq', showgrid=True, fixedrange=False,
-                   rangeslider=dict(visible=True, thickness=0.12)),
-        yaxis=dict(title='Угол, °', showgrid=True, fixedrange=False),
-        hovermode='x unified', dragmode='zoom',
-        legend=dict(orientation='h', x=0, y=1.08),
-    )
-    fig.write_html(
-        str(html_path), include_plotlyjs=True, full_html=True, auto_open=auto_open,
-        config=dict(scrollZoom=True, displayModeBar=True, displaylogo=False,
-                    responsive=True, doubleClick='reset',
-                    toImageButtonOptions=dict(format='png', filename=f'{csv_path.stem}_angles', scale=2)),
-    )
+        fig.add_trace(go.Scatter(x=x, y=pd.to_numeric(df[column], errors='coerce'),
+                                 mode='lines', name=column, connectgaps=False,
+                                 line=dict(width=1.3),
+                                 hovertemplate=f'{column}: %{{y:.6f}}°<br>{x_column}: %{{x}}<extra></extra>'))
+    fig.update_layout(title=f'Углы от {x_column} — {csv_path.name}', template='plotly_white',
+                      height=800, xaxis=dict(title=x_column, rangeslider=dict(visible=True)),
+                      yaxis=dict(title='Угол, °'), hovermode='x unified', dragmode='zoom',
+                      legend=dict(orientation='h'))
+    html_path = Path(html_path)
+    html_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.write_html(str(html_path), include_plotlyjs=True, full_html=True,
+                   auto_open=auto_open, config=dict(scrollZoom=True, displaylogo=False,
+                                                    responsive=True, doubleClick='reset'))
+    print(f'CSV: {csv_path}\nСтрок: {len(df)}\nHTML: {html_path.resolve()}')
     return fig
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('folder', help='Имя папки эксперимента внутри diagnostics')
-    parser.add_argument('--ids', required=True, type=parse_ids, help='Головки для графика: 2,7,12')
-    parser.add_argument('--no-open', action='store_true', help='Не открывать браузер')
-    args = parser.parse_args()
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('csv', nargs='?', help='Имя эксперимента, папка или CSV')
+    p.add_argument('-o', '--output', type=Path)
+    p.add_argument('--no-open', action='store_true')
+    p.add_argument('--heads', '--ids', nargs='+', help='ID столбцов: 2,7 или 2 7; по умолчанию все')
+    p.add_argument('--columns', nargs='+', help='Имена столбцов: ang_2 ang_7')
+    p.add_argument('--x', default='seq')
+    args = p.parse_args()
     try:
-        path = experiment_csv(args.folder)
-        plot_angles(path, path.with_name(f'{path.stem}_interactive.html'),
-                    args.ids, auto_open=not args.no_open)
-    except (OSError, ValueError, KeyError, pd.errors.ParserError) as exc:
-        print(f'Error: {exc}', file=sys.stderr)
-        return 1
-    return 0
-
+        path = resolve_csv(args.csv or input('Имя эксперимента или CSV: ').strip())
+        if args.heads and args.columns:
+            raise ValueError('Выберите --heads или --columns, не оба')
+        columns = split_values(args.columns) or None
+        if args.heads:
+            ids = [int(v) for v in split_values(args.heads)]
+            if any(i < 1 or i > 247 for i in ids) or len(set(ids)) != len(ids):
+                raise ValueError('Нужны уникальные ID в диапазоне 1..247')
+            columns = [f'ang_{i}' for i in ids]
+        output = args.output or path.with_name(path.stem + '_interactive.html')
+        plot_angles(path, output, not args.no_open, columns, args.x)
+    except (OSError, ValueError, pd.errors.ParserError) as exc:
+        print(f'[ERROR] {exc}', file=sys.stderr)
+        raise SystemExit(1)
 
 if __name__ == '__main__':
-    raise SystemExit(main())
+    main()

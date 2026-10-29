@@ -3388,6 +3388,9 @@ void angk_cal() {
 /*-----------------------------------------------------------------------------------*/
 void dac_ctrl(void)
 {  
+    if (agc_test_disable) {
+        return;
+    }
     adc_offset = avg_max_data / 5; 
     /* adc_offset задаётся независимо и здесь не изменяется. */
     max_level_pix = max_level - adc_offset;
@@ -3405,10 +3408,6 @@ void dac_ctrl(void)
     avg_amaxX_summ = 0U;
 
     if (!backlight_width_en) {
-        return;
-    }
-    
-    if (agc_test_disable) {
         return;
     }
 
@@ -3665,7 +3664,9 @@ int main(void)
 
   __enable_irq();                                                               // enable interrupts
   cycles_max=0;
- 
+  
+  agc_test_disable = 1U;
+  backlight_delay_ticks = 2100;
   // Infinite loop
   while (1)
   {
