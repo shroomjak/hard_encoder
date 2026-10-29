@@ -3645,7 +3645,7 @@ int main(void)
   cycles_max=0;
   
   agc_test_disable = 1U;
-  backlight_delay_ticks = 2100;
+  backlight_width_ticks = 2000;
   // Infinite loop
   while (1)
   {
