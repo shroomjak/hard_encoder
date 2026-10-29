@@ -1,12 +1,12 @@
 #ifndef MODBUS_BOARD_H
 #define MODBUS_BOARD_H
 
-#define MB_SLAVE_ADDRESS 1U  /* каждой головке свой адрес 1..247; 0 — вещание */
+#define MB_SLAVE_ADDRESS 2U  /* каждой головке свой адрес 1..247; 0 — вещание */
 
 #if MB_SLAVE_ADDRESS < 1 || MB_SLAVE_ADDRESS > 247
 #error "MB_SLAVE_ADDRESS must be unique on the bus and in [1,247]"
 #endif
-#define MB_BAUD 115200U
+#define MB_BAUD 230400U
 #define MB_TX_PIN LL_GPIO_PIN_6
 #define MB_RX_PIN LL_GPIO_PIN_7
 #define MB_DE_PIN LL_GPIO_PIN_5

@@ -1,6 +1,21 @@
-# Использовать Modbus RTU и выдерживать паузу после вещательного SNAP.
+# Используем Modbus RTU.
 CONFIG_FMB_COMM_MODE_RTU_EN=y
-# Время ожидания адресного ответа (мс) и пауза после вещания (мс).
-CONFIG_FMB_MASTER_TIMEOUT_MS_RESPOND=400
-CONFIG_FMB_MASTER_DELAY_MS_CONVERT=150
 
+# Максимальное ожидание адресного ответа.
+CONFIG_FMB_MASTER_TIMEOUT_MS_RESPOND=30
+
+# Пауза после broadcast SNAP перед следующим запросом.
+CONFIG_FMB_MASTER_DELAY_MS_CONVERT=3
+
+# Частота системного тика FreeRTOS.
+CONFIG_FREERTOS_HZ=1000
+
+# Пока сохраняем защитную паузу после тайм-аута.
+CONFIG_FMB_MASTER_TIMEOUT_COOLDOWN_MS=150
+# Двухъядерный режим: Modbus на Core0, вывод на ПК на Core1.
+CONFIG_FMB_PORT_TASK_AFFINITY_CPU0=y
+# esp_timer (межкадровая пауза bus_gap) тоже на Core0.
+CONFIG_ESP_TIMER_TASK_AFFINITY_CPU0=y
+
+# Скорость консоли/вывода на ПК. 115200 даёт ~87 мкс на символ;
+CONFIG_ESP_CONSOLE_UART_BAUDRATE=115200

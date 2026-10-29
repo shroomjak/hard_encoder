@@ -119,8 +119,6 @@
 #define CENTER_PIXEL            60
 
 
-
-
 #ifndef M_PI_4
 #define M_PI_4 (3.1415926535897932384626433832795/4.0)
 #endif
@@ -131,13 +129,6 @@
 #define A 0.0776509570923569
 #define B -0.287434475393028
 #define C (M_PI_4 - A - B)
-
-
-
-
-
-
-
 
 
 
@@ -296,7 +287,7 @@ uint8_t lasdac_rdy=0;
    потому что у Cortex-M7 включён кэш данных (D-Cache), а инвалидация кэша
    работает строками по 32 байта (SCB_InvalidateDCache_by_Addr).              */
 //ADC1
-__attribute__((aligned(32))) uint16_t aADCxConvertedData[1];
+__attribute__((aligned(32))) uint16_t aADCxConvertedData[16] = {0};
 __attribute__((aligned(4))) float Vsense;
 __attribute__((aligned(4))) float V25 = 0.76f;
 __attribute__((aligned(4))) float Avg_Slope = 2.5f;
@@ -314,10 +305,11 @@ __attribute__((aligned(4))) float Temperature;
    132 = 128 рабочих пикселей + служебные отсчёты в начале (первые 2 отбрасываются,
    см. adc_addr = ADC_VAL + 2).                                               */
 //ADC2
-__attribute__((aligned(32))) uint16_t ADC_VAL[132] = {0};
-__attribute__((aligned(32))) uint16_t ADC_VAL2[132] = {0};
+__attribute__((aligned(32))) uint16_t ADC_VAL[144] = {0};
+__attribute__((aligned(32))) uint16_t ADC_VAL2[144] = {0};
+
 uint16_t *adc_addr;
-unsigned char adc_rdy;                                                          // ADC frame ready flag (1 = в buf_x0 лежит свежий кадр)
+volatile uint8_t adc_rdy = 0U;                                                         // ADC frame ready flag (1 = в buf_x0 лежит свежий кадр)
 
 /* ---- Управление яркостью подсветки (АРУ) --------------------------------
    DAC (Digital-to-Analog Converter) - ЦАП. Исторически яркость лазера задавалась
@@ -328,23 +320,30 @@ unsigned char adc_rdy;                                                          
    buf_k, чтобы яркость не "уползала" в процессе измерений).                  */
 //DAC
 uint8_t backlight_width_en=1;
+volatile uint8_t agc_test_disable = 0U;
 int max_level = MAX_LEVEL_PIX;
 int adc_offset=ADC_OFFSET;
 int max_level_pix = MAX_LEVEL_PIX - ADC_OFFSET;
 uint16_t lasdac=700;                                                            // Laser DAC setpoint (initial value)
 uint32_t lasdac_counter=0;
 uint32_t avg_amaxX_summ=0;
-uint32_t avg_amaxX_num=1000;
+uint32_t avg_amaxX_num=10000;
 uint32_t avg_max_data;
 
 #define BACKLIGHT_STATE_IDLE   0
 #define BACKLIGHT_STATE_DELAY  1
 #define BACKLIGHT_STATE_WIDTH  2
-#define BACKLIGHT_WIDTH_MIN_TICKS 2
-#define BACKLIGHT_WIDTH_MAX_TICKS 9400
+
+#define AGC_LEVEL_LOW   2000U
+#define AGC_LEVEL_HIGH  2400U
+
+#define AGC_WIDTH_MIN_TICKS   500U
+#define AGC_WIDTH_MAX_TICKS  2000U
+
+volatile uint32_t backlight_overlap_count = 0U;
 
 volatile uint16_t backlight_delay_ticks = 1220;
-volatile uint16_t backlight_width_ticks = 2500;
+volatile uint16_t backlight_width_ticks = 2100;
 volatile uint8_t backlight_timer_state = BACKLIGHT_STATE_IDLE;
 
 
@@ -905,7 +904,7 @@ int offset_snum=7;
    пикселя i: buf_x2[i] = buf_x1[i] * buf_k[i]. Без него субпиксельный алгоритм
    BR4 даёт смещение, зависящее от того, на какие пиксели попал репер.        */
 int start_angk_cal=0;
-int anglek_phase=0;
+int anglek_phase=101;
 int anglek_cur=0;
 float anglek_minmax[4];
 float anglek_data[4];
@@ -1521,6 +1520,8 @@ void find_startpixel(void) {
   //find main startpixel
   max1_cor=0;
   max2_cor=0;
+  max1_pos = STARTPIXEL_MIN;
+  max2_pos = STARTPIXEL_MIN;
   for (unsigned char i=STARTPIXEL_MIN;i<STARTPIXEL_MAX;i++) {               //build correlation table for startpixel
 
     scor[i]=(max_data-buf_x1[i+0])+(max_data-buf_x1[i+1])+(max_data-buf_x1[i+2])+(max_data-buf_x1[i+3])
@@ -1975,78 +1976,77 @@ void bit_err_corr(void) {
   * @retval none
   */
 /*-----------------------------------------------------------------------------------*/
-void err_corr(void) {
 
-        
-        if ( (sec_cnt<50) ) {                                                   //if less then 50 measurements
+/* История пригодна только после принятого кадра.
+   Сбрасывать также при отбраковке геометрии кадра. */
+static uint8_t sector_history_valid = 0U;
 
-          sec_cnt++;
-          
-          cursec=rem_sec;                                                       //save current sector
-          if(rem_sec==0) {                                                      //find left sector
-            lsec=BIT_TAB_SIZE-1;
-          }
-          else {
-              lsec=rem_sec-1;
-          }
-          if(rem_sec==BIT_TAB_SIZE-1) {                                         //find right sector
-            rsec=0;
-          }
-          else {
-            rsec=rem_sec+1;
-          }  
-          errorflag=0;                                                          //clear error flag
+void err_corr(void)
+{
+    const uint8_t raw_sec = rem_sec;
+    uint8_t accepted = 0U;
 
-      
+    errorflag = 1U;
+
+    /* Обычный кадр либо первое измерение после разрыва. */
+    if (raw_sec < BIT_TAB_SIZE) {
+        if ((!sector_history_valid) ||
+            (raw_sec == cursec) ||
+            (raw_sec == lsec) ||
+            (raw_sec == rsec)) {
+            accepted = 1U;
         }
-        else {                                                                  //if more then 50 measurements
-     
-          if( (rem_sec==255) || ((rem_sec!=cursec)&&(rem_sec!=lsec)&&(rem_sec!=rsec)) ) { //if error found
+    }
 
-            serrcnt2++;                                                         //increment bit error counter
-            bit_err_corr();                                                     //bit error correction
+    if (!accepted) {
+        serrcnt2++;
 
-            if( (rem_sec==255) || ((rem_sec!=cursec)&&(rem_sec!=lsec)&&(rem_sec!=rsec)) ) { //if error found
-              serrcnt1++;                                                       //increment unrecoverable error counter
-              errorflag=1;                                                      //set error flag
+        /* Корректировать можно только относительно
+           действительной истории. Исходный код не меняем. */
+        if (sector_history_valid &&
+            (badbit_value < 1000) &&
+            ((uint32_t)badbit_pos < 9U)) {
 
-              cursec=rem_sec;                                                   //save current sector
-              if(rem_sec==0) {                                                  //find left sector
-                lsec=BIT_TAB_SIZE-1;
-              }
-              else {
-                  lsec=rem_sec-1;
-              }
-              if(rem_sec==BIT_TAB_SIZE-1) {                                     //find right sector
-                rsec=0;
-              }
-              else {
-                rsec=rem_sec+1;
-              }
+            const uint16_t corrected =
+                data_byte ^
+                (uint16_t)(0x100U >> (uint32_t)badbit_pos);
 
-            }
-            else {
-              save_sector();                                                    //save sector
+            int16_t candidate = -1;
+
+            if (corrected == bit_tab[cursec]) {
+                candidate = cursec;
+            } else if (corrected == bit_tab[lsec]) {
+                candidate = lsec;
+            } else if (corrected == bit_tab[rsec]) {
+                candidate = rsec;
             }
 
-          }
-          else {                                                                //if no errors
-            save_sector();                                                      //save sector
-          }
+            if (candidate >= 0) {
+                rem_sec = (uint8_t)candidate;
+                accepted = 1U;
+            }
+        }
+    }
 
-         }
-        
-        sector=cursec;
-        lsector=lsec;
-        rsector=rsec;
-        
-        
+    if (!accepted) {
+        serrcnt1++;
+        sector_history_valid = 0U;
+
+        /* cursec/lsec/rsec и sector/lsector/rsector
+           остаются от последнего принятого измерения. */
+        return;
+    }
+
+    /* Сюда попадают только номера 0..BIT_TAB_SIZE-1. */
+    save_sector();
+
+    sector  = cursec;
+    lsector = lsec;
+    rsector = rsec;
+  
+    sector_history_valid = 1U;
+    errorflag = 0U;
 }
-
-
-
-
-
 
 
 
@@ -3386,31 +3386,41 @@ void angk_cal() {
   * @retval none
   */
 /*-----------------------------------------------------------------------------------*/
-void dac_ctrl() {
+void dac_ctrl(void)
+{  
+    if (agc_test_disable) {
+        return;
+    }
+    adc_offset = avg_max_data / 5; 
+    /* adc_offset задаётся независимо и здесь не изменяется. */
+    max_level_pix = max_level - adc_offset;
 
-   adc_offset=avg_max_data/5;                                                   //ADC offset calculation
-   max_level_pix = max_level - adc_offset;                                      //max_level_pix calculation
-        
-   lasdac_counter++;
-   avg_amaxX_summ += max_data;
-    
-    if(lasdac_counter>=avg_amaxX_num) {      
-      lasdac_counter=0;    
-      avg_max_data = avg_amaxX_summ/avg_amaxX_num;
-      if (avg_max_data < max_level_pix - 200) {
-        if (backlight_width_ticks < BACKLIGHT_WIDTH_MAX_TICKS) {
-          if (backlight_width_en) backlight_width_ticks++;
-        }
-      }
-      else if (avg_max_data > max_level_pix) {
-        if (backlight_width_ticks > BACKLIGHT_WIDTH_MIN_TICKS) {
-          if (backlight_width_en) backlight_width_ticks--;
-        }
-      }
-      avg_amaxX_summ = 0;
-  }
+    lasdac_counter++;
+    avg_amaxX_summ += max_data;
 
-  
+    if (lasdac_counter < avg_amaxX_num) {
+        return;
+    }
+
+    avg_max_data = avg_amaxX_summ / lasdac_counter;
+
+    lasdac_counter = 0U;
+    avg_amaxX_summ = 0U;
+
+    if (!backlight_width_en) {
+        return;
+    }
+
+    if (avg_max_data < AGC_LEVEL_LOW) {
+        if (backlight_width_ticks < AGC_WIDTH_MAX_TICKS) {
+            backlight_width_ticks++;
+        }
+    }
+    else if (avg_max_data > AGC_LEVEL_HIGH) {
+        if (backlight_width_ticks > AGC_WIDTH_MIN_TICKS) {
+            backlight_width_ticks--;
+        }
+    }
 }
 
 
@@ -3654,7 +3664,9 @@ int main(void)
 
   __enable_irq();                                                               // enable interrupts
   cycles_max=0;
-
+  
+  agc_test_disable = 1U;
+  backlight_delay_ticks = 2100;
   // Infinite loop
   while (1)
   {
@@ -3662,9 +3674,11 @@ int main(void)
     /* Флаг выставляется из DMA2_Stream3_IRQHandler: в buf_x0 лежит свежий
        кадр линейки. Весь расчёт ниже должен уложиться в период кадра (~80 мкс),
        контроль - по счётчику тактов DWT (cycles / cycles_max).              */
-    if (adc_rdy == 1) {                                                         // ADC frame ready flag
+    if (adc_rdy == 1U) {                                                         // ADC frame ready flag
 
       copy_data();                                                              // (??? cycles) copy TAOS data
+      __DMB();
+      adc_rdy = 0U;
 
       find_startpixel();                                                        // (??? cycles) find 1-st startpixel
 
@@ -3680,10 +3694,15 @@ int main(void)
 
       /* Угол и все калибровки считаются ТОЛЬКО по достоверному кадру.
          При errorflag==1 наружу продолжает отдаваться прежнее cur_ang_E.     */
-      if (errorflag==0) {
+      if (errorflag == 0U) {
 
         calc_ang();                                                             // (??? cycles) calculate angle
-
+        if (!(cur_ang_X >= 0.0f && cur_ang_X < 360.0f)) {
+            errorflag = 1U;
+            sector_history_valid = 0U;
+        }
+      }
+      if (errorflag == 0U){
         find_avg();                                                             // average calculation
 
         offset_cal();                                                           // offset calibration
@@ -3711,16 +3730,27 @@ int main(void)
       KIN1_DisableCycleCounter();                                               // disable counting if not used any more
       if (cycles>cycles_max) cycles_max=cycles;                                 // find maximum cycle counter
 
-      adc_rdy=0;                                                                // ADC frame ready flag
-
     }
 
     /* Разбор Modbus в том же суперцикле: SNAP фиксирует последний кадр,
        FC06 holding[1] вызывает encoder_calibration_command(). Обработчик
        задаёт флаги/фазы; offset_cal/angk_cal/angtab_cal выше выполняют шаги
        по валидным кадрам и выставляют состояния завершения. SPI не нужен. */
-    if (eMBPoll() != MB_ENOERR) Error_Handler();
+        /*
+     * Обычно первый вызов разбирает EV_FRAME_RECEIVED,
+     * второй — поставленный им EV_EXECUTE.
+     * Ограничение оставляет время обработке энкодера.
+     */
+    for (unsigned mb_step = 0; mb_step < 2U; ++mb_step) {
+        eMBErrorCode mb_status = eMBPoll();
 
+        /*
+         * Повреждённый RTU-кадр — ошибка обмена, не причина
+         * останавливать измерения или считать периферию неисправной.
+         */
+        if (mb_status != MB_ENOERR && mb_status != MB_EIO)
+            Error_Handler();
+    }
   }
 
 }
@@ -4271,7 +4301,9 @@ void DMA2_Stream3_IRQHandler(void)
     KIN1_EnableCycleCounter();                                                  // start counting
 
     __disable_irq ();
-
+    if (backlight_timer_state != BACKLIGHT_STATE_IDLE) {
+        backlight_overlap_count++;
+    }
     SCB_InvalidateDCache_by_Addr((uint32_t *)ADC_VAL,((132*2+31)/32)*32);//force to let update caches again with memory content to see the changes
     SCB_InvalidateDCache_by_Addr((uint32_t *)ADC_VAL2,((132*2+31)/32)*32);//force to let update caches again with memory content to see the changes
 
@@ -4294,11 +4326,10 @@ void DMA2_Stream3_IRQHandler(void)
     LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_7);
 
     // copy data to buffer
-    if (LL_DMA_GetCurrentTargetMem(DMA2, LL_DMA_STREAM_3)==LL_DMA_CURRENTTARGETMEM0) {
-      adc_addr=ADC_VAL+2;
-    }
-    else {
-      adc_addr=ADC_VAL2+2;
+    if (LL_DMA_GetCurrentTargetMem(DMA2, LL_DMA_STREAM_3) == LL_DMA_CURRENTTARGETMEM0) {
+        adc_addr = ADC_VAL2 + 2;
+    } else {
+        adc_addr = ADC_VAL + 2;
     }
     if (adc_rdy == 0) {
       memcpy(buf_x0,adc_addr,256);                                                

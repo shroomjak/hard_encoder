@@ -5,7 +5,7 @@
  * poll/calib используют явные ID или результат завершённого ручного scan.
  * poll → повторение SNAP/STATUS/READ до stop.
  * calib → CONFIRM → next → CALIB → CONFIRM следующего этапа/головки.
- * Шесть этапов: 14 → 13 → 11 → 12 → 14 → 13; затем STOP и проверка 00.
+ * Шесть этапов: 14 → 13 → 11 → 12; затем STOP и проверка 00.
  * Ошибка прерывает весь список с попыткой STOP. Резервного копирования,
  * управления двигателем и восстановления коэффициентов здесь нет.
  *
@@ -30,8 +30,6 @@ static const struct {
     {0x13, 0x50, 0x60, "offset: rotate uniformly, either direction, 10..40 rpm"},
     {0x11, 0x10, 0x20, "ang_tab pass 1: INCREASING angle, 5..20 rpm"},
     {0x12, 0x30, 0x40, "ang_tab pass 2: REVERSE rotation, 5..20 rpm"},
-    {0x14, 0x70, 0x80, "buf_k repeat: rotate uniformly, either direction, 10..40 rpm"},
-    {0x13, 0x50, 0x60, "offset repeat: rotate uniformly, either direction, 10..40 rpm"}
 };
 
 /* Разбираем цифры вручную: запрет знаков/hex и проверка границы после каждой
@@ -118,7 +116,7 @@ static void abort_calibration(workflow_t *w, const char *reason)
 static void confirm_step(workflow_t *w)
 {
     w->state = WF_CONFIRM;
-    message(w, "CALIB head %u/%u id=%u step %u/6: %s. Type next to confirm, stop to cancel.",
+    message(w, "CALIB head %u/%u id=%u step %u/4: %s. Type next to confirm, stop to cancel.",
             (unsigned)w->head + 1, (unsigned)w->count, w->ids[w->head],
             (unsigned)w->step + 1, steps[w->step].instruction);
 }
@@ -271,7 +269,7 @@ void workflow_tick(workflow_t *w)
         if (r[0] != steps[w->step].done || r[1] != 1) return;
         if (++w->step == sizeof steps / sizeof steps[0]) {
             if (!stop_head(w)) { w->state = WF_IDLE; return; }
-            message(w, "CALIB id=%u COMPLETE (6 stages, EEPROM transfer complete)", w->ids[w->head]);
+            message(w, "CALIB id=%u COMPLETE (4 stages, EEPROM transfer complete)", w->ids[w->head]);
             if (++w->head == w->count) {
                 message(w, "CALIB list complete. Verify EEPROM CRC after head reboot via SWD.");
                 w->state = WF_IDLE;
