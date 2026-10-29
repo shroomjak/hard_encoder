@@ -74,24 +74,24 @@ typedef enum {
     REC_END   = 3,
 } rec_kind_t;
 
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t  kind;
     uint8_t  reserved;
     uint16_t seq;
 } rec_hdr_t;
 
-typedef struct __attribute__((packed)) {
+typedef struct {
     rec_hdr_t hdr;
     uint32_t  period_us;
 } rec_begin_t;
 
-typedef struct __attribute__((packed)) {
+typedef struct {
     rec_hdr_t hdr;
     pc_poll_t poll;
     /* Далее в буфере без разрыва лежат poll.count структур pc_head_t. */
 } rec_poll_t;
 
-typedef struct __attribute__((packed)) {
+typedef struct {
     rec_hdr_t hdr;
     uint32_t  attempted;
     uint32_t  dropped;
@@ -166,11 +166,9 @@ static int fmt_angle(char *dst, size_t cap, uint32_t udeg)
                     udeg / 1000000U, udeg % 1000000U);
 }
 
-static void handle_poll_record(const rec_poll_t *rec)
+static void handle_poll_record(const pc_poll_t *p, const uint8_t *heads_bytes)
 {
     static char line[96U + 96U * ENCODER_MAX_ID];
-    const pc_poll_t *p = &rec->poll;
-    const pc_head_t *heads = (const pc_head_t *)(rec + 1);
 
     s_stats.delivered++;
     if (p->error == 0U) s_stats.complete++;
@@ -194,26 +192,28 @@ static void handle_poll_record(const rec_poll_t *rec)
     size_t used = (size_t)n;
 
     for (uint32_t i = 0; i < p->count; ++i) {
-        const pc_head_t *h = &heads[i];
-        if (h->id >= 1U && h->id <= ENCODER_MAX_ID) {
-            head_stat_t *hs = &s_stats.heads[h->id];
+        pc_head_t h;
+        memcpy(&h, heads_bytes + (size_t)i * sizeof(pc_head_t), sizeof h);
+
+        if (h.id >= 1U && h.id <= ENCODER_MAX_ID) {
+            head_stat_t *hs = &s_stats.heads[h.id];
             hs->seen = true;
-            stat_add(&hs->read_us, (int64_t)h->read_us);
-            if (h->age_us != PC_AGE_INVALID) {
-                stat_add(&hs->age_us, (int64_t)h->age_us);
+            stat_add(&hs->read_us, (int64_t)h.read_us);
+            if (h.age_us != PC_AGE_INVALID) {
+                stat_add(&hs->age_us, (int64_t)h.age_us);
             }
         }
         char ang_buf[20];
         char raw_buf[20];
-        (void)fmt_angle(ang_buf, sizeof ang_buf, h->angle_udeg);
-        (void)fmt_angle(raw_buf, sizeof raw_buf, h->raw_angle_udeg);
-        const int32_t age_out = (h->age_us == PC_AGE_INVALID) ? 0 : h->age_us;
+        (void)fmt_angle(ang_buf, sizeof ang_buf, h.angle_udeg);
+        (void)fmt_angle(raw_buf, sizeof raw_buf, h.raw_angle_udeg);
+        const int32_t age_out = (h.age_us == PC_AGE_INVALID) ? 0 : h.age_us;
 
         n = snprintf(line + used, sizeof line - used,
                      " id=%u ang=%s raw_ang=%s age_us=%" PRId32
                      " read_us=%" PRIu32 " gap_us=%" PRIu32,
-                     (unsigned)h->id, ang_buf, raw_buf, age_out,
-                     h->read_us, h->gap_us);
+                     (unsigned)h.id, ang_buf, raw_buf, age_out,
+                     h.read_us, h.gap_us);
         if (n < 0 || (size_t)n >= sizeof line - used) {
             return;
         }
@@ -276,23 +276,33 @@ static void pc_link_task(void *arg)
     stats_reset_all(0U);
     for (;;) {
         size_t size = 0U;
-        rec_hdr_t *h = (rec_hdr_t *)xRingbufferReceive(s_rb, &size, portMAX_DELAY);
-        if (!h) continue;
+        uint8_t *raw = (uint8_t *)xRingbufferReceive(s_rb, &size, portMAX_DELAY);
+        if (!raw) continue;
 
-        if (h->kind == REC_BEGIN && size == sizeof(rec_begin_t)) {
-            const rec_begin_t *b = (const rec_begin_t *)h;
-            stats_reset_all(b->period_us);
-        } else if (h->kind == REC_POLL && size >= sizeof(rec_poll_t)) {
-            const rec_poll_t *rp = (const rec_poll_t *)h;
-            const size_t expected = sizeof(rec_poll_t) + (size_t)rp->poll.count * sizeof(pc_head_t);
-            if (size == expected && rp->poll.count <= ENCODER_MAX_ID) {
-                handle_poll_record(rp);
+        if (size >= sizeof(rec_hdr_t)) {
+            rec_hdr_t hdr;
+            memcpy(&hdr, raw, sizeof hdr);
+
+            if (hdr.kind == REC_BEGIN && size == sizeof(rec_begin_t)) {
+                rec_begin_t b;
+                memcpy(&b, raw, sizeof b);
+                stats_reset_all(b.period_us);
+            } else if (hdr.kind == REC_POLL && size >= sizeof(rec_poll_t)) {
+                rec_poll_t rp;
+                memcpy(&rp, raw, sizeof rp);
+                const size_t expected = sizeof(rec_poll_t) +
+                                        (size_t)rp.poll.count * sizeof(pc_head_t);
+                if (size == expected && rp.poll.count <= ENCODER_MAX_ID) {
+                    handle_poll_record(&rp.poll, raw + sizeof(rec_poll_t));
+                }
+            } else if (hdr.kind == REC_END && size == sizeof(rec_end_t)) {
+                rec_end_t e;
+                memcpy(&e, raw, sizeof e);
+                handle_end_record(&e);
             }
-        } else if (h->kind == REC_END && size == sizeof(rec_end_t)) {
-            handle_end_record((const rec_end_t *)h);
         }
 
-        vRingbufferReturnItem(s_rb, (void *)h);
+        vRingbufferReturnItem(s_rb, (void *)raw);
         UBaseType_t waiting = 0;
         vRingbufferGetInfo(s_rb, NULL, NULL, NULL, NULL, &waiting);
         if (waiting == 0) {
@@ -331,12 +341,13 @@ bool pc_link_put(const pc_poll_t *poll, const pc_head_t *heads)
     if (xRingbufferSendAcquire(s_rb, &mem, bytes, 0) != pdTRUE) {
         return false;
     }
-    rec_poll_t *rec = (rec_poll_t *)mem;
-    rec->hdr.kind = REC_POLL;
-    rec->hdr.reserved = 0U;
-    rec->hdr.seq = poll->seq;
-    rec->poll = *poll;
-    memcpy(rec + 1, heads, (size_t)poll->count * sizeof(pc_head_t));
+    rec_poll_t rec = {
+        .hdr = { .kind = REC_POLL, .reserved = 0U, .seq = poll->seq },
+        .poll = *poll,
+    };
+    uint8_t *dst = (uint8_t *)mem;
+    memcpy(dst, &rec, sizeof rec);
+    memcpy(dst + sizeof rec, heads, (size_t)poll->count * sizeof(pc_head_t));
     (void)xRingbufferSendComplete(s_rb, mem);
     return true;
 }
