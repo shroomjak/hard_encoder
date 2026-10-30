@@ -43,10 +43,16 @@
 #define PC_UART_TX_GPIO         1
 #endif
 
-/* Период аппаратной сетки SNAP по умолчанию: 10 000 мкс (строго 100.000 Гц) для 1..4 головок. */
+/* Период аппаратной сетки SNAP по умолчанию: 10 000 мкс (строго 100.000 Гц) для 1..3 головок;
+ * при >= 4 головках choose_poll_period_us() автоматически расширяет период под бюджет шины. */
 #define DEFAULT_POLL_PERIOD_US  10000U
 #define MIN_POLL_PERIOD_US      2000U
 #define MAX_POLL_PERIOD_US      1000000U
+/* Период чтения LIVE-регистров (FC04 0x100..0x102) при ожидании завершения этапа calib:
+ * 50 мс (20 Гц) освобождает Core 0 для IDLE0 (защита от Task Watchdog) и исключает
+ * паразитную загрузку USART1 головки STM32 во время накопления калибровочных кадров,
+ * сохраняя мгновенную реакцию на команду stop из очереди commands. */
+#define CALIB_LIVE_POLL_MS      50U
 
 #define BUS_TASK_CORE           0
 #define BUS_TASK_PRIO           (configMAX_PRIORITIES - 2)
@@ -326,12 +332,19 @@ static void worker(void *arg)
             if (xQueueReceive(commands, &msg, pdMS_TO_TICKS(100)) == pdTRUE) {
                 handle_bus_msg(&msg);
             }
+        } else if (workflow.state == WF_CALIB) {
+            if (xQueueReceive(commands, &msg, pdMS_TO_TICKS(CALIB_LIVE_POLL_MS)) == pdTRUE) {
+                handle_bus_msg(&msg);
+            }
+            if (workflow.state == WF_CALIB) {
+                workflow_tick(&workflow);
+            }
         } else {
-            /* WF_SCAN или WF_CALIB */
+            /* WF_SCAN */
             if (xQueueReceive(commands, &msg, 0) == pdTRUE) {
                 handle_bus_msg(&msg);
             }
-            if (workflow.state == WF_SCAN || workflow.state == WF_CALIB) {
+            if (workflow.state == WF_SCAN) {
                 workflow_tick(&workflow);
             }
         }
