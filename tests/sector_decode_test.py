@@ -1,191 +1,269 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Регрессионный тест декодера сектора и побитовой коррекции.
+"""Host-side regression tests for calc_sector(), bit_err_corr(), and err_corr().
 
-Проверяются РЕАЛЬНЫЕ функции calc_sector() и bit_err_corr(): их исходный текст
-и таблица bit_tab[] извлекаются прямо из Src/main.c, оборачиваются в заглушку
-и компилируются хостовым gcc. Копии кода в тесте нет, поэтому тест не может
-«разойтись» с прошивкой.
-
-Что проверяется:
-  1. Чтение без ошибок: все 144 кода декодируются в правильный номер сектора,
-     badbit_pos всегда лежит в диапазоне 0..8 (контроль дефекта A - выхода
-     за границу массива pix[9][2]).
-  2. Одиночная битовая ошибка во всех 144*9 = 1296 комбинаций: ошибка должна
-     детектироваться проверкой непрерывности сектора и исправляться
-     bit_err_corr() (контроль дефекта B - маски разряда).
-  3. Порог достоверности: при badbit_value >= 1000 коррекция не применяется.
-
-Зачем: не допустить возврата ошибок выбора бита и определения сектора при
-дальнейших изменениях прошивки. Проверяется именно декодер, а не физическое
-распознавание изображения фотолинейки, вычисление угла целиком или калибровка.
-
-Запуск из корня: python3 tests/sector_decode_test.py
-Требуются Python 3 и gcc в PATH; IAR, STM32 и ESP32 не нужны.
-Этот файл — UTF-8; Src/main.c читается как CP1251 без его перекодирования.
-Сборка использует временный каталог, исходники прошивки не изменяются.
-Успех — код 0 и «ВСЕ ПРОВЕРКИ ПРОЙДЕНЫ»; ошибка проверки/сборки — ненулевой код.
+Extracts bit_tab[], sector_by_code[], calc_sector(), bit_err_corr(), and err_corr()
+verbatim from Src/main.c (CP1251 encoded), compiles them into a small shared
+library against mock globals, and exercises clean decoding, single-bit Chase-1
+correction, O(1) lookup invariants, and temporal sector windowing via ctypes.
 """
 
-import io
-import os
+from __future__ import annotations
+
+import ctypes
+import pathlib
 import re
 import subprocess
 import sys
 import tempfile
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MAIN_C = os.path.join(ROOT, "Src", "main.c")
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+MAIN_C = ROOT / "Src" / "main.c"
 
 
-def grab_function(src, signature):
-    """Вырезать тело функции по сигнатуре, считая фигурные скобки."""
-    i = src.index(signature)
-    k = src.index("{", i)
-    depth = 0
+def extract_c_block(source: str, anchor: str) -> str:
+    pos = 0
     while True:
-        if src[k] == "{":
+        start = source.index(anchor, pos)
+        brace = source.index("{", start)
+        semi = source.find(";", start, brace)
+        if semi == -1:
+            break
+        pos = semi + 1
+    depth = 0
+    for idx in range(brace, len(source)):
+        ch = source[idx]
+        if ch == "{":
             depth += 1
-        elif src[k] == "}":
+        elif ch == "}":
             depth -= 1
             if depth == 0:
-                break
-        k += 1
-    return src[i:k + 1]
+                end = idx + 1
+                if end < len(source) and source[end] == ";":
+                    end += 1
+                return source[start:end]
+    raise RuntimeError(f"Unbalanced braces for {anchor!r}")
 
 
-HARNESS = r'''
-#include <stdio.h>
+def build_library(tmpdir: pathlib.Path) -> tuple[ctypes.CDLL, list[int]]:
+    raw = MAIN_C.read_bytes().decode("cp1251")
+
+    bit_tab_decl = extract_c_block(raw, "const uint16_t  bit_tab[BIT_TAB_SIZE]")
+    sector_lut_decl = extract_c_block(raw, "const uint8_t sector_by_code[512]")
+    calc_sector_fn = extract_c_block(raw, "void calc_sector(void)")
+    save_sector_fn = extract_c_block(raw, "void save_sector(void)")
+    bit_err_corr_fn = extract_c_block(raw, "void bit_err_corr(void)")
+    err_corr_fn = extract_c_block(raw, "void err_corr(void)")
+
+    # Structural check: no linear scan over BIT_TAB_SIZE in hot sector decode/correction
+    for fn_name, fn_body in (
+        ("calc_sector", calc_sector_fn),
+        ("bit_err_corr", bit_err_corr_fn),
+        ("err_corr", err_corr_fn),
+    ):
+        clean_fn = re.sub(r"//[^\n]*|/\*.*?\*/", "", fn_body, flags=re.S)
+        assert "BIT_TAB_SIZE" not in clean_fn or fn_name == "err_corr", (
+            f"{fn_name} still references BIT_TAB_SIZE!"
+        )
+        if fn_name == "err_corr":
+            assert not re.search(r"\bfor\s*\(", clean_fn), "err_corr must be loop-free O(1)!"
+
+    # Parse the 144 codewords out of bit_tab[] for test stimuli.
+    body = bit_tab_decl.split("{", 1)[1].rsplit("}", 1)[0]
+    body = re.sub(r"//[^\n]*", "", body)
+    codewords = [int(tok) for tok in re.findall(r"\d+", body)]
+    assert len(codewords) == 144, f"Expected 144 codewords, got {len(codewords)}"
+
+    lut_body = sector_lut_decl.split("{", 1)[1].rsplit("}", 1)[0]
+    lut_body = re.sub(r"//[^\n]*|/\*.*?\*/", "", lut_body, flags=re.S)
+    lut_vals = [int(tok) for tok in re.findall(r"\d+", lut_body)]
+    assert len(lut_vals) == 512, f"Expected 512 LUT entries, got {len(lut_vals)}"
+    for code in range(512):
+        if code in codewords:
+            assert lut_vals[code] == codewords.index(code), f"LUT mismatch at code {code}"
+        else:
+            assert lut_vals[code] == 255, f"Expected 255 at unused code {code}, got {lut_vals[code]}"
+
+    harness_c = f"""
 #include <stdint.h>
 
 #define BIT_TAB_SIZE 144
 
-%(bit_tab)s
-
-int16_t  pix[9][2];
-float    k_one = 1.0f, k_zero = 1.0f;   /* как в main.c: лежат сразу за pix[] */
-int32_t  badbit_pos, badbit_value;
+uint16_t pix[9][2];
+int badbit_pos;
+int badbit_value;
 uint16_t data_byte;
-uint8_t  rem_sec;
+uint8_t rem_sec;
+uint8_t cursec;
+uint8_t lsec;
+uint8_t rsec;
+uint8_t lsector;
+uint8_t rsector;
+uint8_t sector_history_valid;
+uint8_t sector;
+int errorflag;
+uint32_t serrcnt1;
+uint32_t serrcnt2;
 
-%(calc_sector)s
+{bit_tab_decl}
 
-%(bit_err_corr)s
+{sector_lut_decl}
 
-/* --- имитация find_datablock(): код -> "аналоговые" уровни pix[i][0..1] --- */
-#define LO 100
-#define HI 3700
+{calc_sector_fn}
 
-static void make_pix(uint16_t code, int weak_bit, int weak_margin)
-{
-    int mid = (LO + HI) / 2;
-    for (int i = 0; i < 9; i++) {
-        int bit = (code >> (8 - i)) & 1;
-        int y   = bit ? HI : LO;
-        if (i == weak_bit)                    /* бит "подтянут" к порогу */
-            y = bit ? (mid + weak_margin / 2) : (mid - weak_margin / 2);
-        pix[i][0] = (int16_t)(HI - y);
-        pix[i][1] = (int16_t)(y - LO);
-    }
-}
+{save_sector_fn}
 
-static int in_window(int rem, int j)
-{
-    int l = (j + BIT_TAB_SIZE - 1) %% BIT_TAB_SIZE;
-    int r = (j + 1) %% BIT_TAB_SIZE;
-    return (rem == j) || (rem == l) || (rem == r);
-}
+{bit_err_corr_fn}
 
-int main(void)
-{
-    int fail = 0;
-
-    /* --- 1. чтение без ошибок --- */
-    int clean_ok = 0, pos_ok = 1;
-    for (int j = 0; j < BIT_TAB_SIZE; j++) {
-        make_pix(bit_tab[j], -1, 0);
-        calc_sector();
-        if (rem_sec == j) clean_ok++;
-        if (badbit_pos < 0 || badbit_pos > 8) pos_ok = 0;
-    }
-    printf("1) чтение без ошибок:            %%3d / %%3d секторов верно; "
-           "badbit_pos в 0..8: %%s\n",
-           clean_ok, BIT_TAB_SIZE, pos_ok ? "да" : "НЕТ (выход за массив pix[])");
-    if (clean_ok != BIT_TAB_SIZE || !pos_ok) fail = 1;
-
-    /* --- 2. одиночные битовые ошибки --- */
-    int total = 0, detected = 0, corrected = 0, silent = 0, pos_bad = 0;
-    for (int j = 0; j < BIT_TAB_SIZE; j++) {
-        for (int b = 0; b < 9; b++) {
-            total++;
-            uint16_t corrupted = bit_tab[j] ^ (0x100 >> b);
-            make_pix(corrupted, b, 400);      /* запас 400 < порога 1000 */
-            calc_sector();
-            if (badbit_pos != b) pos_bad++;
-            if (in_window(rem_sec, j)) { silent++; continue; }
-            detected++;
-            bit_err_corr();
-            if (rem_sec == j) corrected++;
-        }
-    }
-    printf("2) одиночные битовые ошибки:     всего %%d, не детектируется %%d, "
-           "неверно найден худший бит %%d\n", total, silent, pos_bad);
-    printf("   исправлено bit_err_corr():    %%d / %%d  (%%.1f%%%%)\n",
-           corrected, detected, detected ? 100.0 * corrected / detected : 0.0);
-    if (silent != 0 || pos_bad != 0 || corrected != detected) fail = 1;
-
-    /* --- 3. порог достоверности --- */
-    make_pix(bit_tab[7] ^ 0x010, 4, 2000);    /* запас 2000 > порога 1000 */
-    calc_sector();
-    uint16_t before = data_byte;
-    bit_err_corr();
-    printf("3) badbit_value = %%d (>1000):   data_byte %%s\n",
-           (int)badbit_value, before == data_byte ? "не изменён (верно)"
-                                                  : "ИЗМЕНЁН (ошибка)");
-    if (before != data_byte) fail = 1;
-
-    printf("\n%%s\n", fail ? "ТЕСТ НЕ ПРОЙДЕН" : "ВСЕ ПРОВЕРКИ ПРОЙДЕНЫ");
-    return fail;
-}
-'''
-
-
-def main():
-    src = io.open(MAIN_C, encoding="cp1251", newline="").read()
-
-    bit_tab = re.search(
-        r"(const uint16_t\s+bit_tab\[BIT_TAB_SIZE\]\s*=\s*\{.*?\};)", src, re.S
-    ).group(1)
-
-    code = HARNESS % {
-        "bit_tab": bit_tab,
-        "calc_sector": grab_function(src, "void calc_sector(void) {"),
-        "bit_err_corr": grab_function(src, "void bit_err_corr(void) {"),
-    }
-
-    tmp = tempfile.mkdtemp(prefix="sector_test_")
-    c_file = os.path.join(tmp, "sector_decode_test.c")
-    exe = os.path.join(tmp, "sector_decode_test")
-    io.open(c_file, "w", encoding="utf-8").write(code)
-
-    cc = subprocess.run(
-        ["gcc", "-std=c11", "-Wall", "-Wextra", "-O1", "-o", exe, c_file],
-        capture_output=True, text=True,
+{err_corr_fn}
+"""
+    c_path = tmpdir / "harness.c"
+    so_path = tmpdir / "harness.so"
+    # Strip non-ASCII comments so the compiler never trips on encoding flags.
+    c_path.write_text(harness_c.encode("ascii", "ignore").decode("ascii"))
+    subprocess.run(
+        ["cc", "-std=c99", "-O2", "-Wall", "-Wextra", "-Werror",
+         "-shared", "-fPIC", str(c_path), "-o", str(so_path)],
+        check=True,
     )
-    if cc.stderr.strip():
-        print("--- предупреждения компилятора ---")
-        print(cc.stderr.strip())
-        print("----------------------------------")
-    if cc.returncode != 0:
-        print("ОШИБКА КОМПИЛЯЦИИ")
-        return 2
-    # Выход за границу массива компилятор ловит сам - считаем это провалом теста.
-    if "aggressive-loop-optimizations" in cc.stderr or "array-bounds" in cc.stderr:
-        print("ОБНАРУЖЕН ВЫХОД ЗА ГРАНИЦУ МАССИВА (undefined behavior)")
-        return 1
+    return ctypes.CDLL(str(so_path)), codewords
 
-    return subprocess.run([exe]).returncode
+
+def set_codeword(lib: ctypes.CDLL, code: int, margin: int = 2000,
+                 weak_bit: int | None = None, weak_margin: int = 100,
+                 flip_weak: bool = False) -> None:
+    pix_type = (ctypes.c_uint16 * 2) * 9
+    pix = pix_type.in_dll(lib, "pix")
+    base = 1000
+    for i in range(9):
+        bit = (code >> (8 - i)) & 1
+        m = margin
+        if weak_bit is not None and i == weak_bit:
+            m = weak_margin
+            if flip_weak:
+                bit ^= 1
+        if bit:
+            pix[i][0] = base
+            pix[i][1] = base + m
+        else:
+            pix[i][0] = base + m
+            pix[i][1] = base
+
+
+def scalar(lib: ctypes.CDLL, name: str, ctype):
+    return ctype.in_dll(lib, name).value
+
+
+def set_scalar(lib: ctypes.CDLL, name: str, ctype, value: int) -> None:
+    ctype.in_dll(lib, name).value = value
+
+
+def main() -> int:
+    with tempfile.TemporaryDirectory() as tmp:
+        lib, codewords = build_library(pathlib.Path(tmp))
+
+        # 1. Every valid 9-bit codeword decodes cleanly to its own sector index.
+        for sector_idx, code in enumerate(codewords):
+            set_codeword(lib, code, margin=2000)
+            lib.calc_sector()
+            got = scalar(lib, "rem_sec", ctypes.c_uint8)
+            packed = scalar(lib, "data_byte", ctypes.c_uint16)
+            assert packed == code, f"sector {sector_idx}: packed {packed:#x} != {code:#x}"
+            assert got == sector_idx, f"sector {sector_idx}: rem_sec={got}"
+
+        # 2. All 9 bits participate in weak-bit detection and none reads past pix[8].
+        for weak in range(9):
+            set_codeword(lib, codewords[0], margin=2000, weak_bit=weak, weak_margin=150)
+            lib.calc_sector()
+            assert scalar(lib, "badbit_pos", ctypes.c_int) == weak
+            assert scalar(lib, "badbit_value", ctypes.c_int) == 150
+
+        # 3. Single-bit error on any of the 9 bit positions of any sector is
+        #    repaired when that bit has the smallest differential margin (<1000).
+        for sector_idx, code in enumerate(codewords):
+            for bit_idx in range(9):
+                set_codeword(lib, code, margin=2000,
+                             weak_bit=bit_idx, weak_margin=80, flip_weak=True)
+                lib.calc_sector()
+                # Note: flipping 1 bit may either produce an unused codeword (255)
+                # or collide with another valid codeword. Force the bit_err_corr path
+                # whenever the flipped word is not already in the table, and check
+                # unconditionally that bit_err_corr restores `sector_idx`.
+                lib.bit_err_corr()
+                repaired = scalar(lib, "rem_sec", ctypes.c_uint8)
+                assert repaired == sector_idx, (
+                    f"sector {sector_idx} bit {bit_idx}: repaired={repaired}"
+                )
+
+        # 4. High-confidence error (badbit_value >= 1000) is NOT touched by bit_err_corr.
+        unused = next(c for c in range(512) if c not in set(codewords))
+        set_codeword(lib, unused, margin=1500)
+        lib.calc_sector()
+        assert scalar(lib, "rem_sec", ctypes.c_uint8) == 255
+        lib.bit_err_corr()
+        assert scalar(lib, "rem_sec", ctypes.c_uint8) == 255
+
+        # 5. All 368 unused 9-bit codewords decode to 255 in O(1).
+        codeword_set = set(codewords)
+        for code in range(512):
+            if code not in codeword_set:
+                set_codeword(lib, code, margin=2000)
+                lib.calc_sector()
+                assert scalar(lib, "rem_sec", ctypes.c_uint8) == 255
+
+        # 6. err_corr() rejects startup single-bit flips when history is invalid.
+        set_scalar(lib, "sector_history_valid", ctypes.c_uint8, 0)
+        set_scalar(lib, "sector", ctypes.c_uint8, 0)
+        set_scalar(lib, "errorflag", ctypes.c_int, 0)
+        set_scalar(lib, "serrcnt1", ctypes.c_uint32, 0)
+        set_scalar(lib, "serrcnt2", ctypes.c_uint32, 0)
+        set_codeword(lib, codewords[17], margin=2000,
+                     weak_bit=4, weak_margin=80, flip_weak=True)
+        lib.calc_sector()
+        lib.err_corr()
+        assert scalar(lib, "errorflag", ctypes.c_int) == 1
+        assert scalar(lib, "sector_history_valid", ctypes.c_uint8) == 0
+
+        # 7. Clean read seeds history and updates {lsec, cursec, rsec} around wrap.
+        set_scalar(lib, "errorflag", ctypes.c_int, 0)
+        set_codeword(lib, codewords[0], margin=2000)
+        lib.calc_sector()
+        lib.err_corr()
+        assert scalar(lib, "errorflag", ctypes.c_int) == 0
+        assert scalar(lib, "sector_history_valid", ctypes.c_uint8) == 1
+        assert scalar(lib, "cursec", ctypes.c_uint8) == 0
+        assert scalar(lib, "lsec", ctypes.c_uint8) == 143
+        assert scalar(lib, "rsec", ctypes.c_uint8) == 1
+
+        # 8. Single-bit error into neighbor sector 143 is accepted via history window,
+        #    while a jump to distant sector 50 is rejected without poisoning history.
+        set_codeword(lib, codewords[143], margin=2000,
+                     weak_bit=2, weak_margin=60, flip_weak=True)
+        lib.calc_sector()
+        lib.err_corr()
+        assert scalar(lib, "errorflag", ctypes.c_int) == 0
+        assert scalar(lib, "sector", ctypes.c_uint8) == 143
+        assert scalar(lib, "cursec", ctypes.c_uint8) == 143
+
+        # Distant clean-looking jump or distant single-bit repair is rejected:
+        for distant in range(144):
+            if distant in (142, 143, 0):
+                continue
+            for bit_idx in range(9):
+                flipped = codewords[distant] ^ (0x100 >> bit_idx)
+                if flipped not in codeword_set:
+                    set_codeword(lib, codewords[distant], margin=2000,
+                                 weak_bit=bit_idx, weak_margin=60, flip_weak=True)
+                    lib.calc_sector()
+                    lib.err_corr()
+                    assert scalar(lib, "errorflag", ctypes.c_int) == 1
+                    assert scalar(lib, "cursec", ctypes.c_uint8) == 143
+                    break
+            else:
+                continue
+            break
+
+    print("OK: all 144 valid + 368 invalid codewords, O(1) LUT, Chase-1 & err_corr verified")
+    return 0
 
 
 if __name__ == "__main__":

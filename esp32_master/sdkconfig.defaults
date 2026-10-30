@@ -1,21 +1,41 @@
-# Используем Modbus RTU.
-CONFIG_FMB_COMM_MODE_RTU_EN=y
+# Конфигурация по умолчанию для ESP32 master.
+# ВАЖНО: ESP-IDF перечитывает sdkconfig.defaults ТОЛЬКО при отсутствии файла sdkconfig!
+# Для гарантированного применения всех параметров выполните в каталоге esp32_master:
+#   rm -f sdkconfig sdkconfig.old   (или del sdkconfig sdkconfig.old в PowerShell/CMD)
+#   idf.py reconfigure
+#   idf.py build flash monitor
 
-# Максимальное ожидание адресного ответа.
-CONFIG_FMB_MASTER_TIMEOUT_MS_RESPOND=30
+# Частота кварца классической платы ESP32 DevKit (40 МГц).
+# Если на вашей плате установлен редкий кварц 26 МГц — замените на CONFIG_XTAL_FREQ_26=y.
+CONFIG_XTAL_FREQ_40=y
 
-# Пауза после broadcast SNAP перед следующим запросом.
-CONFIG_FMB_MASTER_DELAY_MS_CONVERT=3
+# Консоль UART0 на 921600 бод.
+# В Kconfig ESP-IDF режим CONFIG_ESP_CONSOLE_UART_DEFAULT жёстко фиксирует 115200 бод
+# и перезаписывает CONFIG_ESP_CONSOLE_UART_BAUDRATE обратно в 115200!
+# Чтобы Kconfig не сбрасывал скорость, обязательно выбирается Custom UART0 на пинах GPIO1/GPIO3:
+CONFIG_ESP_CONSOLE_UART_CUSTOM=y
+CONFIG_ESP_CONSOLE_UART_CUSTOM_NUM_0=y
+CONFIG_ESP_CONSOLE_UART_TX_GPIO=1
+CONFIG_ESP_CONSOLE_UART_RX_GPIO=3
+CONFIG_ESP_CONSOLE_UART_BAUDRATE=921600
 
-# Частота системного тика FreeRTOS.
+# Скорость idf.py monitor автоматически берётся равной скорости консоли (921600 бод):
+CONFIG_ESPTOOLPY_MONITOR_BAUD_CONSOLE=y
+
+# Тик планировщика FreeRTOS 1000 Гц (1 мс вместо стандартных 100 Гц = 10 мс):
 CONFIG_FREERTOS_HZ=1000
 
-# Пока сохраняем защитную паузу после тайм-аута.
-CONFIG_FMB_MASTER_TIMEOUT_COOLDOWN_MS=150
-# Двухъядерный режим: Modbus на Core0, вывод на ПК на Core1.
-CONFIG_FMB_PORT_TASK_AFFINITY_CPU0=y
-# esp_timer (межкадровая пауза bus_gap) тоже на Core0.
-CONFIG_ESP_TIMER_TASK_AFFINITY_CPU0=y
+# Аппаратная доставка событий esp_timer прямо из ISR (SYSTIMER/LAC) и обработчик UART в IRAM:
+CONFIG_ESP_TIMER_SUPPORTS_ISR_DISPATCH_METHOD=y
+CONFIG_UART_ISR_IN_IRAM=y
 
-# Скорость консоли/вывода на ПК. 115200 даёт ~87 мкс на символ;
-CONFIG_ESP_CONSOLE_UART_BAUDRATE=115200
+# Параметры резервного компонента esp-modbus (строго в допустимых границах его Kconfig;
+# рабочий тракт rs485_rtu работает напрямую с UART2 без запуска задач esp-modbus):
+CONFIG_FMB_COMM_MODE_TCP_EN=n
+CONFIG_FMB_COMM_MODE_ASCII_EN=n
+CONFIG_FMB_COMM_MODE_RTU_EN=y
+CONFIG_FMB_TIMER_USE_ISR_DISPATCH_METHOD=y
+CONFIG_FMB_MASTER_DELAY_MS_CONVERT=2
+CONFIG_FMB_MASTER_TIMEOUT_MS_RESPOND=10
+CONFIG_FMB_MASTER_TIMEOUT_COOLDOWN_MS=0
+CONFIG_FMB_PORT_TASK_PRIO=10

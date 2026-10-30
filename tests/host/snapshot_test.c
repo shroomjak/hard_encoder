@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <math.h>
 #include "mb.h"
+#include "encoder_protocol.h"
 #include "snapshot_registers.h"
 
 static uint16_t reg(uint16_t address)
@@ -86,5 +87,32 @@ int main(void)
     snapshot_publish(90.5f, 144, 0, 0, 12410);
     snap(70);
     assert(reg(SNAP_READY) == 0);
+
+    /* Exact DWT exposure-to-SNAP age_us & 32-bit CYCCNT wraparound + idempotency */
+    snapshot_publish_timed(45.5f, 18U, 0, 0x05U, 1000000U);
+    snapshot_latch_timed(77U, 1000000U + 88U * ENCODER_DWT_TICKS_PER_US, ENCODER_DWT_TICKS_PER_US);
+    assert(reg(SNAP_SEQ) == 77U);
+    assert(reg(SNAP_READY) == 1U);
+    int32_t age_us = (int32_t)(((uint32_t)reg(SNAP_TIME_HI) << 16) | reg(SNAP_TIME_LO));
+    assert(age_us == 88);
+
+    uint32_t exp_wrap = 0xFFFFF000U;
+    uint32_t rx_wrap = exp_wrap + 105U * ENCODER_DWT_TICKS_PER_US + 108U;
+    snapshot_publish_timed(180.25f, 72U, 0, 0x01U, exp_wrap);
+    snapshot_set_rx_cyccnt(rx_wrap);
+    snap(78U);
+    assert(reg(SNAP_SEQ) == 78U);
+    age_us = (int32_t)(((uint32_t)reg(SNAP_TIME_HI) << 16) | reg(SNAP_TIME_LO));
+    assert(age_us == 106);
+
+    /* Second latch of same seq (e.g. eMBPoll after TIM2 ISR fast-latch) is idempotent */
+    snapshot_publish_timed(181.0f, 72U, 0, 0x01U, rx_wrap + 5000U);
+    snapshot_set_rx_cyccnt(rx_wrap + 9000U);
+    snapshot_latch(78U);
+    uint32_t frozen_ang = ((uint32_t)reg(SNAP_ANGLE_HI) << 16) | reg(SNAP_ANGLE_LO);
+    assert(frozen_ang == 180250000U);
+    age_us = (int32_t)(((uint32_t)reg(SNAP_TIME_HI) << 16) | reg(SNAP_TIME_LO));
+    assert(age_us == 106);
+
     return 0;
 }

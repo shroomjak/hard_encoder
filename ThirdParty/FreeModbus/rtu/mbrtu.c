@@ -41,6 +41,7 @@
 
 #include "mbcrc.h"
 #include "mbport.h"
+#include "snapshot_registers.h"
 
 /* ----------------------- Defines ------------------------------------------*/
 #define MB_SER_PDU_SIZE_MIN     4       /*!< Minimum size of a Modbus RTU frame. */
@@ -74,6 +75,7 @@ static volatile UCHAR *pucSndBufferCur;
 static volatile USHORT usSndBufferCount;
 
 static volatile USHORT usRcvBufferPos;
+static volatile UCHAR ucRTUSlaveAddress;
 
 /* ----------------------- Start implementation -----------------------------*/
 eMBErrorCode
@@ -83,8 +85,8 @@ eMBRTUInit( UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eMBParity ePar
     eMBErrorCode    eStatus = MB_ENOERR;
     ULONG           usTimerT35_50us;
 
-    ( void )ucSlaveAddress;
     ENTER_CRITICAL_SECTION(  );
+    ucRTUSlaveAddress = ucSlaveAddress;
 
     /* Modbus RTU uses 8 Databits. */
     if( xMBPortSerialInit( ucPort, ulBaudRate, 8, eParity, ucStopBits ) != TRUE )
@@ -93,12 +95,16 @@ eMBRTUInit( UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eMBParity ePar
     }
     else
     {
-        /* If baudrate > 19200 then we should use the fixed timer values
-         * t35 = 1750us. Otherwise t35 must be 3.5 times the character time.
-         */
-        if( ulBaudRate > 19200 )
+        /* На выделенной высокоскоростной шине (>115200 бод, 230400 8E1)
+         * 1 символ = 47.7 мкс, 3.5 символа = 167 мкс -> выбираем 4 * 50 = 200 мкс
+         * вместо консервативных 1750 мкс, убирая 1.55 мс мёртвого ожидания на каждом кадре. */
+        if( ulBaudRate > 115200 )
         {
-            usTimerT35_50us = 35;       /* 1800us. */
+            usTimerT35_50us = 4;        /* 200us (~4.2 символа @ 230400). */
+        }
+        else if( ulBaudRate > 19200 )
+        {
+            usTimerT35_50us = 35;       /* 1750us. */
         }
         else
         {
@@ -405,9 +411,31 @@ xMBRTUTimerT35Expired( void )
         break;
 
         /* A frame was received and t35 expired. Notify the listener that
-         * a new frame was received. */
+         * a new frame was received.
+         * Детерминированный быстрый перехват broadcast SNAP (00 06 00 00 seq CRC)
+         * прямо в прерывании таймера тишины t3.5: все головки фиксируют frozen
+         * без джиттера ожидания суперцикла eMBPoll() в main(). Повторный вызов
+         * snapshot_latch(seq) из eMBPoll() идемпотентен. */
     case STATE_RX_RCV:
-        xNeedPoll = xMBPortEventPost( EV_FRAME_RECEIVED );
+        if( ( usRcvBufferPos == 8U ) &&
+            ( ucRTUBuf[0] == MB_ADDRESS_BROADCAST ) &&
+            ( ucRTUBuf[1] == 0x06U ) &&
+            ( ucRTUBuf[2] == 0x00U ) &&
+            ( ucRTUBuf[3] == 0x00U ) &&
+            ( usMBCRC16( ( UCHAR * ) ucRTUBuf, 8U ) == 0U ) )
+        {
+            uint16_t snap_seq = ( ( uint16_t )ucRTUBuf[4] << 8 ) | ( uint16_t )ucRTUBuf[5];
+            snapshot_latch( snap_seq );
+        }
+        else if( ( usRcvBufferPos >= MB_SER_PDU_SIZE_MIN ) &&
+                 ( ucRTUBuf[0] == ucRTUSlaveAddress ) )
+        {
+            /* Помещаем в очередь eMBPoll() только адресные кадры своей головки:
+             * чужие запросы/ответы и уже обработанный в ISR broadcast SNAP не
+             * создают отложенных событий и не гоняются за общий буфер ucRTUBuf
+             * при коротких межкадровых паузах 250..300 мкс на 230400 бод. */
+            xNeedPoll = xMBPortEventPost( EV_FRAME_RECEIVED );
+        }
         break;
 
         /* An error occured while receiving the frame. */
