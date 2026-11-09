@@ -2445,8 +2445,8 @@ void find_avg() {
  *   аварийная остановка: start_calibrate=0, auto_cal=0, encoder_state=0x00.
   *
   * УСЛОВИЕ ВЗЯТИЯ ОТСЧЁТА (ключевая строка if ниже):
-  *     (cur_sector != old_sector) И ( s_l1 в [offset-25, offset-24]
-  *                                 ИЛИ s_l2 в [offset+24, offset+25] )
+  *     (cur_sector != old_sector) И ( s_l1 в [offset-26, offset-25]
+  *                                 ИЛИ s_l2 в [offset+25, offset+26] )
   * То есть отсчёт берётся не в произвольный момент, а когда сектор стоит
   * СИММЕТРИЧНО относительно точки съёма (половина сектора = 51/2 = 25.5 пикс).
   * Это убирает зависимость измеренной ширины от положения сектора в поле зрения
@@ -2513,7 +2513,7 @@ void angtab_cal(void) {
        полусекторе (51/2 = 25.5 пикс) от точки съёма offset - то есть сектор
        расположен симметрично в поле зрения. Всегда одинаковая геометрия
        измерения => систематика оптики не попадает в результат.               */
-    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-25) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+25)))) )  ) {
+    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-26) )&&(s_l1<=(offset-25)))||(((s_l2>=(offset+25))&&(s_l2<=(offset+26)))) )  ) {
 
       old_sector=rsector;                                                       //защёлка направления обхода (проход 1)
       cal_sector=cur_sector;
@@ -2577,7 +2577,7 @@ void angtab_cal(void) {
 
   else if (auto_cal==2) {
 
-    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-25) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+25)))) )  ) {
+    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-26) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+26)))) )  ) {
 
       old_sector=lsector;  
       cal_sector=cur_sector;
@@ -3447,7 +3447,7 @@ int main(void)
   cycles_max=0;
   
   agc_test_disable = 1U;
-  backlight_width_ticks = 2000;
+  backlight_width_ticks = 1500;
   // Infinite loop
   while (1)
   {
