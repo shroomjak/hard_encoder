@@ -18180,6 +18180,41 @@ typedef void( *pvMBFrameClose ) ( void );
 USHORT          usMBCRC16( const UCHAR * pucFrame, USHORT usLen );
 
 
+
+
+
+
+
+ 
+enum { SNAP_SEQ, SNAP_READY, SNAP_ANGLE_HI, SNAP_ANGLE_LO, SNAP_SECTOR,
+       SNAP_ERROR, SNAP_ENCODER_STATE, SNAP_SAMPLE_HI, SNAP_SAMPLE_LO,
+       SNAP_TIME_HI, SNAP_TIME_LO, SNAP_REG_COUNT };
+
+ 
+void snapshot_publish(float angle_deg, uint16_t sector, uint8_t error,
+                      uint8_t encoder_state, uint32_t tick_ms);
+
+
+
+ 
+void snapshot_publish_timed(float angle_deg, uint16_t sector, uint8_t error,
+                            uint8_t encoder_state, uint32_t exp_cyccnt);
+
+
+ 
+void snapshot_set_rx_cyccnt(uint32_t rx_cyccnt);
+
+ 
+void snapshot_latch_timed(uint16_t seq, uint32_t snap_rx_cyccnt, uint32_t ticks_per_us);
+
+
+ 
+void snapshot_latch(uint16_t seq);
+
+ 
+uint16_t snapshot_register(uint16_t address);
+
+
  
 
  
@@ -18207,6 +18242,7 @@ static volatile UCHAR *pucSndBufferCur;
 static volatile USHORT usSndBufferCount;
 
 static volatile USHORT usRcvBufferPos;
+static volatile UCHAR ucRTUSlaveAddress;
 
  
 eMBErrorCode
@@ -18216,8 +18252,8 @@ eMBRTUInit( UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eMBParity ePar
     eMBErrorCode    eStatus = MB_ENOERR;
     ULONG           usTimerT35_50us;
 
-    ( void )ucSlaveAddress;
     uint32_t mb_saved_primask = (__iar_builtin_rsr("PRIMASK")); __iar_builtin_disable_interrupt();
+    ucRTUSlaveAddress = ucSlaveAddress;
 
      
     if( xMBPortSerialInit( ucPort, ulBaudRate, 8, eParity, ucStopBits ) != 1 )
@@ -18229,7 +18265,11 @@ eMBRTUInit( UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eMBParity ePar
         
 
  
-        if( ulBaudRate > 19200 )
+        if( ulBaudRate > 115200 )
+        {
+            usTimerT35_50us = 4;         
+        }
+        else if( ulBaudRate > 19200 )
         {
             usTimerT35_50us = 35;        
         }
@@ -18287,7 +18327,7 @@ eMBRTUReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength )
     USHORT          usCRC16Result = 0;
 
     uint32_t mb_saved_primask = (__iar_builtin_rsr("PRIMASK")); __iar_builtin_disable_interrupt();
-    ((usRcvBufferPos <= 256) ? (void) 0 : (__aeabi_assert("usRcvBufferPos <= 256", "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.c", 157), (__iar_EmptyStepPoint())));
+    ((usRcvBufferPos <= 256) ? (void) 0 : (__aeabi_assert("usRcvBufferPos <= 256", "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.c", 163), (__iar_EmptyStepPoint())));
 
      
     if( ( usRcvBufferPos >= 4 )
@@ -18361,7 +18401,7 @@ xMBRTUReceiveFSM( void )
     BOOL            xTaskNeedSwitch = 0;
     UCHAR           ucByte;
 
-    ((eSndState == STATE_TX_IDLE) ? (void) 0 : (__aeabi_assert("eSndState == STATE_TX_IDLE", "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.c", 273), (__iar_EmptyStepPoint())));
+    ((eSndState == STATE_TX_IDLE) ? (void) 0 : (__aeabi_assert("eSndState == STATE_TX_IDLE", "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.c", 279), (__iar_EmptyStepPoint())));
 
      
     ( void )xMBPortSerialGetByte( ( CHAR * ) & ucByte );
@@ -18421,7 +18461,7 @@ xMBRTUTransmitFSM( void )
 {
     BOOL            xNeedPoll = 0;
 
-    ((eRcvState == STATE_RX_IDLE) ? (void) 0 : (__aeabi_assert("eRcvState == STATE_RX_IDLE", "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.c", 357), (__iar_EmptyStepPoint())));
+    ((eRcvState == STATE_RX_IDLE) ? (void) 0 : (__aeabi_assert("eRcvState == STATE_RX_IDLE", "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.c", 363), (__iar_EmptyStepPoint())));
 
     switch ( eSndState )
     {
@@ -18467,9 +18507,31 @@ xMBRTUTimerT35Expired( void )
         break;
 
         
+
+
+
+
  
     case STATE_RX_RCV:
-        xNeedPoll = xMBPortEventPost( EV_FRAME_RECEIVED );
+        if( ( usRcvBufferPos == 8U ) &&
+            ( ucRTUBuf[0] == ( 0 ) ) &&
+            ( ucRTUBuf[1] == 0x06U ) &&
+            ( ucRTUBuf[2] == 0x00U ) &&
+            ( ucRTUBuf[3] == 0x00U ) &&
+            ( usMBCRC16( ( UCHAR * ) ucRTUBuf, 8U ) == 0U ) )
+        {
+            uint16_t snap_seq = ( ( uint16_t )ucRTUBuf[4] << 8 ) | ( uint16_t )ucRTUBuf[5];
+            snapshot_latch( snap_seq );
+        }
+        else if( ( usRcvBufferPos >= 4 ) &&
+                 ( ucRTUBuf[0] == ucRTUSlaveAddress ) )
+        {
+            
+
+
+ 
+            xNeedPoll = xMBPortEventPost( EV_FRAME_RECEIVED );
+        }
         break;
 
          
@@ -18478,7 +18540,7 @@ xMBRTUTimerT35Expired( void )
 
          
     default:
-        ((( eRcvState == STATE_RX_INIT ) || ( eRcvState == STATE_RX_RCV ) || ( eRcvState == STATE_RX_ERROR )) ? (void) 0 : (__aeabi_assert("( eRcvState == STATE_RX_INIT ) || ( eRcvState == STATE_RX_RCV ) || ( eRcvState == STATE_RX_ERROR )", "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.c", 420), (__iar_EmptyStepPoint())));
+        ((( eRcvState == STATE_RX_INIT ) || ( eRcvState == STATE_RX_RCV ) || ( eRcvState == STATE_RX_ERROR )) ? (void) 0 : (__aeabi_assert("( eRcvState == STATE_RX_INIT ) || ( eRcvState == STATE_RX_RCV ) || ( eRcvState == STATE_RX_ERROR )", "C:\\Users\\ilya2\\OneDrive\\Documents\\GitHub\\hard_encoder\\ThirdParty\\FreeModbus\\rtu\\mbrtu.c", 448), (__iar_EmptyStepPoint())));
     }
 
     vMBPortTimersDisable(  );

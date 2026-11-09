@@ -6,11 +6,11 @@
 
 "-p" 
 
-"C:\Program Files\IAR Systems\Embedded Workbench 9.2\arm\config\debugger\ST\STM32F722RE.ddf" 
+"C:\Program Files\IAR Systems\Embedded Workbench 9.2\arm\config\debugger\ST\STM32F722RC.ddf" 
 
 "--semihosting" 
 
-"--device=STM32F722RE" 
+"--device=STM32F722RC" 
 
 "--drv_interface=SWD" 
 
