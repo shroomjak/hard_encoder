@@ -2,16 +2,114 @@
 """Пооборотная статистика углов, среднего EDA и полуразности головок в единой шкале угла [0, 360°).
 Вход: имя эксперимента, папка или CSV. По умолчанию тренд строится по seq; --x t_us задаёт время.
 Все сигналы нарезаются по единым границам оборотов первой головки и откладываются по углу [0, 360°).
+Данные исключённых при калибровке секторов НЕ удаляются из расчёта и графиков — их угловые зоны
+выделяются вертикальными пунктирными линиями с явной привязкой «сектор <-> угол».
 """
 from __future__ import annotations
 import argparse
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from itertools import combinations
 from pathlib import Path
 import re
 import sys
 import numpy as np
 import pandas as pd
+
+
+BIT_TAB_SIZE = 144
+SECTOR_WIDTH_DEG = 360.0 / BIT_TAB_SIZE  # 2.5 град на один кодовый сектор
+
+# ---- РУЧНОЙ СПИСОК ВЫДЕЛЯЕМЫХ (ИСКЛЮЧЁННЫХ ИЗ angtab_cal) СЕКТОРОВ ДИСКА ----
+# Синхронизирован с макросом CAL_EXCLUDED_SECTORS_LIST в Src/main.c.
+# Связь номера сектора s (0..143) и собственного выходного угла головки cur_ang:
+#   cur_ang in [360.0 - 2.5*(s + 1),  360.0 - 2.5*s) град
+#   s = (143 - int(cur_ang // 2.5)) % 144
+# Данные на графиках остаются без изменений; указанные секторы отмечаются пунктиром.
+EXCLUDED_SECTORS: list[int] = [129]
+
+
+def sector_to_head_angle_bounds(sector: int) -> tuple[float, float]:
+    """Номинальный интервал [ang_lo, ang_hi] собственного угла головки для сектора 0..143."""
+    s = int(sector) % BIT_TAB_SIZE
+    ang_lo = SECTOR_WIDTH_DEG * (BIT_TAB_SIZE - 1 - s)
+    ang_hi = SECTOR_WIDTH_DEG * (BIT_TAB_SIZE - s)
+    return float(ang_lo), float(ang_hi)
+
+
+def head_angle_to_sector(angle_deg: float | np.ndarray) -> int | np.ndarray:
+    """Перевод собственного выходного угла головки [0, 360) в номер сектора 0..143."""
+    arr = np.mod(np.asarray(angle_deg, dtype=float), 360.0)
+    sec = (BIT_TAB_SIZE - 1 - np.floor(arr / SECTOR_WIDTH_DEG).astype(int)) % BIT_TAB_SIZE
+    return int(sec) if np.ndim(angle_deg) == 0 else sec
+
+
+def parse_sector_list(spec: str | None) -> list[int]:
+    """Разбор списка секторов из CLI (например '129', '128,129,130', '128-130' или 'none')."""
+    if spec is None:
+        return [int(s) % BIT_TAB_SIZE for s in EXCLUDED_SECTORS]
+    text = spec.strip().lower()
+    if not text or text in ('none', 'off', '-'):
+        return []
+    result: list[int] = []
+    for token in re.split(r'[,\s]+', text):
+        if not token:
+            continue
+        if '-' in token:
+            a_str, b_str = token.split('-', 1)
+            a, b = int(a_str), int(b_str)
+            step = 1 if b >= a else -1
+            for s in range(a, b + step, step):
+                result.append(s % BIT_TAB_SIZE)
+        else:
+            result.append(int(token) % BIT_TAB_SIZE)
+    return sorted(set(result))
+
+
+def merge_sector_intervals_on_x(sectors: list[int], head_offset_deg: float = 0.0) -> list[tuple[float, float, str]]:
+    """Переводит список секторов диска в непересекающиеся интервалы [x0, x1] на оси X первой головки.
+    Если головка смещена относительно первой на head_offset_deg (ang_j ≈ ang_0 + head_offset_deg),
+    то сектор s проходит под головкой j при x = (theta_head(s) - head_offset_deg) mod 360°.
+    Смежные секторы объединяются в единую полосу без внутренних линий.
+    """
+    if not sectors:
+        return []
+    uniq = sorted({int(s) % BIT_TAB_SIZE for s in sectors})
+    active = set(uniq)
+    runs: list[list[int]] = []
+    # Ищем связные цепочки секторов (в порядке убывания номера сектора = возрастания угла)
+    visited: set[int] = set()
+    for s in sorted(active, reverse=True):
+        if s in visited:
+            continue
+        # Сдвигаемся к началу цепочки (наибольший номер сектора = наименьший угол)
+        start = s
+        while ((start + 1) % BIT_TAB_SIZE) in active and ((start + 1) % BIT_TAB_SIZE) != s:
+            start = (start + 1) % BIT_TAB_SIZE
+        chain = [start]
+        visited.add(start)
+        cur = (start - 1) % BIT_TAB_SIZE
+        while cur in active and cur not in visited:
+            chain.append(cur)
+            visited.add(cur)
+            cur = (cur - 1) % BIT_TAB_SIZE
+        runs.append(chain)
+
+    intervals: list[tuple[float, float, str]] = []
+    for chain in runs:
+        lo_head, _ = sector_to_head_angle_bounds(chain[0])
+        _, hi_head = sector_to_head_angle_bounds(chain[-1])
+        span = (hi_head - lo_head) % 360.0
+        if span == 0.0 and len(chain) == BIT_TAB_SIZE:
+            span = 360.0
+        x0 = (lo_head - head_offset_deg) % 360.0
+        x1 = x0 + span
+        sec_label = (f'сект. {chain[-1]}..{chain[0]}' if len(chain) > 1 else f'сект. {chain[0]}')
+        if x1 <= 360.0 + 1e-9:
+            intervals.append((x0, min(x1, 360.0), sec_label))
+        else:
+            intervals.append((x0, 360.0, sec_label))
+            intervals.append((0.0, x1 - 360.0, sec_label))
+    return intervals
 
 
 def resolve_csv(value):
@@ -48,6 +146,9 @@ class SignalData:
     unwrapped: np.ndarray
     detrend: bool = True
     title: str = ''
+    # Смещения головок (в градусах относительно первой головки), формирующих данный сигнал:
+    # для одиночной головки j — [(ang_j, nom_j)], для групповых сигналов — все задействованные головки.
+    head_offsets_deg: list[tuple[str, float]] = field(default_factory=lambda: [('head', 0.0)])
 
 
 @dataclass
@@ -68,6 +169,7 @@ class PeriodProfile:
     period_means: np.ndarray
     x_label: str = 'Угол оборота (по первой головке), град'
     title: str = ''
+    head_offsets_deg: list[tuple[str, float]] = field(default_factory=lambda: [('head', 0.0)])
 
     @property
     def relative_x(self) -> np.ndarray:
@@ -198,6 +300,7 @@ def analyze_aligned(sig: SignalData, crossings: np.ndarray, direction: int,
     count = np.isfinite(rows).sum(axis=0)
     if np.all(count == 0):
         raise ValueError('Нет полных оборотов с валидными данными')
+
     mean = np.divide(np.nansum(rows, axis=0), count,
                      out=np.full(len(angle_grid), np.nan), where=count > 0)
     std = np.full(len(angle_grid), np.nan, dtype=float)
@@ -208,7 +311,8 @@ def analyze_aligned(sig: SignalData, crossings: np.ndarray, direction: int,
 
     return PeriodProfile(float(lengths.mean()), n_periods, float(slope), float(ref_xc), yc,
                          crossings, lengths, angle_grid, rows, mean, std, count, native,
-                         period_means, x_label=x_label, title=sig.title)
+                         period_means, x_label=x_label, title=sig.title,
+                         head_offsets_deg=list(sig.head_offsets_deg))
 
 
 def analyze(x, angle, grid_step=None):
@@ -267,30 +371,30 @@ def build_signals(df, columns, x_column='seq'):
     ok_all = finite & np.isfinite(matrix).all(axis=1)
 
     if m >= 2 and ok_all.sum() >= 4:
-        # Приводим начальные разности к [0, 360) и вычитаем кратный 360°/M геометрический слот
-        # установки головки: это исключает переброс ветви на 180° при старте в разных полуоборотах,
-        # не зависит от порядка нумерации ID по окружности, сохраняет привязку к нулю первой
-        # головки и удерживает фазу при пропусках пакетов.
         rel = np.mod(matrix[ok_all] - matrix[ok_all, :1], 360.0)
         unwrapped_rel = np.unwrap(rel, axis=0, period=360.0)
         step_m = 360.0 / m
         nom = np.round(np.median(unwrapped_rel, axis=0) / step_m) * step_m
         nom[0] = 0.0
         aligned_diffs = unwrapped_rel - nom
+        all_offsets = [(columns[j], float(nom[j] % 360.0)) for j in range(m)]
 
         signals[columns[0]] = SignalData(
             x=x[ok0],
             unwrapped=u0_full[ok0],
             detrend=True,
             title=columns[0],
+            head_offsets_deg=[(columns[0], 0.0)],
         )
         for j in range(1, m):
             name = columns[j]
+            off_j = float(nom[j] % 360.0)
             signals[name] = SignalData(
                 x=x[ok_all],
                 unwrapped=u0_full[ok_all] + aligned_diffs[:, j],
                 detrend=True,
                 title=name,
+                head_offsets_deg=[(name, off_j)],
             )
 
         signals['circular_mean'] = SignalData(
@@ -298,6 +402,7 @@ def build_signals(df, columns, x_column='seq'):
             unwrapped=u0_full[ok_all] + aligned_diffs.mean(axis=1),
             detrend=True,
             title='circular_mean (среднее EDA)',
+            head_offsets_deg=all_offsets,
         )
 
         if m == 2:
@@ -306,6 +411,7 @@ def build_signals(df, columns, x_column='seq'):
                 unwrapped=0.5 * aligned_diffs[:, 1],
                 detrend=False,
                 title=f'half_diff = ({columns[1]} − {columns[0]}) / 2',
+                head_offsets_deg=all_offsets,
             )
         else:
             for i, j in combinations(range(m), 2):
@@ -317,6 +423,7 @@ def build_signals(df, columns, x_column='seq'):
                     unwrapped=0.5 * (aligned_diffs[:, j] - aligned_diffs[:, i]),
                     detrend=False,
                     title=f'({columns[j]} − {columns[i]}) / 2',
+                    head_offsets_deg=[all_offsets[i], all_offsets[j]],
                 )
     else:
         for j, name in enumerate(columns):
@@ -327,6 +434,7 @@ def build_signals(df, columns, x_column='seq'):
                     unwrapped=unwrap_signal(matrix[ok_j, j]),
                     detrend=True,
                     title=name,
+                    head_offsets_deg=[(name, 0.0)],
                 )
 
     return x[ok0], matrix[ok0, 0], signals
@@ -334,24 +442,92 @@ def build_signals(df, columns, x_column='seq'):
 
 def save_profile(p: PeriodProfile, stem: Path):
     stderr = np.divide(p.std, np.sqrt(p.count), out=np.full(len(p.count), np.nan), where=p.count > 1)
-    pd.DataFrame({'angle_deg': p.angle_deg, 'mean_deg': p.mean, 'std_deg': p.std,
-                  'stderr_deg': stderr, 'count': p.count}).to_csv(str(stem) + '.csv', index=False)
+    primary_offset = p.head_offsets_deg[0][1] if len(p.head_offsets_deg) == 1 else 0.0
+    sector_col = head_angle_to_sector(p.angle_deg + primary_offset)
+    pd.DataFrame({
+        'angle_deg': p.angle_deg,
+        'sector': sector_col,
+        'mean_deg': p.mean,
+        'std_deg': p.std,
+        'stderr_deg': stderr,
+        'count': p.count,
+    }).to_csv(str(stem) + '.csv', index=False)
     native, summary = [], []
     for k, (ang_r, xa, r) in enumerate(p.native_rows):
-        native.append(pd.DataFrame({'period': k, 'angle_deg': ang_r, 'absolute_x': xa, 'residual_deg': r}))
+        native.append(pd.DataFrame({
+            'period': k,
+            'angle_deg': ang_r,
+            'sector': head_angle_to_sector(ang_r + primary_offset),
+            'absolute_x': xa,
+            'residual_deg': r,
+        }))
         summary.append({'period': k, 'start_x': p.crossings[k], 'stop_x': p.crossings[k + 1],
                         'duration_x': p.lengths[k], 'native_samples': len(r),
                         'residual_mean_deg': float(p.period_means[k]),
                         'global_slope': p.slope, 'trend_x_center': p.x_center, 'trend_y_center': p.y_center})
     pd.concat(native, ignore_index=True).to_csv(str(stem) + '_native.csv', index=False)
     pd.DataFrame(summary).to_csv(str(stem) + '_periods.csv', index=False)
-    pd.DataFrame({'angle_deg': p.angle_deg, **{f'period_{k}': r for k, r in enumerate(p.rows)}}).to_csv(
-        str(stem) + '_overlay.csv', index=False)
+    pd.DataFrame({
+        'angle_deg': p.angle_deg,
+        'sector': sector_col,
+        **{f'period_{k}': r for k, r in enumerate(p.rows)},
+    }).to_csv(str(stem) + '_overlay.csv', index=False)
 
 
-def plot_result(p: PeriodProfile, name: str, path: str, unit: str):
+def _draw_excluded_sector_zones(axes, p: PeriodProfile, excluded_sectors: list[int]):
+    """Выделяет исключённые секторы диска вертикальными пунктирными линиями на всех осях."""
+    if not excluded_sectors:
+        return
+    palette = ['#d62728', '#ff7f0e', '#9467bd', '#2ca02c']
+    used_labels: set[str] = set()
+    for idx, (h_name, h_off) in enumerate(p.head_offsets_deg):
+        color = palette[idx % len(palette)]
+        intervals = merge_sector_intervals_on_x(excluded_sectors, h_off)
+        for x0, x1, sec_label in intervals:
+            if len(p.head_offsets_deg) == 1:
+                lbl = f'Искл. {sec_label} [{x0:.1f}°..{x1:.1f}°]'
+            else:
+                lbl = f'Искл. {sec_label} под {h_name} [{x0:.1f}°..{x1:.1f}°]'
+            show_lbl = lbl if lbl not in used_labels else None
+            used_labels.add(lbl)
+            for ax_i, ax in enumerate(axes):
+                ax.axvline(x0, color=color, ls='--', lw=1.2, alpha=0.85,
+                           label=(show_lbl if ax_i == 0 else None))
+                ax.axvline(x1, color=color, ls='--', lw=1.2, alpha=0.85)
+                ax.axvspan(x0, x1, color=color, alpha=0.07)
+
+
+def _add_sector_top_axis(ax, p: PeriodProfile):
+    """Добавляет верхнюю шкалу номеров секторов кодового диска (шаг 12 секторов = 30°)."""
+    primary_name, primary_offset = (
+        p.head_offsets_deg[0] if len(p.head_offsets_deg) == 1 else ('ang_1', 0.0)
+    )
+    tick_angles = np.arange(0.0, 361.0, 30.0)
+    tick_labels = []
+    for a in tick_angles:
+        if a >= 360.0:
+            sec_edge = int((BIT_TAB_SIZE - round(primary_offset / SECTOR_WIDTH_DEG)) % BIT_TAB_SIZE)
+        else:
+            sec_edge = int((BIT_TAB_SIZE - round(((a + primary_offset) % 360.0) / SECTOR_WIDTH_DEG)) % BIT_TAB_SIZE)
+        tick_labels.append(str(sec_edge))
+
+    top = ax.twiny()
+    top.set_xlim(0.0, 360.0)
+    top.set_xticks(tick_angles)
+    top.set_xticklabels(tick_labels, fontsize=8)
+    if len(p.head_offsets_deg) == 1 and primary_offset != 0.0:
+        top.set_xlabel(f'Граница сектора диска под {primary_name} (0..143, 1 сектор = 2.5°)', fontsize=9)
+    else:
+        top.set_xlabel('Граница сектора диска по первой головке (0..143, 1 сектор = 2.5°)', fontsize=9)
+
+
+def plot_result(p: PeriodProfile, name: str, path: str, unit: str,
+                excluded_sectors: list[int] | None = None):
     import matplotlib.pyplot as plt
-    fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True, constrained_layout=True)
+    if excluded_sectors is None:
+        excluded_sectors = list(EXCLUDED_SECTORS)
+
+    fig, axes = plt.subplots(3, 1, figsize=(12, 10.5), sharex=True, constrained_layout=True)
     title_label = p.title or name
     p2p_deg = float(np.nanmax(p.mean) - np.nanmin(p.mean))
     std_avg = float(np.nanmean(p.std))
@@ -364,7 +540,6 @@ def plot_result(p: PeriodProfile, name: str, path: str, unit: str):
         f'размах={p2p_deg:.5f}° ({p2p_deg * 3600:.1f}"); '
         f'среднее СКО={std_avg:.5f}° ({std_avg * 3600:.1f}")'
     )
-    axes[0].legend()
 
     axes[1].plot(p.angle_deg, p.std)
     axes[1].set_ylabel('СКО, град')
@@ -374,6 +549,10 @@ def plot_result(p: PeriodProfile, name: str, path: str, unit: str):
             axes[2].plot(ang_r, residual, lw=.5, alpha=.5)
     axes[2].plot(p.angle_deg, p.mean, 'k', lw=2)
     axes[2].axhline(0, color='black', lw=.5, alpha=.5)
+
+    _draw_excluded_sector_zones(axes, p, excluded_sectors)
+
+    axes[0].legend(loc='best', fontsize=8.5)
     axes[2].set_xlim(0.0, 360.0)
     axes[2].set_xticks(np.arange(0.0, 361.0, 30.0))
     axes[2].set_xlabel(p.x_label)
@@ -381,6 +560,8 @@ def plot_result(p: PeriodProfile, name: str, path: str, unit: str):
     axes[2].set_ylabel('Остаток, град')
     for ax in axes:
         ax.grid(alpha=.3)
+
+    _add_sector_top_axis(axes[0], p)
     fig.savefig(path, dpi=150)
     return fig
 
@@ -391,6 +572,8 @@ def build_argparser():
     p.add_argument('--x', default='seq', help='seq или t_us; по умолчанию seq')
     p.add_argument('--run', type=int, help='Только для старых CSV со столбцом run')
     p.add_argument('--grid-step', type=float, help='Шаг угловой сетки в градусах на [0, 360)')
+    p.add_argument('--exclude-sectors', default=None,
+                   help='Список секторов 0..143 для пунктирной разметки (по умолчанию EXCLUDED_SECTORS в коде; none — отключить)')
     p.add_argument('--no-plots', action='store_true')
     p.add_argument('--no-show', action='store_true')
     return p
@@ -399,6 +582,7 @@ def build_argparser():
 def run(args):
     name = args.csv or input('Имя эксперимента или CSV: ').strip()
     path = resolve_csv(name)
+    excluded_sectors = parse_sector_list(getattr(args, 'exclude_sectors', None))
     df, columns = load_log(path)
     if 'run' in df:
         if args.run is None and df['run'].nunique() > 1:
@@ -409,6 +593,11 @@ def run(args):
         raise ValueError('Нет строк для анализа')
 
     print(f'CSV: {path}')
+    if excluded_sectors:
+        parts = [f'{s} -> собств. угол [{sector_to_head_angle_bounds(s)[0]:.1f}°..{sector_to_head_angle_bounds(s)[1]:.1f}°)'
+                 for s in excluded_sectors]
+        print('Выделенные секторы диска (пунктир, данные не вырезаны): ' + '; '.join(parts))
+
     x_ref, ang_ref, signals = build_signals(df, columns, args.x)
     crossings, direction, _, angle_grid, ref_xc, ref_slope = build_reference_grid(
         x_ref, ang_ref, args.grid_step
@@ -432,7 +621,7 @@ def run(args):
               f'размах={p2p_deg:.6f}° ({p2p_deg * 3600:.2f}"); '
               f'СКО={std_avg:.6f}° ({std_avg * 3600:.2f}")')
         if not args.no_plots:
-            fig = plot_result(p, sig_name, str(stem) + '.png', unit)
+            fig = plot_result(p, sig_name, str(stem) + '.png', unit, excluded_sectors=excluded_sectors)
             if args.no_show:
                 import matplotlib.pyplot as plt
                 plt.close(fig)

@@ -122,34 +122,18 @@ static void test_angk_pixel_range_and_br4_edges(void)
         assert(buf_k[i] == 1.0f && buf_x3[i] == 0.0f);
     }
 
-    /* Phase 1: inject a transient spike on pixel 64 (2600 vs true 2500) to verify
-     * that buf_x3 is cleared at the end of Phase 1 and re-measured in Phase 2. */
+    /* Phase 1: direct single-pass equalization ("as is", no iterative phase 2..8). */
     for (int i = 1; i <= 126; ++i) {
         buf_x3[i] = 2500.0f * sens[i];
     }
-    buf_x3[64] = 2600.0f;
     avg_minmax_num = offset_avg_num + 1;
     encoder_calibration_step();
-    assert(anglek_phase == 2);
-    /* Crucial check: Phase 1 MUST have cleared monotonic peak detector buf_x3! */
-    for (int i = 0; i < 128; ++i) {
-        assert(buf_x3[i] == 0.0f);
-    }
+    assert(anglek_phase == 100);
 
-    /* Run remaining phases with realistic peak detector simulation. */
-    for (unsigned step = 0; step < 60 && start_angk_cal; ++step) {
-        if (anglek_phase < 4) {
-            for (int i = 1; i <= 126; ++i) {
-                float p = 2500.0f * sens[i] * buf_k[i];
-                if (p > buf_x3[i]) buf_x3[i] = p;
-            }
-        }
-        avg_minmax_num = offset_avg_num + 1;
-        /* Prefer nominal gain (candidate 0) during fine-tune phases 3..8. */
-        min_max = 0.005f + 0.01f * (float)anglek_cur;
-        encoder_calibration_step();
-    }
+    /* Phase 100: immediately writes EEPROM and transitions to 0x80 (3 steps total!). */
+    encoder_calibration_step();
     assert_state(0x80);
+    assert(!start_angk_cal && anglek_phase == 101 && backlight_width_en);
     assert(eeprom_writes == before + 1);
     finish_eeprom(EEPROM_DEVICE_PAGE3, 514);
 
@@ -223,7 +207,7 @@ static void run_offset(int minimum)
     finish_eeprom(EEPROM_DEVICE_PAGE6, 6);
 }
 
-static void run_angtab(unsigned pass)
+static void run_angtab_ex(unsigned pass, int increasing_sector_dir, int drop_excluded)
 {
     unsigned before = eeprom_writes;
     assert(command(pass == 1 ? 0x11 : 0x12) == MB_ENOERR);
@@ -232,14 +216,21 @@ static void run_angtab(unsigned pass)
     encoder_calibration_step();
     assert(!start_calibrate && auto_cal == (int)pass);
     assert(command(0x13) == MB_ETIMEDOUT);
-    for (unsigned turn = 0; turn < 30 && auto_cal; ++turn) {
+    for (unsigned turn = 0; turn < 8 && auto_cal; ++turn) {
         for (int step = 0; step < BIT_TAB_SIZE && auto_cal; ++step) {
-            int sampled = (step + (int)turn) % BIT_TAB_SIZE;
-            cur_sector = pass == 1 ? sampled : BIT_TAB_SIZE - 1 - sampled;
+            cur_sector = increasing_sector_dir ? step : (BIT_TAB_SIZE - 1 - step);
+            if (drop_excluded && cal_is_sector_excluded((uint8_t)cur_sector)) {
+                /* Simulate errorflag == 1 dropout over the defective disk sector! */
+                continue;
+            }
             lsector = (int16_t)((cur_sector + BIT_TAB_SIZE - 1) % BIT_TAB_SIZE);
             rsector = (int16_t)((cur_sector + 1) % BIT_TAB_SIZE);
-            s_l1 = offset - 24.5f;
-            pix_dif = 51.0f;
+            s_l1 = offset - 25.5f;
+            s_l2 = offset + 25.5f;
+            /* Inject huge anomaly on excluded sector when not dropped: must be ignored! */
+            pix_dif = cal_is_sector_excluded((uint8_t)cur_sector) ? 95.0f : 50.8f;
+            encoder_calibration_step();
+            /* Second consecutive 103 us frame inside the same strobe must not double-count! */
             encoder_calibration_step();
         }
     }
@@ -254,6 +245,11 @@ static void run_angtab(unsigned pass)
             assert(fabsf(ang_tab[i] - (float)i * 2.5f) < 0.001f);
         finish_eeprom(EEPROM_DEVICE_PAGE0, BIT_TAB_SIZE * 4 + 2);
     }
+}
+
+static void run_angtab(unsigned pass)
+{
+    run_angtab_ex(pass, pass == 1 ? 0 : 1, 1);
 }
 
 static void stop_test(uint16_t start)
@@ -289,8 +285,16 @@ int main(void)
     assert_state(0);
     assert(eeprom_writes == 3);
 
-    /* Full pixel range [6..126], BR4_C edge accuracy, buf_x3 reset, NaN/Inf & Phase-2 cap. */
+    /* Full pixel range [6..126], single-pass angk_cal, BR4_C edge accuracy, NaN/Inf guard. */
     test_angk_pixel_range_and_br4_edges();
+
+    /* Verify angtab_cal with opposite initial shaft direction AND corrupted pix_dif on excluded sector. */
+    assert(CAL_SECTOR_FROM_ANGLE_DEG(36.0f) == 129U);
+    assert(cal_is_sector_excluded(129U) == 1U);
+    run_angtab_ex(1, 1, 0);
+    run_angtab_ex(2, 0, 0);
+    assert(command(0x10) == MB_ENOERR);
+    assert_state(0);
 
     /* Both extended search branches & custom window interior minimum. */
     run_offset(61);

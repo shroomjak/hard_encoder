@@ -46,7 +46,7 @@ def main():
     source = re.sub(r'/\*.*?\*/|//[^\n]*', '', source, flags=re.S)
     defines = '\n'.join(re.findall(
         r'^#define\s+(?:M_PI|BIT_TAB_SIZE|SECTOR_SIZE|STARTPIXEL_MIN|STARTPIXEL_MAX|'
-        r'ANGK_\w+|EEPROM_DEVICE_PAGE\d|eeprom_\w+)\b[^\n]*',
+        r'ANGK_\w+|CAL_EXCLUDED_\w+|CAL_SECTOR_FROM_ANGLE_DEG|EEPROM_DEVICE_PAGE\d|eeprom_\w+)\b[^\n]*',
         source, flags=re.M))
     variables = source[source.index('int pix_dif_num_avg='):source.index('unsigned char encoder_state=')]
     br4_pixels = source[source.index('float ampl;'):source.index('float r_angle;')]
@@ -55,6 +55,8 @@ def main():
         'unsigned short crc_16_step(',
         'float BR4_C (',
         'float mes_piks(',
+        'static uint8_t cal_is_sector_excluded(',
+        'static void cal_finalize_angtab_pass(',
         'void angtab_cal(',
         'void offset_cal(',
         'void angk_cal(',
