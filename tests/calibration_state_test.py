@@ -6,11 +6,11 @@ main.c (angk_cal, offset_cal, angtab_cal, mes_piks, BR4_C) -> LIVE-состоя�
 линкуются настоящие Src/encoder_calibration.c, Src/modbus_registers.c и
 Src/snapshot_registers.c. Проверяются:
   - 4-этапная последовательность калибровки 0x14 -> 0x13 -> 0x11 -> 0x12 -> 0x10;
-  - покрытие всего рабочего диапазона пикселей [6..126] в angk_cal() и точность
+  - прямое однопроходное выравнивание всего рабочего диапазона пикселей [6..126]
+    в angk_cal(), защита от деления на ноль (отсутствие Inf/NaN) и точность
     субпиксельной оценки mes_piks()/BR4_C() на краевых реперах (startpixel=6 и 107);
-  - сброс пикового детектора buf_x3 между фазами 1 и 2, защита от деления на ноль
-    (отсутствие Inf/NaN) и ограничение числа итераций фазы 2;
-  - расширение окна offset_cal() и защита от одновременного запуска автоматов.
+  - расширение окна offset_cal(), оба порядка направлений в angtab_cal() и защита
+    от одновременного запуска автоматов.
 Запуск: python3 tests/calibration_state_test.py
 """
 from pathlib import Path
@@ -46,7 +46,7 @@ def main():
     source = re.sub(r'/\*.*?\*/|//[^\n]*', '', source, flags=re.S)
     defines = '\n'.join(re.findall(
         r'^#define\s+(?:M_PI|BIT_TAB_SIZE|SECTOR_SIZE|STARTPIXEL_MIN|STARTPIXEL_MAX|'
-        r'ANGK_\w+|CAL_EXCLUDED_\w+|CAL_SECTOR_FROM_ANGLE_DEG|EEPROM_DEVICE_PAGE\d|eeprom_\w+)\b[^\n]*',
+        r'ANGK_\w+|EEPROM_DEVICE_PAGE\d|eeprom_\w+)\b[^\n]*',
         source, flags=re.M))
     variables = source[source.index('int pix_dif_num_avg='):source.index('unsigned char encoder_state=')]
     br4_pixels = source[source.index('float ampl;'):source.index('float r_angle;')]
@@ -55,8 +55,6 @@ def main():
         'unsigned short crc_16_step(',
         'float BR4_C (',
         'float mes_piks(',
-        'static uint8_t cal_is_sector_excluded(',
-        'static void cal_finalize_angtab_pass(',
         'void angtab_cal(',
         'void offset_cal(',
         'void angk_cal(',

@@ -130,27 +130,6 @@
 #define ANGK_GAIN_MIN           0.25f
 #define ANGK_GAIN_MAX           4.00f
 
-/* ---- РУЧНОЕ ИСКЛЮЧЕНИЕ ДЕФЕКТНЫХ СЕКТОРОВ ДИСКА ИЗ angtab_cal() ----------
-   Связь номера сектора s (0..143) и собственного выходного угла головки cur_ang:
-       cur_ang in [360.0 - 2.5*(s + 1),  360.0 - 2.5*s) град
-       s = 143 - (((int)(cur_ang / 2.5f)) % 144)
-   Укажите через запятую в CAL_EXCLUDED_SECTORS_LIST один или несколько секторов,
-   которые нужно исключить из накопления angtab_cal() (их ширина заменяется средней
-   шириной остальных валидных секторов, чтобы не блокировать завершение этапа и не
-   вносить скачок в таблицу ang_tab[]).
-   Для отключения маскирования установите CAL_EXCLUDED_SECTORS_ENABLE в 0.     */
-#ifndef CAL_EXCLUDED_SECTORS_ENABLE
-#define CAL_EXCLUDED_SECTORS_ENABLE     1
-#endif
-#define CAL_SECTOR_FROM_ANGLE_DEG(deg)  ((uint8_t)(143 - (((int)((deg) / 2.5f)) % 144)))
-#ifndef CAL_EXCLUDED_SECTORS_LIST
-/* По умолчанию исключён сектор 129 -> cur_ang головки [35.0 .. 37.5) град
-   (соответствует окну 1.53..1.64 с на профиле головки при периоде 15.76 с;
-   соседние секторы окна 1.5..1.7 с: 130 -> [32.5..35.0), 128 -> [37.5..40.0);
-   разрыв 1.10..1.16 с соответствует сектору 133 -> [25.0..27.5)).            */
-#define CAL_EXCLUDED_SECTORS_LIST       129U
-#endif
-
 /* Пиксель-"водораздел": если найденный репер правее CENTER_PIXEL, он считается
    ПРАВЫМ репером пары, иначе - ЛЕВЫМ. Нужно, чтобы однозначно достроить
    положение второго репера как startpixel +/- SECTOR_SIZE.                   */
@@ -2437,69 +2416,17 @@ void find_avg() {
 
 
 /**
-  * @brief  Проверка, входит ли сектор в ручной список исключений CAL_EXCLUDED_SECTORS_LIST.
-  */
-static uint8_t cal_is_sector_excluded(uint8_t sec) {
-#if CAL_EXCLUDED_SECTORS_ENABLE
-  static const uint8_t excluded_sectors[] = { CAL_EXCLUDED_SECTORS_LIST };
-  for (unsigned int i = 0U; i < (unsigned int)(sizeof(excluded_sectors) / sizeof(excluded_sectors[0])); i++) {
-    if (excluded_sectors[i] == sec) {
-      return 1U;
-    }
-  }
-#else
-  (void)sec;
-#endif
-  return 0U;
-}
-
-/**
-  * @brief  Замыкание шкалы 360 град по измеренным секторам с замещением исключённых
-  *         дефектных секторов средней шириной валидных секторов текущего прохода.
-  */
-static void cal_finalize_angtab_pass(const int *rdy_tab, float *dif_tab,
-                                     float *sum_out, float *ang_out) {
-  float valid_sum = 0.0f;
-  unsigned int valid_cnt = 0U;
-  for (unsigned int j = 0U; j < BIT_TAB_SIZE; j++) {
-    if (rdy_tab[j] == 1) {
-      valid_sum += dif_tab[j];
-      valid_cnt++;
-    }
-  }
-  const float mean_width = (valid_cnt > 0U) ? (valid_sum / (float)valid_cnt)
-                                            : (float)SECTOR_SIZE;
-  float total_sum = 0.0f;
-  for (unsigned int j = 0U; j < BIT_TAB_SIZE; j++) {
-    if (rdy_tab[j] != 1) {
-      dif_tab[j] = mean_width;
-    }
-    total_sum += dif_tab[j];
-  }
-  *sum_out = total_sum;
-  ang_out[0] = 0.0f;
-  for (unsigned int j = 1U; j < BIT_TAB_SIZE; j++) {
-    ang_out[j] = ang_out[j - 1U] + (dif_tab[j - 1U] / total_sum) * 360.0f;
-  }
-}
-
-/**
   * @brief  САМОКАЛИБРОВКА ТАБЛИЦЫ УГЛОВ СЕКТОРОВ ang_tab[] (метод замыкания оборота).
   *
   * На каждом из двух встречных проходов (0x11 -> state 0x20, 0x12 -> state 0x40)
   * накапливается по pix_dif_num_avg = 5 независимых измерений межреперного расстояния
-  * pix_dif = s_l2 - s_l1 в симметричном однопиксельном стробе [offset-26..offset-25] / [offset+25..offset+26] (51/2 = 25.5 пикс.).
+  * pix_dif = s_l2 - s_l1 в симметричном однопиксельном стробе [offset-26..offset-25] /
+  * [offset+25..offset+26] (51/2 = 25.5 пикс.).
   *
-  * Особенности реализации:
-  *   - Секторы из ручного списка CAL_EXCLUDED_SECTORS_LIST помечаются кодом 2U при
-  *     старте прохода: они не блокируют достижение pix_rdy_num == BIT_TAB_SIZE при
-  *     пропусках/ошибках декодирования на дефекте диска, а при замыкании 360 град
-  *     получают среднюю ширину остальных валидных секторов.
-  *   - Направление вращения определяется автоматически на проходе 1 (cal_pass1_dir)
-  *     и проверяется как строго противоположное (-cal_pass1_dir) на проходе 2, что
-  *     устраняет тупик чётности 72/144 старой защёлки old_sector = rsector/lsector.
-  *   - Защёлка old_sector = cur_sector гарантирует не более одного отсчёта на сектор
-  *     за один оборот вала.
+  * Направление вращения определяется автоматически на проходе 1 (cal_pass1_dir)
+  * и проверяется как строго противоположное (-cal_pass1_dir) на проходе 2.
+  * Защёлка old_sector = cur_sector гарантирует не более одного отсчёта на сектор
+  * за один оборот вала.
   */
 /*-----------------------------------------------------------------------------------*/
 void angtab_cal(void) {
@@ -2520,15 +2447,10 @@ void angtab_cal(void) {
       cal_pass1_dir = 0;
       pix_rdy_num1 = 0;
       for (unsigned char j = 0; j < BIT_TAB_SIZE; j++) {
+        pix_rdy_tab1[j] = 0;
         pix_dif_sum1[j] = 0.0f;
         pix_dif_num1[j] = 0;
         new_ang_tab1[j] = 0.0f;
-        if (cal_is_sector_excluded(j)) {
-          pix_rdy_tab1[j] = 2;
-          pix_rdy_num1++;
-        } else {
-          pix_rdy_tab1[j] = 0;
-        }
       }
     } else if (auto_cal == 2) {
       if (cal_pass1_dir == 0) {
@@ -2536,15 +2458,10 @@ void angtab_cal(void) {
       }
       pix_rdy_num2 = 0;
       for (unsigned char j = 0; j < BIT_TAB_SIZE; j++) {
+        pix_rdy_tab2[j] = 0;
         pix_dif_sum2[j] = 0.0f;
         pix_dif_num2[j] = 0;
         new_ang_tab2[j] = 0.0f;
-        if (cal_is_sector_excluded(j)) {
-          pix_rdy_tab2[j] = 2;
-          pix_rdy_num2++;
-        } else {
-          pix_rdy_tab2[j] = 0;
-        }
       }
     }
   }
@@ -2589,7 +2506,15 @@ void angtab_cal(void) {
           pix_rdy_num1++;
 
           if (pix_rdy_num1 >= BIT_TAB_SIZE) {
-            cal_finalize_angtab_pass(pix_rdy_tab1, pix_dif_tab1, &sum_Ai1, new_ang_tab1);
+            float tmp_sum = 0.0f;
+            for (unsigned char j = 0; j < BIT_TAB_SIZE; j++) {
+              tmp_sum += pix_dif_tab1[j];
+            }
+            sum_Ai1 = tmp_sum;
+            new_ang_tab1[0] = 0.0f;
+            for (unsigned char j = 1; j < BIT_TAB_SIZE; j++) {
+              new_ang_tab1[j] = new_ang_tab1[j - 1] + (pix_dif_tab1[j - 1] / sum_Ai1) * 360.0f;
+            }
             auto_cal = 0;
             encoder_state = 0x20;
           }
@@ -2612,7 +2537,15 @@ void angtab_cal(void) {
           pix_rdy_num2++;
 
           if (pix_rdy_num2 >= BIT_TAB_SIZE) {
-            cal_finalize_angtab_pass(pix_rdy_tab2, pix_dif_tab2, &sum_Ai2, new_ang_tab2);
+            float tmp_sum = 0.0f;
+            for (unsigned char j = 0; j < BIT_TAB_SIZE; j++) {
+              tmp_sum += pix_dif_tab2[j];
+            }
+            sum_Ai2 = tmp_sum;
+            new_ang_tab2[0] = 0.0f;
+            for (unsigned char j = 1; j < BIT_TAB_SIZE; j++) {
+              new_ang_tab2[j] = new_ang_tab2[j - 1] + (pix_dif_tab2[j - 1] / sum_Ai2) * 360.0f;
+            }
 
             for (unsigned char j = 0; j < BIT_TAB_SIZE; j++) {
               new_ang_tab[j] = (new_ang_tab1[j] + new_ang_tab2[j]) * 0.5f;
@@ -2639,7 +2572,6 @@ void angtab_cal(void) {
     }
   }
 }
-
 
 /**
   * @brief  САМОКАЛИБРОВКА offset - поиск точки съёма угла на линейке.

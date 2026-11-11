@@ -207,7 +207,7 @@ static void run_offset(int minimum)
     finish_eeprom(EEPROM_DEVICE_PAGE6, 6);
 }
 
-static void run_angtab_ex(unsigned pass, int increasing_sector_dir, int drop_excluded)
+static void run_angtab_ex(unsigned pass, int increasing_sector_dir)
 {
     unsigned before = eeprom_writes;
     assert(command(pass == 1 ? 0x11 : 0x12) == MB_ENOERR);
@@ -219,16 +219,11 @@ static void run_angtab_ex(unsigned pass, int increasing_sector_dir, int drop_exc
     for (unsigned turn = 0; turn < 8 && auto_cal; ++turn) {
         for (int step = 0; step < BIT_TAB_SIZE && auto_cal; ++step) {
             cur_sector = increasing_sector_dir ? step : (BIT_TAB_SIZE - 1 - step);
-            if (drop_excluded && cal_is_sector_excluded((uint8_t)cur_sector)) {
-                /* Simulate errorflag == 1 dropout over the defective disk sector! */
-                continue;
-            }
             lsector = (int16_t)((cur_sector + BIT_TAB_SIZE - 1) % BIT_TAB_SIZE);
             rsector = (int16_t)((cur_sector + 1) % BIT_TAB_SIZE);
             s_l1 = offset - 25.5f;
             s_l2 = offset + 25.5f;
-            /* Inject huge anomaly on excluded sector when not dropped: must be ignored! */
-            pix_dif = cal_is_sector_excluded((uint8_t)cur_sector) ? 95.0f : 50.8f;
+            pix_dif = 50.8f;
             encoder_calibration_step();
             /* Second consecutive 103 us frame inside the same strobe must not double-count! */
             encoder_calibration_step();
@@ -249,7 +244,7 @@ static void run_angtab_ex(unsigned pass, int increasing_sector_dir, int drop_exc
 
 static void run_angtab(unsigned pass)
 {
-    run_angtab_ex(pass, pass == 1 ? 0 : 1, 1);
+    run_angtab_ex(pass, pass == 1 ? 0 : 1);
 }
 
 static void stop_test(uint16_t start)
@@ -288,11 +283,9 @@ int main(void)
     /* Full pixel range [6..126], single-pass angk_cal, BR4_C edge accuracy, NaN/Inf guard. */
     test_angk_pixel_range_and_br4_edges();
 
-    /* Verify angtab_cal with opposite initial shaft direction AND corrupted pix_dif on excluded sector. */
-    assert(CAL_SECTOR_FROM_ANGLE_DEG(36.0f) == 129U);
-    assert(cal_is_sector_excluded(129U) == 1U);
-    run_angtab_ex(1, 1, 0);
-    run_angtab_ex(2, 0, 0);
+    /* Verify angtab_cal with opposite initial shaft direction as well. */
+    run_angtab_ex(1, 1);
+    run_angtab_ex(2, 0);
     assert(command(0x10) == MB_ENOERR);
     assert_state(0);
 

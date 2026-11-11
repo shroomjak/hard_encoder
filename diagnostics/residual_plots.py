@@ -1,27 +1,14 @@
 #!/usr/bin/env python3
-"""Глобальные остатки и разности головок: Huber RLM (statsmodels), без подгонки оборотов.
-На графике разности по углу оборота исключённые секторы диска выделяются вертикальными
-пунктирными линиями без вырезания исходных точек.
-"""
+"""Глобальные остатки и разности головок: Huber RLM (statsmodels), без подгонки оборотов."""
 import argparse
 from itertools import combinations
 from pathlib import Path
 import re
-import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
-
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from head_period_analysis import (  # noqa: E402
-    BIT_TAB_SIZE,
-    EXCLUDED_SECTORS,
-    SECTOR_WIDTH_DEG,
-    merge_sector_intervals_on_x,
-    parse_sector_list,
-)
 
 
 def resolve_csv(value):
@@ -46,24 +33,16 @@ def huber_resid(y, x=None):
     ols_resid = y - design @ np.linalg.lstsq(design, y, rcond=None)[0]
     if len(y) < 3 or sm.robust.mad(ols_resid) < 1e-12:
         return ols_resid
-    import warnings
-    from statsmodels.tools.sm_exceptions import ConvergenceWarning
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore', ConvergenceWarning)
-        res = sm.RLM(y, design, M=sm.robust.norms.HuberT()).fit()
-    return res.resid if np.all(np.isfinite(res.resid)) else ols_resid
+    return sm.RLM(y, design, M=sm.robust.norms.HuberT()).fit().resid
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('folder', help='Папка эксперимента внутри diagnostics или путь к CSV')
     parser.add_argument('--ids', '--heads', nargs='+', help='Например: 1,2 или 1 2; по умолчанию все')
-    parser.add_argument('--exclude-sectors', default=None,
-                        help=f'Список секторов 0..143 для пунктирной разметки (по умолчанию {EXCLUDED_SECTORS}; none — отключить)')
     parser.add_argument('--no-show', action='store_true', help='Не открывать окна графиков')
     args = parser.parse_args()
 
-    excluded_sectors = parse_sector_list(args.exclude_sectors)
     path = resolve_csv(args.folder)
     folder, stem = path.parent, path.stem
     df = pd.read_csv(path)
@@ -123,9 +102,8 @@ def main():
     pairs = list(combinations(columns, 2))
     if pairs:
         fig_dtime, ax_dtime = plt.subplots(figsize=(12, 5), layout='constrained')
-        fig_dang, ax_dang = plt.subplots(figsize=(12, 5.5), layout='constrained')
+        fig_dang, ax_dang = plt.subplots(figsize=(12, 5), layout='constrained')
         plotted_pairs = 0
-        pair_offsets: list[tuple[str, float]] = []
         for col_a, col_b in pairs:
             valid = head_valid[col_a] & head_valid[col_b]
             if valid.sum() < 4:
@@ -150,39 +128,9 @@ def main():
                 color=line.get_color(), alpha=.2,
             )
 
-            rel_ba = float(np.median(np.mod(angles[col_b][valid] - angles[col_a][valid], 360.0)))
-            nom_ba = round(rel_ba / 90.0) * 90.0 % 360.0
-            if not pair_offsets:
-                pair_offsets.append((col_a, 0.0))
-            if all(name != col_b for name, _ in pair_offsets):
-                pair_offsets.append((col_b, nom_ba))
-
         if plotted_pairs:
-            if excluded_sectors:
-                palette = ['#d62728', '#ff7f0e', '#9467bd', '#2ca02c']
-                used_labels: set[str] = set()
-                for idx, (h_name, h_off) in enumerate(pair_offsets):
-                    color = palette[idx % len(palette)]
-                    for x0, x1, sec_label in merge_sector_intervals_on_x(excluded_sectors, h_off):
-                        lbl = f'Искл. {sec_label} под {h_name} [{x0:.1f}°..{x1:.1f}°]'
-                        ax_dang.axvline(x0, color=color, ls='--', lw=1.2, alpha=0.85,
-                                        label=(lbl if lbl not in used_labels else None))
-                        ax_dang.axvline(x1, color=color, ls='--', lw=1.2, alpha=0.85)
-                        ax_dang.axvspan(x0, x1, color=color, alpha=0.07)
-                        used_labels.add(lbl)
-
             ax_dang.set_xlim(0.0, 360.0)
-            tick_angles = np.arange(0.0, 361.0, 30.0)
-            ax_dang.set_xticks(tick_angles)
-            top = ax_dang.twiny()
-            top.set_xlim(0.0, 360.0)
-            top.set_xticks(tick_angles)
-            top.set_xticklabels([
-                str(int((BIT_TAB_SIZE - round((a % 360.0) / SECTOR_WIDTH_DEG)) % BIT_TAB_SIZE))
-                for a in tick_angles
-            ], fontsize=8)
-            top.set_xlabel('Граница сектора диска по первой головке (0..143, 1 сектор = 2.5°)', fontsize=9)
-
+            ax_dang.set_xticks(np.arange(0.0, 361.0, 30.0))
             plots.extend([
                 (fig_dtime, ax_dtime, 'head_diff_vs_time', 'Разность углов головок по времени',
                  'Время, с', 'Разность, град'),
@@ -197,7 +145,7 @@ def main():
         ax.set(title=f'{title} — {stem}\nHuber RLM', xlabel=xlabel, ylabel=ylabel)
         ax.axhline(0, color='black', linewidth=.5, alpha=.5)
         ax.grid(alpha=.3)
-        ax.legend(fontsize=8.5)
+        ax.legend()
         output = folder / f'{stem}_{suffix}.png'
         fig.savefig(output, dpi=150)
         print(output)
