@@ -1266,10 +1266,10 @@ float buf_k[128] ={
 
 
 
-/* Точка съёма угла на линейке (в пикселях, дробная). Значение по умолчанию 68
+/* Точка съёма угла на линейке (в пикселях, дробная). Значение по умолчанию 64
    перекрывается значением из EEPROM в init_vars(), если его CRC16 сошлась.
    Подбирается автоматически функцией offset_cal() (команда SPI 0x13).        */
-float  offset=68;
+uint8_t offset=64U;
 
 
 
@@ -2483,8 +2483,8 @@ void angtab_cal(void) {
   }
 
   const uint8_t in_strobe =
-      (((s_l1 >= (offset - 26.0f)) && (s_l1 <= (offset - 25.0f))) ||
-       ((s_l2 >= (offset + 25.0f)) && (s_l2 <= (offset + 26.0f)))) ? 1U : 0U;
+      (((s_l1 >= (offset - 26)) && (s_l1 <= (offset - 25))) ||
+       ((s_l2 >= (offset + 25)) && (s_l2 <= (offset + 26)))) ? 1U : 0U;
 
   if (auto_cal == 1) {
     if ((cal_dir != 0) && (cal_pass1_dir == 0)) {
@@ -2615,7 +2615,7 @@ void offset_cal(void) {
     switch (offset_phase) {
 
     case 0:
-      offset = (float)offset_cur;
+      offset = offset_cur;
       offset_phase = 1;
       break;
 
@@ -2632,7 +2632,7 @@ void offset_cal(void) {
           offset_cur++;
           offset_phase = 0;
         } else {
-          offset_tmp = 1.0f;
+          offset_tmp = 1;
           offset_found = offset_start;
           for (int i = offset_start; i <= offset_end; i++) {
             if (offset_minmax[i] < offset_tmp) {
@@ -2659,7 +2659,7 @@ void offset_cal(void) {
       break;
 
     case 2:
-      offset = (float)offset_cur;
+      offset = offset_cur;
       offset_phase = 3;
       break;
 
@@ -2674,7 +2674,7 @@ void offset_cal(void) {
           offset_cur--;
           offset_phase = 2;
         } else {
-          offset_tmp = 1.0f;
+          offset_tmp = 1;
           offset_found = left_limit;
           for (int i = left_limit; i <= offset_end; i++) {
             if (offset_minmax[i] < offset_tmp) {
@@ -2688,7 +2688,7 @@ void offset_cal(void) {
       break;
 
     case 4:
-      offset = (float)offset_cur;
+      offset = offset_cur;
       offset_phase = 5;
       break;
 
@@ -2703,7 +2703,7 @@ void offset_cal(void) {
           offset_cur++;
           offset_phase = 4;
         } else {
-          offset_tmp = 1.0f;
+          offset_tmp = 1;
           offset_found = offset_start;
           for (int i = offset_start; i <= right_limit; i++) {
             if (offset_minmax[i] < offset_tmp) {
@@ -2717,7 +2717,7 @@ void offset_cal(void) {
       break;
 
     case 100:
-      offset = (float)offset_found;                                             // use found offset
+      offset = offset_found;                                                    // use found offset
 
       memcpy(&eeprom_buf[eeprom_offset], &offset, 4);                           // copy offset to write buffer
       crc16 = 0xFFFFU;                                                          // CRC16 calc
@@ -3061,7 +3061,7 @@ void init_vars() {
   //compensation BR4
   phase=0;
   for (unsigned char j=0;j<200;j++) {
-   delta_cor[j]=0.01*sin((j-100)*3.1415926/50.+phase);
+   delta_cor[j]=0.01f*sin((float)((j-100)*3.1415926f/50.0f+phase));
   }
 
 
@@ -3137,7 +3137,7 @@ int main(void)
   cycles_max=0;
   
   agc_test_disable = 1U;
-  backlight_width_ticks = 1500;
+  backlight_width_ticks = 2000;
   // Infinite loop
   while (1)
   {
