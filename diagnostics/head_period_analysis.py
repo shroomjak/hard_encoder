@@ -140,6 +140,19 @@ def build_reference_grid(x_ref, ang_ref, grid_step=None):
         raise ValueError('Шаг сетки слишком велик для оборота')
     return crossings, direction, lengths, angle_grid, xc, ref_slope
 
+def robust_lowpass_baseline(values, window, med_window=7):
+    """Робастная оценка медленного уровня сигнала (ФНЧ).
+
+    Короткая скользящая медиана отсекает одиночные выбросы (глитч, потерянный
+    пакет), затем скользящее среднее окном ~период даёт гладкую оценку уровня.
+    Окна центрированные; на краях записи окно усекается (min_periods=1).
+    """
+    if window < 3:
+        return np.full(len(values), float(np.nanmean(values)))
+    s = pd.Series(values, copy=False)
+    med = s.rolling(med_window, center=True, min_periods=1).median()
+    return med.rolling(window, center=True, min_periods=1).mean().to_numpy()
+
 
 def analyze_aligned(sig: SignalData, crossings: np.ndarray, direction: int,
                     angle_grid: np.ndarray, ref_xc: float, ref_slope: float,
@@ -167,6 +180,19 @@ def analyze_aligned(sig: SignalData, crossings: np.ndarray, direction: int,
 
     lengths = np.diff(crossings)
     n_periods = len(lengths)
+
+    # Вместо ступенчатого вычитания среднего по каждому периоду (случайное
+    # смещение из-за вариации угловой скорости: среднее за период взвешено
+    # временем пребывания в каждом угле и случайно меняется от периода
+    # к периоду) вычитаем гладкий уровень: робастный ФНЧ с окном порядка
+    # одного периода. Окно = медианная длительность периода: при постоянной
+    # скорости выход фильтра равен среднему профиля за оборот (DC), а
+    # гармоники 1x/об и выше остаются в остатке без искажений.
+
+    win = max(int(round(float(np.median(lengths)))) | 1, 3)
+    baseline = robust_lowpass_baseline(residual, win)
+    residual = residual - baseline
+
     rows = np.full((n_periods, len(angle_grid)), np.nan, dtype=float)
     period_means = np.full(n_periods, np.nan, dtype=float)
     native = []
@@ -188,12 +214,12 @@ def analyze_aligned(sig: SignalData, crossings: np.ndarray, direction: int,
             continue
 
         vals = np.interp(x_grid, xs, residual)
-        p_mean = float(vals.mean())
-        period_means[k] = p_mean
-        rows[k] = vals - p_mean
+        # Среднее вычтенного гладкого уровня внутри периода (для сводки).
+        period_means[k] = float(np.interp(x_grid, xs, baseline).mean())
+        rows[k] = vals
 
         order = np.argsort(ang_native)
-        native.append((ang_native[order], xs[use][order], residual[use][order] - p_mean))
+        native.append((ang_native[order], xs[use][order], residual[use]))
 
     count = np.isfinite(rows).sum(axis=0)
     if np.all(count == 0):
@@ -209,7 +235,6 @@ def analyze_aligned(sig: SignalData, crossings: np.ndarray, direction: int,
     return PeriodProfile(float(lengths.mean()), n_periods, float(slope), float(ref_xc), yc,
                          crossings, lengths, angle_grid, rows, mean, std, count, native,
                          period_means, x_label=x_label, title=sig.title)
-
 
 def analyze(x, angle, grid_step=None):
     """Анализ одиночного свёрнутого сигнала [0, 360) по собственным переходам через нуль."""
