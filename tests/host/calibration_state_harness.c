@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "mb.h"
 #include "encoder_protocol.h"
@@ -18,11 +19,14 @@ uint8_t i2c3_tx_wp = 1, backlight_width_en = 1;
 uint32_t cycles_max;
 int old_sector, cur_sector, cal_sector;
 int16_t lsector, rsector;
-float pix_dif, offset = 68;
+float pix_dif; /* offset itself is extracted from Src/main.c with its real type. */
 float ang_tab[BIT_TAB_SIZE], buf_k[128];
 uint8_t eeprom_buf[eeprom_len];
+static uint8_t eeprom_chip[eeprom_len]; /* What init_vars() reads back after a "reboot". */
 static int I2c3Handle;
 #define GPIOA 0
+#define GPIOB 1
+#define LL_GPIO_PIN_8 8
 #define LL_GPIO_PIN_9 9
 #define I2C_MEMADD_SIZE_8BIT 1
 static unsigned eeprom_writes;
@@ -41,14 +45,31 @@ static int HAL_I2C_Mem_Write_IT(int *handle, uint16_t device, uint16_t address,
     last_device = device; last_length = length;
     return 0; /* Completion is asynchronous; test releases i2c3_tx_wp later. */
 }
+static int HAL_I2C_Mem_Read(int *handle, uint16_t device, uint16_t address,
+                            int size, uint8_t *data, uint16_t length, uint32_t timeout)
+{
+    assert(handle == &I2c3Handle && device == EEPROM_DEVICE_PAGE0 && address == 0);
+    assert(size == I2C_MEMADD_SIZE_8BIT && data == eeprom_buf && length == eeprom_len);
+    (void)timeout;
+    memcpy(data, eeprom_chip, length);
+    return 0;
+}
+static uint32_t LL_GPIO_IsInputPinSet(int port, int pin)
+{
+    assert(port == GPIOB && pin == LL_GPIO_PIN_8);
+    return 0; /* config_state = 0: direct pixel order. */
+}
 
 /* Forward prototypes for -Wmissing-prototypes when compiling extracted C functions. */
 unsigned short crc_16_step(unsigned char data, unsigned short crc);
 float BR4_C(float *mas, int centor_int);
 float mes_piks(uint16_t star_pixel);
 void angtab_cal(void);
+void offset_eeprom_pack(uint8_t value, uint8_t *image);
+uint8_t offset_eeprom_unpack(const uint8_t *image, uint8_t *value);
 void offset_cal(void);
 void angk_cal(void);
+void init_vars(void);
 
 /* EXTRACTED_FUNCTIONS */
 
@@ -189,22 +210,113 @@ static void test_angk_pixel_range_and_br4_edges(void)
     finish_eeprom(EEPROM_DEVICE_PAGE3, 514);
 }
 
+static uint16_t block_crc(const uint8_t *data, unsigned length)
+{
+    uint16_t crc = 0xFFFFU;
+    while (length--) crc = crc_16_step(*data++, crc);
+    return crc;
+}
+
 static void run_offset(int minimum)
 {
     unsigned before = eeprom_writes;
+    memset(&eeprom_buf[eeprom_offset], 0xEE, 6); /* Stale bytes must be overwritten. */
     assert(command(0x13) == MB_ENOERR);
     assert_state(0x50);
     for (unsigned i = 0; i < 128; ++i) assert(offset_minmax[i] == 1.0f);
     for (unsigned frame = 0; frame < 100 && start_offset_cal; ++frame) {
         avg_minmax_num = offset_avg_num + 1;
         avg_min = 0; avg_max = 0.1f;
-        min_max = 0.01f * (1 + fabsf(offset - (float)minimum));
+        min_max = 0.01f * (float)(1 + abs((int)offset - minimum));
         encoder_calibration_step();
     }
     assert_state(0x60);
-    assert(!start_offset_cal && offset_phase == 101 && offset == (float)minimum);
+    assert(!start_offset_cal && offset_phase == 101 && offset == minimum);
     assert(eeprom_writes == before + 1);
+    /* EEPROM image: byte 0 = offset, bytes 1..3 = 0, then CRC16 over these 4 bytes. */
+    const uint8_t *image = &eeprom_buf[eeprom_offset];
+    assert(image[0] == minimum && image[1] == 0 && image[2] == 0 && image[3] == 0);
+    const uint16_t crc = block_crc(image, 4);
+    assert(eeprom_buf[eeprom_offset_crc] == (uint8_t)crc &&
+           eeprom_buf[eeprom_offset_crc + 1] == (uint8_t)(crc >> 8));
     finish_eeprom(EEPROM_DEVICE_PAGE6, 6);
+}
+
+/* Power cycle: the chip keeps the given 4-byte offset image, RAM starts from defaults. */
+static void reboot_with_offset_image(const uint8_t image[4], int valid_crc)
+{
+    memcpy(eeprom_chip, eeprom_buf, sizeof eeprom_chip);
+    memcpy(&eeprom_chip[eeprom_offset], image, 4);
+    uint16_t crc = block_crc(image, 4);
+    if (!valid_crc) crc ^= 0x5A5AU;
+    eeprom_chip[eeprom_offset_crc] = (uint8_t)crc;
+    eeprom_chip[eeprom_offset_crc + 1] = (uint8_t)(crc >> 8);
+    memset(eeprom_buf, 0, sizeof eeprom_buf);
+    offset = 64U;
+    ang_tab_rdy = buf_k_rdy = offset_rdy = lasdac_rdy = 0;
+    init_vars();
+}
+
+/* offset is a uint8_t pixel index; its EEPROM block stays 4 bytes + CRC16.
+ * init_vars() must restore it without touching neighbouring RAM (a raw 4-byte
+ * memcpy on the 1-byte variable fails this build via -Werror) and must keep
+ * heads calibrated by earlier firmware usable. */
+static void test_offset_eeprom_image(void)
+{
+    float saved_ang_tab[BIT_TAB_SIZE], saved_buf_k[128];
+    memcpy(saved_ang_tab, ang_tab, sizeof saved_ang_tab);
+    memcpy(saved_buf_k, buf_k, sizeof saved_buf_k);
+
+    /* Round trip of what offset_cal() has just stored, together with buf_k and ang_tab. */
+    const uint8_t stored = offset;
+    uint8_t image[4];
+    memcpy(image, &eeprom_buf[eeprom_offset], 4);
+    memset(ang_tab, 0, sizeof ang_tab);
+    memset(buf_k, 0, sizeof buf_k);
+    reboot_with_offset_image(image, 1);
+    assert(offset_rdy == 1 && offset == stored);
+    assert(ang_tab_rdy == 1 && !memcmp(ang_tab, saved_ang_tab, sizeof ang_tab));
+    assert(buf_k_rdy == 1 && !memcmp(buf_k, saved_buf_k, sizeof buf_k));
+
+    /* Current format written by offset_eeprom_pack(). */
+    memset(image, 0xEE, sizeof image);
+    offset_eeprom_pack(67U, image);
+    assert(image[0] == 67U && image[1] == 0 && image[2] == 0 && image[3] == 0);
+    reboot_with_offset_image(image, 1);
+    assert(offset_rdy == 1 && offset == 67U);
+
+    /* Interim firmware: byte 0 = offset, bytes 1..3 = whatever followed it in RAM. */
+    const uint8_t interim[4] = {61U, 0xA5U, 0x3CU, 0xFFU};
+    reboot_with_offset_image(interim, 1);
+    assert(offset_rdy == 1 && offset == 61U);
+
+    /* Original firmware: IEEE-754 float with an integer value (low byte is 0). */
+    for (int pixel = 56; pixel <= 72; ++pixel) {
+        const float legacy = (float)pixel;
+        memcpy(image, &legacy, 4);
+        assert(image[0] == 0);
+        reboot_with_offset_image(image, 1);
+        assert(offset_rdy == 1 && offset == pixel);
+    }
+
+    /* Rejected images leave the compiled-in default and offset_rdy = 0. */
+    const float bad_floats[] = {0.0f, 63.5f, 200.0f, -64.0f, (float)NAN};
+    for (unsigned i = 0; i < sizeof bad_floats / sizeof bad_floats[0]; ++i) {
+        memcpy(image, &bad_floats[i], 4);
+        reboot_with_offset_image(image, 1);
+        assert(offset_rdy == 0 && offset == 64U);
+    }
+    const uint8_t blank[4] = {0xFFU, 0xFFU, 0xFFU, 0xFFU}; /* Erased EEPROM cell. */
+    reboot_with_offset_image(blank, 1);
+    assert(offset_rdy == 0 && offset == 64U);
+    offset_eeprom_pack(67U, image);
+    reboot_with_offset_image(image, 0); /* Valid payload, wrong CRC16. */
+    assert(offset_rdy == 0 && offset == 64U);
+
+    /* Leave the head as calibrated before this test. */
+    offset_eeprom_pack(stored, image);
+    reboot_with_offset_image(image, 1);
+    assert(offset_rdy == 1 && offset == stored);
 }
 
 static void run_angtab_ex(unsigned pass, int increasing_sector_dir)
@@ -296,6 +408,9 @@ int main(void)
     run_offset(63);
     offset_start = 63; offset_end = 65;
 
+    /* uint8_t offset: EEPROM image, reboot round trip, images of earlier firmware. */
+    test_offset_eeprom_image();
+
     stop_test(0x11);
     run_angtab(1);
     stop_test(0x12);
@@ -316,6 +431,7 @@ int main(void)
     assert(command(0x10) == MB_ENOERR);
     assert_state(0);
     assert(live(ENCODER_EEPROM_READY) == 0);
-    puts("Calibration state integration: 4-stage flow, [6..126] buf_k, BR4_C edges, LIVE, STOP OK");
+    puts("Calibration state integration: 4-stage flow, [6..126] buf_k, BR4_C edges, "
+         "offset EEPROM image, LIVE, STOP OK");
     return 0;
 }

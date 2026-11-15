@@ -130,6 +130,12 @@
 #define ANGK_GAIN_MIN           0.25f
 #define ANGK_GAIN_MAX           4.00f
 
+/* Допустимые значения точки съёма offset - целого номера пикселя линейки.
+   Ноль исключён: в прежнем float-образе EEPROM младший байт целого значения
+   равен 0, по этому признаку offset_eeprom_unpack() отличает старый формат.  */
+#define OFFSET_PIX_MIN          1
+#define OFFSET_PIX_MAX          127
+
 /* Пиксель-"водораздел": если найденный репер правее CENTER_PIXEL, он считается
    ПРАВЫМ репером пары, иначе - ЛЕВЫМ. Нужно, чтобы однозначно достроить
    положение второго репера как startpixel +/- SECTOR_SIZE.                   */
@@ -1480,6 +1486,8 @@ float calc (float *mas, int centor_int);
 void init_vars();
 void angtab_cal(void);
 void offset_cal(void);
+void offset_eeprom_pack(uint8_t value, uint8_t *image);                         //offset -> 4-byte EEPROM image
+uint8_t offset_eeprom_unpack(const uint8_t *image, uint8_t *value);             //4-byte EEPROM image -> offset
 void angk_cal(void);
 static void Backlight_StartFromSI(void);
 static void Backlight_StartTimer(uint16_t ticks);
@@ -2574,13 +2582,66 @@ void angtab_cal(void) {
 }
 
 /**
+  * @brief  Образ offset в EEPROM: 4 байта (стр. 6, адрес 1536), за ними CRC16.
+  *
+  * Байт 0 - offset (uint8_t, номер пикселя), байты 1..3 - нули. Размер блока
+  * оставлен прежним (4 + 2 байта), карта EEPROM не меняется.
+  *
+  * @param  value точка съёма OFFSET_PIX_MIN..OFFSET_PIX_MAX
+  * @param  image буфер образа, 4 байта
+  * @retval none
+  */
+/*-----------------------------------------------------------------------------------*/
+void offset_eeprom_pack(uint8_t value, uint8_t *image) {
+
+  image[0] = value;
+  image[1] = 0U;
+  image[2] = 0U;
+  image[3] = 0U;
+}
+
+/**
+  * @brief  Разбор 4-байтного образа offset из EEPROM (CRC16 проверяет init_vars()).
+  *
+  * Принимаются оба формата, встречающиеся в уже откалиброванных головках:
+  *   - байт 0 = offset (uint8_t). Байты 1..3 не анализируются: промежуточная
+  *     версия прошивки записывала в них содержимое соседних переменных ОЗУ;
+  *   - все 4 байта = float с целым значением (исходный формат). У таких чисел
+  *     младший байт равен 0, поэтому с первым форматом они не пересекаются.
+  *
+  * @param  image буфер образа, 4 байта
+  * @param  value куда записать принятое значение (при отказе не изменяется)
+  * @retval 1 - значение принято, 0 - образ отвергнут (остаётся offset по умолчанию)
+  */
+/*-----------------------------------------------------------------------------------*/
+uint8_t offset_eeprom_unpack(const uint8_t *image, uint8_t *value) {
+
+  float legacy;
+
+  if ((image[0] >= OFFSET_PIX_MIN) && (image[0] <= OFFSET_PIX_MAX)) {
+    *value = image[0];
+    return 1U;
+  }
+
+  memcpy(&legacy, image, sizeof(legacy));
+  if ((legacy >= (float)OFFSET_PIX_MIN) && (legacy <= (float)OFFSET_PIX_MAX)) {
+    const uint8_t pixel = (uint8_t)legacy;
+    if ((float)pixel == legacy) {
+      *value = pixel;
+      return 1U;
+    }
+  }
+  return 0U;
+}
+
+/**
   * @brief  САМОКАЛИБРОВКА offset - поиск точки съёма угла на линейке.
   *
   * Задача одномерной минимизации: найти целое offset, при котором размах
   * остаточной ошибки min_max (см. find_avg) минимален.
   *
-  * Реализована конечным автоматом по offset_phase; на каждую пробу тратится
-  * offset_avg_num (=3) полных оборота вала:
+  * Реализована конечным автоматом по offset_phase; на каждую пробу нужно
+  * offset_avg_num + 1 = 4 прохода через 0/360 (около 4 оборотов вала):
   *   0   - применить offset = offset_cur;
   *   1   - дождаться avg_minmax_num > 3, записать min_max в offset_minmax[],
   *         сдвинуться к следующему значению до offset_end; затем найти минимум
@@ -2607,15 +2668,15 @@ void angtab_cal(void) {
 void offset_cal(void) {
 
   uint16_t crc16;
-  const int left_limit = (offset_start > offset_snum) ? (offset_start - offset_snum) : 0;
-  const int right_limit = (offset_end + offset_snum < 128) ? (offset_end + offset_snum) : 127;
+  const int left_limit = (offset_start - offset_snum > OFFSET_PIX_MIN) ? (offset_start - offset_snum) : OFFSET_PIX_MIN;
+  const int right_limit = (offset_end + offset_snum < OFFSET_PIX_MAX) ? (offset_end + offset_snum) : OFFSET_PIX_MAX;
 
   if (start_offset_cal > 0) {
 
     switch (offset_phase) {
 
     case 0:
-      offset = offset_cur;
+      offset = (uint8_t)offset_cur;
       offset_phase = 1;
       break;
 
@@ -2632,7 +2693,7 @@ void offset_cal(void) {
           offset_cur++;
           offset_phase = 0;
         } else {
-          offset_tmp = 1;
+          offset_tmp = 1.0f;
           offset_found = offset_start;
           for (int i = offset_start; i <= offset_end; i++) {
             if (offset_minmax[i] < offset_tmp) {
@@ -2659,7 +2720,7 @@ void offset_cal(void) {
       break;
 
     case 2:
-      offset = offset_cur;
+      offset = (uint8_t)offset_cur;
       offset_phase = 3;
       break;
 
@@ -2674,7 +2735,7 @@ void offset_cal(void) {
           offset_cur--;
           offset_phase = 2;
         } else {
-          offset_tmp = 1;
+          offset_tmp = 1.0f;
           offset_found = left_limit;
           for (int i = left_limit; i <= offset_end; i++) {
             if (offset_minmax[i] < offset_tmp) {
@@ -2688,7 +2749,7 @@ void offset_cal(void) {
       break;
 
     case 4:
-      offset = offset_cur;
+      offset = (uint8_t)offset_cur;
       offset_phase = 5;
       break;
 
@@ -2703,7 +2764,7 @@ void offset_cal(void) {
           offset_cur++;
           offset_phase = 4;
         } else {
-          offset_tmp = 1;
+          offset_tmp = 1.0f;
           offset_found = offset_start;
           for (int i = offset_start; i <= right_limit; i++) {
             if (offset_minmax[i] < offset_tmp) {
@@ -2717,9 +2778,9 @@ void offset_cal(void) {
       break;
 
     case 100:
-      offset = offset_found;                                                    // use found offset
+      offset = (uint8_t)offset_found;                                           // use found offset
 
-      memcpy(&eeprom_buf[eeprom_offset], &offset, 4);                           // copy offset to write buffer
+      offset_eeprom_pack(offset, &eeprom_buf[eeprom_offset]);                   // offset + 3 zero bytes to write buffer
       crc16 = 0xFFFFU;                                                          // CRC16 calc
       for (int i = eeprom_offset; i < eeprom_offset + 4; i++) {
         crc16 = crc_16_step(eeprom_buf[i], crc16);
@@ -3034,8 +3095,7 @@ void init_vars() {
   }
   eeprom_crc16_offset=eeprom_buf[eeprom_offset_crc] | (eeprom_buf[eeprom_offset_crc+1]<<8);
   if (eeprom_crc16==eeprom_crc16_offset) {
-    memcpy(&offset,&eeprom_buf[eeprom_offset],4);
-    offset_rdy=1;
+    offset_rdy=offset_eeprom_unpack(&eeprom_buf[eeprom_offset],&offset);
   }
 
   //Init lasdac
