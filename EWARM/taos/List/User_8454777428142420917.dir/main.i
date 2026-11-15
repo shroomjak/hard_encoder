@@ -46694,18 +46694,79 @@ eMBErrorCode    eMBRegFileCB( UCHAR * pucFileBuffer, USHORT usFileNumber,
 
 
 
+extern volatile uint32_t modbus_rxne_probe_cyccnt;
+extern volatile uint8_t modbus_rxne_probe_valid;
+
+
+
+
+ 
+static inline void modbus_poll_rx_cyccnt(void)
+{
+    if (!modbus_rxne_probe_valid &&
+        ((((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL))->ISR & (0x1UL << (5U))) != 0U) &&
+        ((((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL))->CR1 & (0x1UL << (5U))) != 0U)) {
+        modbus_rxne_probe_cyccnt = ((DWT_Type *) (0xE0001000UL) )->CYCCNT;
+        modbus_rxne_probe_valid = 1U;
+    }
+}
+
+
+
+
+
+
 
  
 enum { SNAP_SEQ, SNAP_READY, SNAP_ANGLE_HI, SNAP_ANGLE_LO, SNAP_SECTOR,
        SNAP_ERROR, SNAP_ENCODER_STATE, SNAP_SAMPLE_HI, SNAP_SAMPLE_LO,
        SNAP_TIME_HI, SNAP_TIME_LO, SNAP_REG_COUNT };
+
  
 void snapshot_publish(float angle_deg, uint16_t sector, uint8_t error,
                       uint8_t encoder_state, uint32_t tick_ms);
+
+
+
+ 
+void snapshot_publish_timed(float angle_deg, uint16_t sector, uint8_t error,
+                            uint8_t encoder_state, uint32_t exp_cyccnt);
+
+
+ 
+void snapshot_set_rx_cyccnt(uint32_t rx_cyccnt);
+
+ 
+void snapshot_latch_timed(uint16_t seq, uint32_t snap_rx_cyccnt, uint32_t ticks_per_us);
+
+
  
 void snapshot_latch(uint16_t seq);
+
  
 uint16_t snapshot_register(uint16_t address);
+
+
+ 
+
+typedef enum {
+    ENCODER_CAL_OK,
+    ENCODER_CAL_INVALID,
+    ENCODER_CAL_BUSY
+} encoder_cal_result_t;
+
+
+
+ 
+encoder_cal_result_t encoder_calibration_command(uint16_t command);
+
+
+
+
+
+ 
+void encoder_calibration_step(void);
+
  
  
 
@@ -54274,28 +54335,20 @@ typedef __builtin_va_list   va_list;
 
 
 
- 
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
 
 
 
 
 
  
+ 
+
+ 
+
+
+
+ 
+
 
 
 
@@ -54306,12 +54359,7 @@ typedef __builtin_va_list   va_list;
 
 
 
-
-
-
-
-
-
+ 
 
 
 
@@ -54332,6 +54380,22 @@ typedef __builtin_va_list   va_list;
 
 
 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
  
@@ -54342,6 +54406,7 @@ typedef __builtin_va_list   va_list;
  
  
 
+ 
 
  
  
@@ -54414,7 +54479,7 @@ uint8_t lasdac_rdy=0;
 
  
 
-__attribute__((aligned(32))) uint16_t aADCxConvertedData[1];
+__attribute__((aligned(32))) uint16_t aADCxConvertedData[16] = {0};
 __attribute__((aligned(4))) float Vsense;
 __attribute__((aligned(4))) float V25 = 0.76f;
 __attribute__((aligned(4))) float Avg_Slope = 2.5f;
@@ -54432,10 +54497,15 @@ __attribute__((aligned(4))) float Temperature;
 
  
 
-__attribute__((aligned(32))) uint16_t ADC_VAL[132] = {0};
-__attribute__((aligned(32))) uint16_t ADC_VAL2[132] = {0};
+__attribute__((aligned(32))) uint16_t ADC_VAL[144] = {0};
+__attribute__((aligned(32))) uint16_t ADC_VAL2[144] = {0};
+
 uint16_t *adc_addr;
-unsigned char adc_rdy;                                                          
+volatile uint8_t adc_rdy = 0U;
+ 
+static volatile uint32_t exp_cyccnt_pipe[2] = {0U, 0U};
+volatile uint32_t buf_x0_exp_cyccnt = 0U;
+volatile uint32_t adc_dropped_frames = 0U;                                                         
 
 
 
@@ -54446,18 +54516,23 @@ unsigned char adc_rdy;
  
 
 uint8_t backlight_width_en=1;
+volatile uint8_t agc_test_disable = 0U;
 int max_level = 3700;
 int adc_offset=600;
 int max_level_pix = 3700 - 600;
 uint16_t lasdac=700;                                                            
 uint32_t lasdac_counter=0;
 uint32_t avg_amaxX_summ=0;
-uint32_t avg_amaxX_num=1000;
+uint32_t avg_amaxX_num=10000;
 uint32_t avg_max_data;
 
 
+
+
+volatile uint32_t backlight_overlap_count = 0U;
+
 volatile uint16_t backlight_delay_ticks = 1220;
-volatile uint16_t backlight_width_ticks = 2500;
+volatile uint16_t backlight_width_ticks = 2100;
 volatile uint8_t backlight_timer_state = 0;
 
 
@@ -54681,6 +54756,44 @@ const uint16_t  bit_tab[144] = {
 
 
 
+};
+
+
+
+ 
+const uint8_t sector_by_code[512] = {
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 116, 126, 130, 128, 118, 124, 255, 255,
+  255, 255,  55,  33,  51,  49,  53,  91, 255, 255, 132, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255,  18,  16,   6,   4,  20,  22, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255,  83,  71,  69,  81,  79, 114, 108, 100, 102, 112, 110, 255, 255,
+  255, 255, 255, 255,  73,  75, 255,  77, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255,  37,  43,  41,  61,  39, 255, 140, 136, 138, 120, 122, 255, 255,
+  255, 255,  57,  35,  45,  47,  59,  89, 255, 142, 134, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255,   0,  28,  26,  94, 255, 255, 255,  32, 255,  30, 255,
+  255, 255,  12,  14,   8,   2,  10,  24, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255,  85,  65,  67,  63,  87,  96, 106,  98, 104, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 103,  97, 105,  95,  88,  64,  68,  66,  86, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255,  25,  11,   3,   9,  15,  13, 255, 255,
+  255, 255, 143,  31, 255, 255, 255,  93,  27,  29,   1, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 133, 141, 255,  90,  60,  48,  46,  36,  58, 255, 255,
+  255, 255, 121, 119, 137, 135, 139, 255,  40,  62,  42,  44,  38, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255,  76,  74, 255, 255, 255, 255,
+  255, 255, 109, 111, 101,  99, 107, 113,  78,  80,  70,  72,  84,  82, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255,  23,  21,   5,   7,  17,  19, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 131, 255, 255,  92,  54,  50,  52,  34,  56, 255, 255,
+  255, 255, 123, 117, 127, 129, 125, 115, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+  255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255
 };
 
 
@@ -55018,7 +55131,8 @@ int offset_snum=7;
 
  
 int start_angk_cal=0;
-int anglek_phase=0;
+int anglek_phase=101;
+int anglek_iter=0;
 int anglek_cur=0;
 float anglek_minmax[4];
 float anglek_data[4];
@@ -55157,6 +55271,7 @@ double Fast2ArcTan(double x) {
 float buf_x5[128];
 
 int buf_x5_num;
+
 
 
 
@@ -55524,6 +55639,9 @@ float calc (float *mas, int centor_int);
 
 
 void init_vars();
+void angtab_cal(void);
+void offset_cal(void);
+void angk_cal(void);
 static void Backlight_StartFromSI(void);
 static void Backlight_StartTimer(uint16_t ticks);
 static void DelayTim4Ticks(uint16_t ticks);
@@ -55630,32 +55748,31 @@ void copy_data(void) {
  
  
 void find_startpixel(void) {
-        
   
-  max1_cor=0;
-  max2_cor=0;
-  for (unsigned char i=6;i<57;i++) {               
+ 
+  int32_t pref[129];
+  pref[0] = 0;
+  for (int k = 0; k < 128; k++) {
+    pref[k + 1] = pref[k] + (int32_t)buf_x1[k];
+  }
+  const int32_t base_score = 30 * (int32_t)max_data - 6 * (int32_t)min_data;
+  scor[6 - 1] = 0;
+  scor[57] = 0;
 
-    scor[i]=(max_data-buf_x1[i+0])+(max_data-buf_x1[i+1])+(max_data-buf_x1[i+2])+(max_data-buf_x1[i+3])
-      +(max_data-buf_x1[i+4])+(max_data-buf_x1[i+5])+(max_data-buf_x1[i+6])+(max_data-buf_x1[i+7])
-        +(max_data-buf_x1[i+8])+(max_data-buf_x1[i+9])
-          +(buf_x1[i+10]-min_data)+(buf_x1[i+11]-min_data)+(buf_x1[i+12]-min_data)
-            +(max_data-buf_x1[i+14])+(max_data-buf_x1[i+15])
-              +(max_data-buf_x1[i+16])+(max_data-buf_x1[i+17])+(max_data-buf_x1[i+18])
-
-    +(max_data-buf_x1[i+51])+(max_data-buf_x1[i+52])+(max_data-buf_x1[i+53])+(max_data-buf_x1[i+54])
-      +(max_data-buf_x1[i+55])+(max_data-buf_x1[i+56])+(max_data-buf_x1[i+57])+(max_data-buf_x1[i+58])
-        +(max_data-buf_x1[i+59])+(max_data-buf_x1[i+60])
-          +(buf_x1[i+61]-min_data)+(buf_x1[i+62]-min_data)+(buf_x1[i+63]-min_data)
-            +(max_data-buf_x1[i+65])+(max_data-buf_x1[i+66])
-              +(max_data-buf_x1[i+67])+(max_data-buf_x1[i+68])+(max_data-buf_x1[i+69]); 
-
-    if(scor[i]>max1_cor) {                                                      
-      max1_cor=scor[i];
-      max2_pos=max1_pos;
-      max1_pos=i;
-    }  
-          
+  max1_cor = 0;
+  max2_cor = 0;
+  max1_pos = 6;
+  max2_pos = 6;
+  for (unsigned char i = 6; i < 57; i++) {
+    const int32_t t1 = pref[i] - 2 * pref[i + 10] + pref[i + 13] + pref[i + 14] - pref[i + 19];
+    const int32_t t2 = pref[i + 51] - 2 * pref[i + 61] + pref[i + 64] + pref[i + 65] - pref[i + 70];
+    const int32_t s = base_score + t1 + t2;
+    scor[i] = s;
+    if (s > max1_cor) {
+      max1_cor = s;
+      max2_pos = max1_pos;
+      max1_pos = i;
+    }
   }
 
   scor_max1=(scor[max1_pos]-scor[max1_pos-1])+(scor[max1_pos]-scor[max1_pos+1])+scor[max1_pos];
@@ -55705,24 +55822,28 @@ void find_startpixel(void) {
 
  
  
-    float mes_piks(uint16_t star_pixel){                                                      
-      short unsigned amax_X0=0;
-      float mes_pix = 0;
-                    
-      for (unsigned char i=star_pixel+4;i<star_pixel+16;i++) {
-           
-        buf_x2[i]=buf_x1[i]*buf_k[i];
-      
-        uint16_t temp_X1 = (int) buf_x2[i];
-        if ( temp_X1 > amax_X0 ) { 
-          amax_X0=temp_X1;
-          max_X0 = i;
-        }    
-      }
-        
-      mes_pix = BR4_C (buf_x2, max_X0);
+    float mes_piks(uint16_t star_pixel) {
+      unsigned short amax_X0 = 0;
+      float mes_pix = 0.0f;
+      max_X0 = (unsigned char)(star_pixel + 10U);
 
-      return (mes_pix);
+      for (unsigned char i = (unsigned char)(star_pixel + 1U);
+           i < (unsigned char)(star_pixel + 19U); i++) {
+        buf_x2[i] = (float)buf_x1[i] * buf_k[i];
+      }
+
+      for (unsigned char i = (unsigned char)(star_pixel + 4U);
+           i < (unsigned char)(star_pixel + 16U); i++) {
+        uint16_t temp_X1 = (uint16_t)((int)buf_x2[i]);
+        if (temp_X1 > amax_X0) {
+          amax_X0 = temp_X1;
+          max_X0 = i;
+        }
+      }
+
+      mes_pix = BR4_C(buf_x2, max_X0);
+
+      return mes_pix;
     }
 
 
@@ -55747,13 +55868,12 @@ void find_startpixel(void) {
  
  
 unsigned short get_pix(float pos) {
-  if((pos<0)||(pos>127)) return -1;
-  int left=(int)floor(pos);
-  int right=(int)ceil(pos);
-  float k=pos-left;
-  int dif=(int)((buf_x1[right]-buf_x1[left])*k);
-  return (dif+buf_x1[left]);
-
+  if ((pos < 0.0f) || (pos > 127.0f)) return (unsigned short)-1;
+  int left = (int)pos;
+  int right = (left < 127) ? (left + 1) : 127;
+  float k = pos - (float)left;
+  int dif = (int)((float)((int)buf_x1[right] - (int)buf_x1[left]) * k);
+  return (unsigned short)(dif + (int)buf_x1[left]);
 }
 
 
@@ -55853,54 +55973,28 @@ void find_datablock(void) {
  
  
 void calc_sector(void) {
-
-
         
-        
-
-
 
 
  
-        int tmp1;
-        int tmin=1000000;                                                       
-        int min=0;
-        for (int i=0;i<9;i++) {
-          tmp1=pix[i][1]-pix[i][0];
-          if (tmp1<0) tmp1=-tmp1;
-          if(tmp1<tmin) {
-            tmin=tmp1;
-            min=i;
-          }
-        }
-        badbit_pos=min;
-        badbit_value=tmin;
+        int tmin = 1000000;
+        int min_idx = 0;
+        uint16_t cur_data = 0U;
 
-
-        
-        uint16_t cur_data=0;
-        uint16_t bit_pos=0x100;
-        for (int i=0;i<9;i++) {
-          if (pix[i][1]>pix[i][0]) {
-            cur_data=cur_data|bit_pos;
-          }
-          bit_pos=bit_pos>>1;
-        }
-        data_byte=cur_data;
-
-
-        
-        uint8_t tmp_pos2=255;
-        for (unsigned char j=0;j<144;j++) {
-          if (bit_tab[j]==data_byte) {
-            tmp_pos2=j;
-            break;
+        for (int i = 0; i < 9; i++) {
+          int diff = (int)pix[i][1] - (int)pix[i][0];
+          cur_data = (uint16_t)((cur_data << 1) | (uint16_t)(diff > 0));
+          int abs_diff = (diff < 0) ? -diff : diff;
+          if (abs_diff < tmin) {
+            tmin = abs_diff;
+            min_idx = i;
           }
         }
 
-        rem_sec=tmp_pos2;
-
-      
+        badbit_pos = min_idx;
+        badbit_value = tmin;
+        data_byte = cur_data;
+        rem_sec = sector_by_code[cur_data & 0x1FFU];
 }
 
 
@@ -56023,36 +56117,15 @@ void startpixel_err_corr(void) {
  
  
 void bit_err_corr(void) {
-
-            if(badbit_value<1000) {                                             
-
-              
-
-
-
-
-
-
-
+            
 
  
-              if ( (badbit_pos>=0) && (badbit_pos<9) ) {
-                data_byte = data_byte ^ (uint16_t)(0x100 >> badbit_pos);
+            if (badbit_value < 1000) {
+              if ((badbit_pos >= 0) && (badbit_pos < 9)) {
+                data_byte = (uint16_t)(data_byte ^ (uint16_t)(0x100U >> (uint32_t)badbit_pos));
               }
-
-              uint8_t tmp_pos=255;
-              for (unsigned char j=0;j<144;j++) {
-                if (bit_tab[j]==data_byte) {
-                  tmp_pos=j;
-                  break;
-                }
-              }
-
-              rem_sec=tmp_pos;
-
-          }
-
-
+              rem_sec = sector_by_code[data_byte & 0x1FFU];
+            }
 }
 
 
@@ -56088,78 +56161,64 @@ void bit_err_corr(void) {
 
  
  
-void err_corr(void) {
 
-        
-        if ( (sec_cnt<50) ) {                                                   
 
-          sec_cnt++;
-          
-          cursec=rem_sec;                                                       
-          if(rem_sec==0) {                                                      
-            lsec=144-1;
-          }
-          else {
-              lsec=rem_sec-1;
-          }
-          if(rem_sec==144-1) {                                         
-            rsec=0;
-          }
-          else {
-            rsec=rem_sec+1;
-          }  
-          errorflag=0;                                                          
+ 
+static uint8_t sector_history_valid = 0U;
 
-      
-        }
-        else {                                                                  
+void err_corr(void)
+{
+    const uint8_t raw_sec = rem_sec;
+    uint8_t accepted = 0U;
+
+    errorflag = 1U;
+
      
-          if( (rem_sec==255) || ((rem_sec!=cursec)&&(rem_sec!=lsec)&&(rem_sec!=rsec)) ) { 
+    if (raw_sec < 144) {
+        if ((!sector_history_valid) ||
+            (raw_sec == cursec) ||
+            (raw_sec == lsec) ||
+            (raw_sec == rsec)) {
+            accepted = 1U;
+        }
+    }
 
-            serrcnt2++;                                                         
-            bit_err_corr();                                                     
+    if (!accepted) {
+        serrcnt2++;
 
-            if( (rem_sec==255) || ((rem_sec!=cursec)&&(rem_sec!=lsec)&&(rem_sec!=rsec)) ) { 
-              serrcnt1++;                                                       
-              errorflag=1;                                                      
-
-              cursec=rem_sec;                                                   
-              if(rem_sec==0) {                                                  
-                lsec=144-1;
-              }
-              else {
-                  lsec=rem_sec-1;
-              }
-              if(rem_sec==144-1) {                                     
-                rsec=0;
-              }
-              else {
-                rsec=rem_sec+1;
-              }
-
+        
+ 
+        if (sector_history_valid) {
+            const uint16_t saved_code = data_byte;
+            bit_err_corr();
+            if ((rem_sec == cursec) || (rem_sec == lsec) || (rem_sec == rsec)) {
+                accepted = 1U;
+            } else {
+                data_byte = saved_code;
+                rem_sec = raw_sec;
             }
-            else {
-              save_sector();                                                    
-            }
+        }
+    }
 
-          }
-          else {                                                                
-            save_sector();                                                      
-          }
+    if (!accepted) {
+        serrcnt1++;
+        sector_history_valid = 0U;
 
-         }
         
-        sector=cursec;
-        lsector=lsec;
-        rsector=rsec;
-        
-        
+ 
+        return;
+    }
+
+     
+    save_sector();
+
+    sector  = cursec;
+    lsector = lsec;
+    rsector = rsec;
+  
+    sector_history_valid = 1U;
+    errorflag = 0U;
 }
-
-
-
-
-
 
 
 
@@ -56325,17 +56384,17 @@ float BR4_C (float *mas, int centor_int)
   if (g0==g1) 
     g0++;
  
- 
-  delta+=100*g0/(g0-g1)+100; 
   
+  const float frac = g0 / (g0 - g1);
+  delta += (int)(100.0f * frac) + 100;
 
+  if (delta >= 1 && delta < 200) {
+    ampl = k_comp * arm_sin_f32((float)(delta - 100) * (((float)3.141592653589793) / 50.0f) + phase);
+  } else {
+    ampl = 0.0f;
+  }
 
-  if(delta>=1 && delta<200) ampl=k_comp*arm_sin_f32((delta-100)*((float)3.141592653589793)/50.+phase);
-  else ampl=0;
-  
-  
-
-  return centor_int+g0/(g0-g1) - ampl;
+  return (float)centor_int + frac - ampl;
 }
 
 
@@ -56402,33 +56461,25 @@ void find_avg() {
     avg_buf[0]=cur_ang_X;
 
     
-    if ((cur_ang_X>0.5)&&(cur_ang_X<359.5)) {
-    
-      rev_en=1;
-      
-      sum_avg_buf = 0;
-      for (int i=0;i<30;i++) {
-        sum_avg_buf+=avg_buf[i];
-      }
-      avg_ang_X=sum_avg_buf/30;
-    
-      avg_cur=avg_ang_X-avg_buf[15];
-
-
-        if ( (cur_min>avg_cur)&&(avg_cur>0)) {
-          cur_min=avg_cur;
-        }
-        
-        if ( (cur_max<avg_cur)&&(avg_cur<0.1)) {
-          cur_max=avg_cur;
-        }
-        
-    
-    
-    
-    
+    float s_buf = 0.0f;
+    for (int i = 0; i < 30; i++) {
+      s_buf += avg_buf[i];
     }
-    else if ((avg_buf[0]<0.5)&&(avg_buf[29]>359.5)&&(rev_en==1) ) {
+    sum_avg_buf = s_buf;
+
+    if ((cur_ang_X > 0.5f) && (cur_ang_X < 359.5f)) {
+      rev_en = 1;
+      avg_ang_X = s_buf * (1.0f / 30.0f);
+      avg_cur = avg_ang_X - avg_buf[15];
+
+      if ((cur_min > avg_cur) && (avg_cur > 0.0f)) {
+        cur_min = avg_cur;
+      }
+      if ((cur_max < avg_cur) && (avg_cur < 0.1f)) {
+        cur_max = avg_cur;
+      }
+    }
+    else if ((avg_buf[0] < 0.5f) && (avg_buf[29] > 359.5f) && (rev_en == 1)) {
       
       rev_en=0;
       
@@ -56471,7 +56522,7 @@ void find_avg() {
     }
     
 
-    else if ((avg_buf[29]<0.5)&&(avg_buf[0]>359.5)&&(rev_en==1) ) {
+    else if ((avg_buf[29] < 0.5f) && (avg_buf[0] > 359.5f) && (rev_en == 1)) {
       
       rev_en=0;
       
@@ -56573,7 +56624,7 @@ void find_avg() {
 
  
  
-void angtab_cal(){
+void angtab_cal(void) {
 
   uint16_t crc16;
 
@@ -56618,7 +56669,7 @@ void angtab_cal(){
 
 
  
-    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-25) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+25)))) )  ) {
+    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-26) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+26)))) )  ) {
 
       old_sector=rsector;                                                       
       cal_sector=cur_sector;
@@ -56682,7 +56733,7 @@ void angtab_cal(){
 
   else if (auto_cal==2) {
 
-    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-25) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+25)))) )  ) {
+    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-26) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+26)))) )  ) {
 
       old_sector=lsector;  
       cal_sector=cur_sector;
@@ -56810,247 +56861,143 @@ void angtab_cal(){
 
  
  
-void offset_cal() {    
+void offset_cal(void) {
 
   uint16_t crc16;
-    
-  if (start_offset_cal>0) {
-      
-   switch (offset_phase)  {
-    
-    case 0: 
-      
-      offset=offset_cur;
-    
-      offset_phase=1;
-    
+  const int left_limit = (offset_start > offset_snum) ? (offset_start - offset_snum) : 0;
+  const int right_limit = (offset_end + offset_snum < 128) ? (offset_end + offset_snum) : 127;
+
+  if (start_offset_cal > 0) {
+
+    switch (offset_phase) {
+
+    case 0:
+      offset = (float)offset_cur;
+      offset_phase = 1;
       break;
-    
-      
-    case 1: 
-      
-      if (avg_minmax_num>offset_avg_num) {
 
-
-        if ((offset_cur>=offset_start)&&(offset_cur<=offset_end)){
-          
-          offset_min[offset_cur]=avg_min;
-          offset_max[offset_cur]=avg_max;
-          offset_minmax[offset_cur]=min_max;
-        
+    case 1:
+      if (avg_minmax_num > offset_avg_num) {
+        if ((offset_cur >= offset_start) && (offset_cur <= offset_end)) {
+          offset_min[offset_cur] = avg_min;
+          offset_max[offset_cur] = avg_max;
+          offset_minmax[offset_cur] = min_max;
         }
-        
-        avg_minmax_num=0;
+        avg_minmax_num = 0;
 
-        
-        
-        if (offset_cur<offset_end) {
-          
+        if (offset_cur < offset_end) {
           offset_cur++;
-          offset_phase=0;
-          
-        }
-        else {
-         
-
-          offset_tmp=1;
-          offset_found=offset_start;
-          for (int i=offset_start;i<=offset_end;i++) {
-            if (offset_minmax[i]<offset_tmp) {
-              offset_found=i;
-              offset_tmp=offset_minmax[i];
+          offset_phase = 0;
+        } else {
+          offset_tmp = 1.0f;
+          offset_found = offset_start;
+          for (int i = offset_start; i <= offset_end; i++) {
+            if (offset_minmax[i] < offset_tmp) {
+              offset_found = i;
+              offset_tmp = offset_minmax[i];
             }
-            
-          }
-          
-
-
-          if (offset_found<64) {
-
-            offset_cur=offset_found;
-            offset_cur--;
-            offset_phase=2;
-
-          }
-
-          else if(offset_found>64) {
-
-            offset_cur=offset_found;
-            offset_cur++;
-            offset_phase=4;
-
-          }
-
-          else {
-
-            offset_phase=100;
-
-
           }
 
           
+
+
+ 
+          if ((offset_found <= offset_start) && (offset_start > left_limit)) {
+            offset_cur = offset_start - 1;
+            offset_phase = 2;
+          } else if ((offset_found >= offset_end) && (offset_end < right_limit)) {
+            offset_cur = offset_end + 1;
+            offset_phase = 4;
+          } else {
+            offset_phase = 100;
+          }
         }
-        
-        
       }
-      
       break;
 
-      
-
-
-    case 2: 
-      
-      offset=offset_cur;
-    
-      offset_phase=3;
-    
+    case 2:
+      offset = (float)offset_cur;
+      offset_phase = 3;
       break;
-
 
     case 3:
+      if (avg_minmax_num > offset_avg_num) {
+        offset_min[offset_cur] = avg_min;
+        offset_max[offset_cur] = avg_max;
+        offset_minmax[offset_cur] = min_max;
+        avg_minmax_num = 0;
 
-     
-      if (avg_minmax_num>offset_avg_num) {
-       
-        offset_min[offset_cur]=avg_min;
-        offset_max[offset_cur]=avg_max;
-        offset_minmax[offset_cur]=min_max;
-        
-        avg_minmax_num=0;
-        
-        if (offset_cur>offset_start-offset_snum) {
-          
+        if (offset_cur > left_limit) {
           offset_cur--;
-          offset_phase=2;
-          
-        }
-        else {
-
-          offset_tmp=1;
-          offset_found=offset_start-offset_snum;
-          for (int i=offset_start-offset_snum;i<=offset_end;i++) {
-            if (offset_minmax[i]<offset_tmp) {
-              offset_found=i;
-              offset_tmp=offset_minmax[i];
+          offset_phase = 2;
+        } else {
+          offset_tmp = 1.0f;
+          offset_found = left_limit;
+          for (int i = left_limit; i <= offset_end; i++) {
+            if (offset_minmax[i] < offset_tmp) {
+              offset_found = i;
+              offset_tmp = offset_minmax[i];
             }
-            
           }
-
-          offset_phase=100;
-
-          
+          offset_phase = 100;
         }
-        
-        
       }
-      
       break;
 
-
-
-    case 4: 
-      
-      offset=offset_cur;
-    
-      offset_phase=5;
-    
+    case 4:
+      offset = (float)offset_cur;
+      offset_phase = 5;
       break;
-
 
     case 5:
+      if (avg_minmax_num > offset_avg_num) {
+        offset_min[offset_cur] = avg_min;
+        offset_max[offset_cur] = avg_max;
+        offset_minmax[offset_cur] = min_max;
+        avg_minmax_num = 0;
 
-      if (avg_minmax_num>offset_avg_num) {
-       
-        offset_min[offset_cur]=avg_min;
-        offset_max[offset_cur]=avg_max;
-        offset_minmax[offset_cur]=min_max;
-        
-        avg_minmax_num=0;
-        
-        if (offset_cur<offset_end+offset_snum) {
-          
+        if (offset_cur < right_limit) {
           offset_cur++;
-          offset_phase=4;
-          
-        }
-        else {
-
-          offset_tmp=1;
-          offset_found=offset_start;
-          for (int i=offset_start;i<=offset_end+offset_snum;i++) {
-            if (offset_minmax[i]<offset_tmp) {
-              offset_found=i;
-              offset_tmp=offset_minmax[i];
+          offset_phase = 4;
+        } else {
+          offset_tmp = 1.0f;
+          offset_found = offset_start;
+          for (int i = offset_start; i <= right_limit; i++) {
+            if (offset_minmax[i] < offset_tmp) {
+              offset_found = i;
+              offset_tmp = offset_minmax[i];
             }
-            
           }
-
-          offset_phase=100;
-
-          
+          offset_phase = 100;
         }
-        
-        
       }
-      
       break;
 
+    case 100:
+      offset = (float)offset_found;                                             
 
-   
+      memcpy(&eeprom_buf[1536], &offset, 4);                           
+      crc16 = 0xFFFFU;                                                          
+      for (int i = 1536; i < 1536 + 4; i++) {
+        crc16 = crc_16_step(eeprom_buf[i], crc16);
+      }
+      eeprom_buf[1540 + 0] = (uint8_t)(crc16 & 0xFFU);
+      eeprom_buf[1540 + 1] = (uint8_t)(crc16 >> 8);
+      i2c3_tx_wp = 0;                                                           
+      LL_GPIO_ResetOutputPin(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0000UL)), 0x00000200U);                             
+      HAL_I2C_Mem_Write_IT(&I2c3Handle, 0xAC, 1536 & 0xFF, (0x00000001U), &eeprom_buf[1536], 6);
 
+      encoder_state = 0x60;                                                     
+      offset_phase = 101;
+      start_offset_cal = 0;                                                     
+      break;
 
-
-    case 100: 
-        offset=offset_found;                                                    
-
-        memcpy(&eeprom_buf[1536],&offset,4);                           
-        crc16=0xFFFF;                                                           
-        for (int i=1536;i<1536+4;i++) {
-          crc16 = crc_16_step (eeprom_buf[i],crc16);
-        }
-        eeprom_buf[1540+0]=crc16&0xff;
-        eeprom_buf[1540+1]=crc16>>8;
-        i2c3_tx_wp=0;                                                           
-        LL_GPIO_ResetOutputPin(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0000UL)), 0x00000200U);                           
-        HAL_I2C_Mem_Write_IT(&I2c3Handle, 0xAC, 1536&0xFF, (0x00000001U), &eeprom_buf[1536], 6); 
-
-        encoder_state=0x60;                                                     
-        offset_phase=101;
-
-        start_offset_cal=0;                                                     
-
-        break;
-
-
-    case 101: 
-        break;
-   
-    
-
-
-
-    
-
-     default:
-        break;
+    case 101:
+    default:
+      break;
+    }
   }
-    
-    
-    
-}  
-    
-    
-}    
-    
-    
-
-
-
-
-
-
-
+}
 
 
 
@@ -57082,404 +57029,279 @@ void offset_cal() {
 
  
  
-void angk_cal() {    
+void angk_cal(void) {
 
   uint16_t crc16;
-    
-  if (start_angk_cal>0) {
-      
-   switch (anglek_phase)  {
 
+  if (start_angk_cal > 0) {
 
-    case 0: 
+    switch (anglek_phase) {
 
-      for (int i=15;i<120;i++) {
-        buf_k[i]=1;
+    case 0:
+      for (int i = 0; i < 128; i++) {
+        buf_k[i] = 1.0f;
+        buf_x3[i] = 0.0f;
       }
-      avg_minmax_num=0;
-      anglek_phase=1;
-    
+      anglek_iter = 0;
+      avg_minmax_num = 0;
+      anglek_phase = 1;
       break;
 
-
-
-    case 1: 
-      
-      if (avg_minmax_num>offset_avg_num) {
-
-        pix_max=0;
-        pix_min=4095;
-        for (int i=16;i<120;i++) {
-          if (buf_x3[i]>pix_max) {
-            pix_max=buf_x3[i];
-          }
-          if (buf_x3[i]<pix_min) {
-            pix_min=buf_x3[i];
+    case 1:
+      if (avg_minmax_num > offset_avg_num) {
+        pix_max = 0.0f;
+        pix_min = 4095.0f;
+        for (int i = 6; i <= (57 + 69); i++) {
+          if (buf_x3[i] >= 50.0f) {
+            if (buf_x3[i] > pix_max) pix_max = buf_x3[i];
+            if (buf_x3[i] < pix_min) pix_min = buf_x3[i];
           }
         }
-        pix_min_max=pix_max-pix_min;
-
-
-        for (int i=16;i<120;i++) {
-          buf_k[i]=pix_max/buf_x3[i];
+        if (pix_max < 50.0f) {
+          pix_min = pix_max;
         }
+        pix_min_max = pix_max - pix_min;
 
-
-
-
-        pix_min1_val=4096;
-        for (int i=30;i<110;i++) {
-          if (buf_x3[i]<pix_min1_val) {
-            pix_min1_val=buf_x3[i];
-            pix_min1_num=i;
+        for (int i = 6; i <= (57 + 69); i++) {
+          if ((pix_max >= 50.0f) && (buf_x3[i] >= 50.0f)) {
+            float gain = pix_max / buf_x3[i];
+            if (gain < 0.25f) gain = 0.25f;
+            if (gain > 4.00f) gain = 4.00f;
+            buf_k[i] = gain;
+          } else {
+            buf_k[i] = 1.0f;
           }
         }
 
-        pix_min2_val=4096;
-        for (int i=30;i<110;i++) {
-          if ( (buf_x3[i]<pix_min2_val) && (i!=pix_min1_num) ) {
-            pix_min2_val=buf_x3[i];
-            pix_min2_num=i;
+         
+        pix_min1_num = (6 + 4);
+        pix_min1_val = 4096.0f;
+        for (int i = (6 + 4); i <= ((57 - 1) + 51 + 15); i++) {
+          if ((buf_x3[i] >= 50.0f) && (buf_x3[i] < pix_min1_val)) {
+            pix_min1_val = buf_x3[i];
+            pix_min1_num = i;
           }
         }
 
-        pix_min3_val=4096;
-        for (int i=30;i<110;i++) {
-          if ( (buf_x3[i]<pix_min3_val) && (i!=pix_min1_num) && (i!=pix_min2_num) ) {
-            pix_min3_val=buf_x3[i];
-            pix_min3_num=i;
+        pix_min2_num = (6 + 4) + 1;
+        pix_min2_val = 4096.0f;
+        for (int i = (6 + 4); i <= ((57 - 1) + 51 + 15); i++) {
+          if ((buf_x3[i] >= 50.0f) && (buf_x3[i] < pix_min2_val) &&
+              (i != pix_min1_num)) {
+            pix_min2_val = buf_x3[i];
+            pix_min2_num = i;
           }
         }
 
-        pix_min4_val=4096;
-        for (int i=30;i<110;i++) {
-          if ( (buf_x3[i]<pix_min4_val) && (i!=pix_min1_num) && (i!=pix_min2_num) && (i!=pix_min3_num) ) {
-            pix_min4_val=buf_x3[i];
-            pix_min4_num=i;
+        pix_min3_num = (6 + 4) + 2;
+        pix_min3_val = 4096.0f;
+        for (int i = (6 + 4); i <= ((57 - 1) + 51 + 15); i++) {
+          if ((buf_x3[i] >= 50.0f) && (buf_x3[i] < pix_min3_val) &&
+              (i != pix_min1_num) && (i != pix_min2_num)) {
+            pix_min3_val = buf_x3[i];
+            pix_min3_num = i;
           }
         }
 
-
-
-        avg_minmax_num=0;
-        anglek_phase=2;
-           
-    
-      }
-      
-      break;
-
-
-
-
-    case 2: 
-
-      if (avg_minmax_num>offset_avg_num) {
-
-
-        pix_max=0;
-        pix_min=4095;
-        for (int i=16;i<120;i++) {
-          if (buf_x3[i]>pix_max) {
-            pix_max=buf_x3[i];
-          }
-          if (buf_x3[i]<pix_min) {
-            pix_min=buf_x3[i];
+        pix_min4_num = (6 + 4) + 3;
+        pix_min4_val = 4096.0f;
+        for (int i = (6 + 4); i <= ((57 - 1) + 51 + 15); i++) {
+          if ((buf_x3[i] >= 50.0f) && (buf_x3[i] < pix_min4_val) &&
+              (i != pix_min1_num) && (i != pix_min2_num) && (i != pix_min3_num)) {
+            pix_min4_val = buf_x3[i];
+            pix_min4_num = i;
           }
         }
-        pix_min_max=pix_max-pix_min;
 
-
-        if (pix_min_max<100) {
-          anglek_phase=3;
-        }
-        else {
-
-          for (int i=16;i<120;i++) {
-            buf_k[i]=buf_k[i]*(pix_max/buf_x3[i]);
-          }
-
-          avg_minmax_num=0;
-          anglek_phase=2;
-        }
-
-
-      }
-
-      
-
-      break;
-
-
-
-    case 3: 
-      
-      avg_minmax_num=0;
-      for (int i=anglek_start;i<=anglek_end;i++) {
-        anglek_minmax[i]=1;
-      }
-      anglek_cur=anglek_start;
-
-      buf_k_num=pix_min1_num;
-
-      anglek_data[anglek_start]=buf_k[buf_k_num];
-      for (int i=anglek_start+1;i<anglek_end+1;i++) {
-        anglek_data[i]=anglek_data[i-1]*1.04;
-      }
-
-      buf_k[buf_k_num]=anglek_data[anglek_cur];
-
-      anglek_phase++;
-
-      break;
-   
-
-
-    case 4: 
-      
-      if (avg_minmax_num>offset_avg_num) {
         
-
-        if ((anglek_cur>=anglek_start)&&(anglek_cur<=anglek_end)){
-          
-          anglek_minmax[anglek_cur]=min_max;
-          
-        }
-      
-        avg_minmax_num=0;
-
-        if (anglek_cur<anglek_end) {
-          
-          anglek_cur++;
-
-          buf_k[buf_k_num]=anglek_data[anglek_cur];
-
-          
-        }
-        else {
-
-          anglek_tmp=1;
-          anglek_found=anglek_start;
-          for (int i=anglek_start;i<=anglek_end;i++) {
-            if (anglek_minmax[i]<anglek_tmp) {
-              anglek_found=i;
-              anglek_tmp=anglek_minmax[i];
-            }
-            
-          }
-     
-          buf_k[buf_k_num]=anglek_data[anglek_found];                             
-      
-          anglek_phase++;
-          
-        }
-
-
+ 
+        memset(buf_x3, 0, sizeof(buf_x3));
+        anglek_iter = 0;
+        avg_minmax_num = 0;
+        anglek_phase = 2;
       }
-      
       break;
 
+    case 2:
+      if (avg_minmax_num > offset_avg_num) {
+        pix_max = 0.0f;
+        pix_min = 4095.0f;
+        for (int i = 6; i <= (57 + 69); i++) {
+          if (buf_x3[i] >= 50.0f) {
+            if (buf_x3[i] > pix_max) pix_max = buf_x3[i];
+            if (buf_x3[i] < pix_min) pix_min = buf_x3[i];
+          }
+        }
+        if (pix_max < 50.0f) {
+          pix_min = pix_max;
+        }
+        pix_min_max = pix_max - pix_min;
 
-
-
-
-
-    case 5: 
-      
-      avg_minmax_num=0;
-      for (int i=anglek_start;i<=anglek_end;i++) {
-        anglek_minmax[i]=1;
+        if ((pix_min_max < 100.0f) || (++anglek_iter >= 5)) {
+          anglek_phase = 3;
+        } else {
+          for (int i = 6; i <= (57 + 69); i++) {
+            if ((pix_max >= 50.0f) && (buf_x3[i] >= 50.0f)) {
+              float gain = buf_k[i] * (pix_max / buf_x3[i]);
+              if (gain < 0.25f) gain = 0.25f;
+              if (gain > 4.00f) gain = 4.00f;
+              buf_k[i] = gain;
+            }
+          }
+          memset(buf_x3, 0, sizeof(buf_x3));
+          avg_minmax_num = 0;
+          anglek_phase = 2;
+        }
       }
-      anglek_cur=anglek_start;
+      break;
 
-      buf_k_num=pix_min2_num;
-
-      anglek_data[anglek_start]=buf_k[buf_k_num];
-      for (int i=anglek_start+1;i<anglek_end+1;i++) {
-        anglek_data[i]=anglek_data[i-1]*1.04;
+    case 3:
+      avg_minmax_num = 0;
+      for (int i = anglek_start; i <= anglek_end; i++) {
+        anglek_minmax[i] = 1.0f;
       }
-
-      buf_k[buf_k_num]=anglek_data[anglek_cur];
-
+      anglek_cur = anglek_start;
+      buf_k_num = (int16_t)pix_min1_num;
+      anglek_data[anglek_start] = buf_k[buf_k_num];
+      for (int i = anglek_start + 1; i <= anglek_end; i++) {
+        float cand = anglek_data[i - 1] * 1.04f;
+        anglek_data[i] = (cand > 4.00f) ? 4.00f : cand;
+      }
+      buf_k[buf_k_num] = anglek_data[anglek_cur];
       anglek_phase++;
-
       break;
 
-
-    case 6: 
-      
-      if (avg_minmax_num>offset_avg_num) {
-        
-
-        if ((anglek_cur>=anglek_start)&&(anglek_cur<=anglek_end)){
-          
-          anglek_minmax[anglek_cur]=min_max;
-          
+    case 4:
+      if (avg_minmax_num > offset_avg_num) {
+        if ((anglek_cur >= anglek_start) && (anglek_cur <= anglek_end)) {
+          anglek_minmax[anglek_cur] = min_max;
         }
-      
-        avg_minmax_num=0;
+        avg_minmax_num = 0;
 
-        if (anglek_cur<anglek_end) {
-          
+        if (anglek_cur < anglek_end) {
           anglek_cur++;
-
-          buf_k[buf_k_num]=anglek_data[anglek_cur];
-
-          
-        }
-        else {
-
-          anglek_tmp=1;
-          anglek_found=anglek_start;
-          for (int i=anglek_start;i<=anglek_end;i++) {
-            if (anglek_minmax[i]<anglek_tmp) {
-              anglek_found=i;
-              anglek_tmp=anglek_minmax[i];
+          buf_k[buf_k_num] = anglek_data[anglek_cur];
+        } else {
+          anglek_tmp = 1.0f;
+          anglek_found = anglek_start;
+          for (int i = anglek_start; i <= anglek_end; i++) {
+            if (anglek_minmax[i] < anglek_tmp) {
+              anglek_found = i;
+              anglek_tmp = anglek_minmax[i];
             }
-            
           }
-     
-          buf_k[buf_k_num]=anglek_data[anglek_found];                             
-      
+          buf_k[buf_k_num] = anglek_data[anglek_found];
           anglek_phase++;
-
-
-          
         }
-
-
       }
-      
       break;
 
-
-
-
-
-
-
-
-    case 7: 
-      
-      avg_minmax_num=0;
-      for (int i=anglek_start;i<=anglek_end;i++) {
-        anglek_minmax[i]=1;
+    case 5:
+      avg_minmax_num = 0;
+      for (int i = anglek_start; i <= anglek_end; i++) {
+        anglek_minmax[i] = 1.0f;
       }
-      anglek_cur=anglek_start;
-
-      buf_k_num=pix_min3_num;
-
-      anglek_data[anglek_start]=buf_k[buf_k_num];
-      for (int i=anglek_start+1;i<anglek_end+1;i++) {
-        anglek_data[i]=anglek_data[i-1]*1.04;
+      anglek_cur = anglek_start;
+      buf_k_num = (int16_t)pix_min2_num;
+      anglek_data[anglek_start] = buf_k[buf_k_num];
+      for (int i = anglek_start + 1; i <= anglek_end; i++) {
+        float cand = anglek_data[i - 1] * 1.04f;
+        anglek_data[i] = (cand > 4.00f) ? 4.00f : cand;
       }
-
-      buf_k[buf_k_num]=anglek_data[anglek_cur];
-
+      buf_k[buf_k_num] = anglek_data[anglek_cur];
       anglek_phase++;
-
       break;
 
-
-
-    case 8: 
-      
-      if (avg_minmax_num>offset_avg_num) {
-        
-
-        if ((anglek_cur>=anglek_start)&&(anglek_cur<=anglek_end)){
-          
-          anglek_minmax[anglek_cur]=min_max;
-          
+    case 6:
+      if (avg_minmax_num > offset_avg_num) {
+        if ((anglek_cur >= anglek_start) && (anglek_cur <= anglek_end)) {
+          anglek_minmax[anglek_cur] = min_max;
         }
-      
-        avg_minmax_num=0;
+        avg_minmax_num = 0;
 
-        if (anglek_cur<anglek_end) {
-          
+        if (anglek_cur < anglek_end) {
           anglek_cur++;
-
-          buf_k[buf_k_num]=anglek_data[anglek_cur];
-
-          
-        }
-        else {
-
-          anglek_tmp=1;
-          anglek_found=anglek_start;
-          for (int i=anglek_start;i<=anglek_end;i++) {
-            if (anglek_minmax[i]<anglek_tmp) {
-              anglek_found=i;
-              anglek_tmp=anglek_minmax[i];
+          buf_k[buf_k_num] = anglek_data[anglek_cur];
+        } else {
+          anglek_tmp = 1.0f;
+          anglek_found = anglek_start;
+          for (int i = anglek_start; i <= anglek_end; i++) {
+            if (anglek_minmax[i] < anglek_tmp) {
+              anglek_found = i;
+              anglek_tmp = anglek_minmax[i];
             }
-            
           }
-     
-          buf_k[buf_k_num]=anglek_data[anglek_found];                             
-      
+          buf_k[buf_k_num] = anglek_data[anglek_found];
           anglek_phase++;
-          anglek_phase=100;
-
-          
         }
-
-
       }
-      
       break;
 
+    case 7:
+      avg_minmax_num = 0;
+      for (int i = anglek_start; i <= anglek_end; i++) {
+        anglek_minmax[i] = 1.0f;
+      }
+      anglek_cur = anglek_start;
+      buf_k_num = (int16_t)pix_min3_num;
+      anglek_data[anglek_start] = buf_k[buf_k_num];
+      for (int i = anglek_start + 1; i <= anglek_end; i++) {
+        float cand = anglek_data[i - 1] * 1.04f;
+        anglek_data[i] = (cand > 4.00f) ? 4.00f : cand;
+      }
+      buf_k[buf_k_num] = anglek_data[anglek_cur];
+      anglek_phase++;
+      break;
 
-
-    case 100: 
-
-        memcpy(&eeprom_buf[768],&buf_k,512);                           
-        crc16=0xFFFF;                                                           
-        for (int i=768;i<768+512;i++) {
-          crc16 = crc_16_step (eeprom_buf[i],crc16);
+    case 8:
+      if (avg_minmax_num > offset_avg_num) {
+        if ((anglek_cur >= anglek_start) && (anglek_cur <= anglek_end)) {
+          anglek_minmax[anglek_cur] = min_max;
         }
-        eeprom_buf[1280+0]=crc16&0xff;
-        eeprom_buf[1280+1]=crc16>>8;
-        i2c3_tx_wp=0;                                                           
-        LL_GPIO_ResetOutputPin(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0000UL)), 0x00000200U);                           
-        HAL_I2C_Mem_Write_IT(&I2c3Handle, 0xA6, 768&0xFF, (0x00000001U), &eeprom_buf[768], 514); 
+        avg_minmax_num = 0;
 
-        encoder_state=0x80;                                                     
-        backlight_width_en=1;
-        anglek_phase=101;
+        if (anglek_cur < anglek_end) {
+          anglek_cur++;
+          buf_k[buf_k_num] = anglek_data[anglek_cur];
+        } else {
+          anglek_tmp = 1.0f;
+          anglek_found = anglek_start;
+          for (int i = anglek_start; i <= anglek_end; i++) {
+            if (anglek_minmax[i] < anglek_tmp) {
+              anglek_found = i;
+              anglek_tmp = anglek_minmax[i];
+            }
+          }
+          buf_k[buf_k_num] = anglek_data[anglek_found];
+          anglek_phase = 100;
+        }
+      }
+      break;
 
-        start_angk_cal=0;                                                       
+    case 100:
+      memcpy(&eeprom_buf[768], &buf_k, 512);                           
+      crc16 = 0xFFFFU;                                                          
+      for (int i = 768; i < 768 + 512; i++) {
+        crc16 = crc_16_step(eeprom_buf[i], crc16);
+      }
+      eeprom_buf[1280 + 0] = (uint8_t)(crc16 & 0xFFU);
+      eeprom_buf[1280 + 1] = (uint8_t)(crc16 >> 8);
+      i2c3_tx_wp = 0;                                                           
+      LL_GPIO_ResetOutputPin(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0000UL)), 0x00000200U);                             
+      HAL_I2C_Mem_Write_IT(&I2c3Handle, 0xA6, 768 & 0xFF, (0x00000001U), &eeprom_buf[768], 514);
 
-        break;
+      encoder_state = 0x80;                                                     
+      backlight_width_en = 1;
+      anglek_phase = 101;
+      start_angk_cal = 0;                                                       
+      break;
 
-
-    case 101: 
-        break;
-   
-    
-
-     default:
-        break;
+    case 101:
+    default:
+      break;
+    }
   }
-    
-    
-    
-}  
-    
-    
-}    
-    
-
-
-
-
-
-
-
-
-
-
-
-
+}
 
 
 
@@ -57499,31 +57321,41 @@ void angk_cal() {
 
  
  
-void dac_ctrl() {
+void dac_ctrl(void)
+{  
+    if (agc_test_disable) {
+        return;
+    }
+    adc_offset = avg_max_data / 5; 
+     
+    max_level_pix = max_level - adc_offset;
 
-   adc_offset=avg_max_data/5;                                                   
-   max_level_pix = max_level - adc_offset;                                      
-        
-   lasdac_counter++;
-   avg_amaxX_summ += max_data;
-    
-    if(lasdac_counter>=avg_amaxX_num) {      
-      lasdac_counter=0;    
-      avg_max_data = avg_amaxX_summ/avg_amaxX_num;
-      if (avg_max_data < max_level_pix - 200) {
-        if (backlight_width_ticks < 9400) {
-          if (backlight_width_en) backlight_width_ticks++;
-        }
-      }
-      else if (avg_max_data > max_level_pix) {
-        if (backlight_width_ticks > 2) {
-          if (backlight_width_en) backlight_width_ticks--;
-        }
-      }
-      avg_amaxX_summ = 0;
-  }
+    lasdac_counter++;
+    avg_amaxX_summ += max_data;
 
-  
+    if (lasdac_counter < avg_amaxX_num) {
+        return;
+    }
+
+    avg_max_data = avg_amaxX_summ / lasdac_counter;
+
+    lasdac_counter = 0U;
+    avg_amaxX_summ = 0U;
+
+    if (!backlight_width_en) {
+        return;
+    }
+
+    if (avg_max_data < 2000U) {
+        if (backlight_width_ticks < 2000U) {
+            backlight_width_ticks++;
+        }
+    }
+    else if (avg_max_data > 2400U) {
+        if (backlight_width_ticks > 500U) {
+            backlight_width_ticks--;
+        }
+    }
 }
 
 
@@ -57570,6 +57402,7 @@ static void DelayTim4Ticks(uint16_t ticks)
   LL_TIM_EnableCounter(((TIM_TypeDef *) (0x40000000UL + 0x0800UL)));
 
   while (LL_TIM_IsActiveFlag_UPDATE(((TIM_TypeDef *) (0x40000000UL + 0x0800UL))) == 0) {
+    modbus_poll_rx_cyccnt();
   }
 
   LL_TIM_DisableCounter(((TIM_TypeDef *) (0x40000000UL + 0x0800UL)));
@@ -57740,6 +57573,7 @@ int main(void)
 
   
   SystemClock_Config();
+  HAL_NVIC_SetPriority(SysTick_IRQn, 4, 0);
   HAL_ResumeTick();
     
   
@@ -57759,15 +57593,17 @@ int main(void)
 
   
  
-  if (eMBInit(MB_RTU, 1U, 1, 115200U, MB_PAR_EVEN, 1) != MB_ENOERR ||
+  if (eMBInit(MB_RTU, 1U, 1, 230400U, MB_PAR_EVEN, 1) != MB_ENOERR ||
       eMBEnable() != MB_ENOERR) Error_Handler();
 
-  (*((volatile uint32_t*)0xE000EDFC)) |= (1UL<<24);                                                      
+  do { (*((volatile uint32_t*)0xE000EDFC)) |= (1UL<<24); if (((*((volatile uint32_t*)0xE0001FB4)) & 0x03UL) == 0x03UL) { (*((volatile uint32_t*)0xE0001FB0)) = 0xC5ACCE55UL; } } while (0);                                                      
   (*((volatile uint32_t*)0xE0001000)) |= (1UL<<0);
 
   __iar_builtin_enable_interrupt();                                                               
   cycles_max=0;
-
+  
+  agc_test_disable = 1U;
+  backlight_width_ticks = 1500;
   
   while (1)
   {
@@ -57775,9 +57611,12 @@ int main(void)
     
 
  
-    if (adc_rdy == 1) {                                                         
-
+    if (adc_rdy == 1U) {                                                         
+      const uint32_t proc_start_cyccnt = (*((volatile uint32_t*)0xE0001004));
+      const uint32_t frame_exp_cyccnt = buf_x0_exp_cyccnt;
       copy_data();                                                              
+      __iar_builtin_DMB();
+      adc_rdy = 0U;
 
       find_startpixel();                                                        
 
@@ -57793,17 +57632,21 @@ int main(void)
 
       
  
-      if (errorflag==0) {
+      if (errorflag == 0U) {
 
         calc_ang();                                                             
-
+        if (!(cur_ang_X >= 0.0f && cur_ang_X < 360.0f)) {
+            errorflag = 1U;
+            sector_history_valid = 0U;
+        }
+      }
+      if (errorflag == 0U){
         find_avg();                                                             
 
-        offset_cal();                                                           
-
-        angk_cal();                                                             
         
-        angtab_cal();                                                           
+
+ 
+        encoder_calibration_step();
 
         cur_ang_E=cur_ang_X;
 
@@ -57812,19 +57655,18 @@ int main(void)
 
       
  
-      snapshot_publish(cur_ang_E, (uint16_t)sector, errorflag,
-                       encoder_state, HAL_GetTick());
+      snapshot_publish_timed(cur_ang_E, (uint16_t)sector, errorflag,
+                             encoder_state, frame_exp_cyccnt);
       dac_ctrl();                                                               
 
       SCB_InvalidateDCache_by_Addr((uint32_t *)aADCxConvertedData,((2+31)/32)*32);
-      Vsense=(aADCxConvertedData[0]*3.3f)/4095.0f;                              
-      Temperature=((Vsense-V25)*1000/Avg_Slope)+25.0f;
+      Vsense = (aADCxConvertedData[0] * 3.3f) / 4095.0f;
+      Temperature = ((Vsense - V25) * 1000.0f / Avg_Slope) + 25.0f;
 
-      cycles = (*((volatile uint32_t*)0xE0001004));                                          
-      (*((volatile uint32_t*)0xE0001000)) &= ~(1UL<<0);                                               
-      if (cycles>cycles_max) cycles_max=cycles;                                 
-
-      adc_rdy=0;                                                                
+      
+ 
+      cycles = (*((volatile uint32_t*)0xE0001004)) - proc_start_cyccnt;
+      if (cycles > cycles_max) cycles_max = cycles;
 
     }
 
@@ -57832,8 +57674,21 @@ int main(void)
 
 
  
-    if (eMBPoll() != MB_ENOERR) Error_Handler();
+        
 
+
+
+ 
+    for (unsigned mb_step = 0; mb_step < 2U; ++mb_step) {
+        eMBErrorCode mb_status = eMBPoll();
+
+        
+
+
+ 
+        if (mb_status != MB_ENOERR && mb_status != MB_EIO)
+            Error_Handler();
+    }
   }
 
 }
@@ -58378,19 +58233,23 @@ void DMA2_Stream3_IRQHandler(void)
    
   if(LL_DMA_IsActiveFlag_TC3(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6400UL))) == 1)
   {
+    
+
+
+
+ 
+    __iar_builtin_disable_interrupt();
+    modbus_poll_rx_cyccnt();
     LL_DMA_ClearFlag_TC3(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6400UL)));
 
-    (*((volatile uint32_t*)0xE0001004)) = 0;                                                   
-    (*((volatile uint32_t*)0xE0001000)) |= (1UL<<0);                                                  
-
-    __iar_builtin_disable_interrupt ();
-
+    if (backlight_timer_state != 0) {
+        backlight_overlap_count++;
+    }
     SCB_InvalidateDCache_by_Addr((uint32_t *)ADC_VAL,((132*2+31)/32)*32);
     SCB_InvalidateDCache_by_Addr((uint32_t *)ADC_VAL2,((132*2+31)/32)*32);
 
     while (!LL_GPIO_IsInputPinSet(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0800UL)), 0x00000040U)) {
     }
-  
     while (LL_GPIO_IsInputPinSet(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0800UL)), 0x00000040U)) {
     }
 
@@ -58398,6 +58257,7 @@ void DMA2_Stream3_IRQHandler(void)
     DelayTim4Ticks((uint16_t)(108000000UL / 1000000UL * 20UL));
 
     LL_GPIO_SetOutputPin(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0800UL)), 0x00000080U);
+    const uint32_t si_cyccnt = (*((volatile uint32_t*)0xE0001004));
     Backlight_StartFromSI();
     LL_TIM_EnableCounter(((TIM_TypeDef *) (0x40000000UL + 0x0400UL)));
 
@@ -58405,22 +58265,35 @@ void DMA2_Stream3_IRQHandler(void)
     }
 
     LL_GPIO_ResetOutputPin(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0800UL)), 0x00000080U);
+    modbus_poll_rx_cyccnt();
 
     
-    if (LL_DMA_GetCurrentTargetMem(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6400UL)), 0x00000003U)==0x00000000U) {
-      adc_addr=ADC_VAL+2;
-    }
-    else {
-      adc_addr=ADC_VAL2+2;
-    }
-    if (adc_rdy == 0) {
-      memcpy(buf_x0,adc_addr,256);                                                
-      adc_rdy=1;
-    }
+ 
+    const uint32_t new_exp_cyccnt = (backlight_width_ticks != 0U)
+        ? (si_cyccnt + 2U * (uint32_t)backlight_delay_ticks + (uint32_t)backlight_width_ticks)
+        : si_cyccnt;
 
-   __iar_builtin_enable_interrupt (); 
+    
+ 
+    const uint32_t completed_exp_cyccnt = exp_cyccnt_pipe[1];
+    exp_cyccnt_pipe[1] = exp_cyccnt_pipe[0];
+    exp_cyccnt_pipe[0] = new_exp_cyccnt;
 
-
+    if (LL_DMA_GetCurrentTargetMem(((DMA_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x6400UL)), 0x00000003U) == 0x00000000U) {
+        adc_addr = ADC_VAL2 + 2;
+    } else {
+        adc_addr = ADC_VAL + 2;
+    }
+    if (adc_rdy == 0U) {
+      memcpy(buf_x0, adc_addr, 256);
+      buf_x0_exp_cyccnt = completed_exp_cyccnt;
+      __iar_builtin_DMB();
+      adc_rdy = 1U;
+    } else {
+      adc_dropped_frames++;
+    }
+    modbus_poll_rx_cyccnt();
+    __iar_builtin_enable_interrupt();
   }
 
    
@@ -58496,9 +58369,9 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c)
     
     
     
-    HAL_NVIC_SetPriority(I2C3_ER_IRQn, 0, 3);
-    HAL_NVIC_EnableIRQ(I2C3_ER_IRQn);     
-    HAL_NVIC_SetPriority(I2C3_EV_IRQn, 0, 4);
+    HAL_NVIC_SetPriority(I2C3_ER_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(I2C3_ER_IRQn);
+    HAL_NVIC_SetPriority(I2C3_EV_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(I2C3_EV_IRQn);
 
 
@@ -58587,13 +58460,11 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *I2cHandle)
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *I2cHandle)
 {
   
-
-
  
-  if (HAL_I2C_GetError(I2cHandle) != (0x00000004U))
+  if (I2cHandle == &I2c3Handle)
   {
-
-
+    i2c3_err = 1U;
+    LL_GPIO_SetOutputPin(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0000UL)), 0x00000200U);
   }
 }
 

@@ -17645,15 +17645,36 @@ eMBErrorCode    eMBRegFileCB( UCHAR * pucFileBuffer, USHORT usFileNumber,
 
 
 
+
+
+
+
  
 enum { SNAP_SEQ, SNAP_READY, SNAP_ANGLE_HI, SNAP_ANGLE_LO, SNAP_SECTOR,
        SNAP_ERROR, SNAP_ENCODER_STATE, SNAP_SAMPLE_HI, SNAP_SAMPLE_LO,
        SNAP_TIME_HI, SNAP_TIME_LO, SNAP_REG_COUNT };
+
  
 void snapshot_publish(float angle_deg, uint16_t sector, uint8_t error,
                       uint8_t encoder_state, uint32_t tick_ms);
+
+
+
+ 
+void snapshot_publish_timed(float angle_deg, uint16_t sector, uint8_t error,
+                            uint8_t encoder_state, uint32_t exp_cyccnt);
+
+
+ 
+void snapshot_set_rx_cyccnt(uint32_t rx_cyccnt);
+
+ 
+void snapshot_latch_timed(uint16_t seq, uint32_t snap_rx_cyccnt, uint32_t ticks_per_us);
+
+
  
 void snapshot_latch(uint16_t seq);
+
  
 uint16_t snapshot_register(uint16_t address);
 
@@ -17662,18 +17683,23 @@ uint16_t snapshot_register(uint16_t address);
 
 
 
+
  
+
+
  
 enum {
-    ENCODER_MAX_ID = 247,          
-    ENCODER_SNAP = 0,              
-    ENCODER_CAL_COMMAND = 1,         
-    ENCODER_CAL_STATE = 0x100,       
-    ENCODER_EEPROM_READY = 0x101,    
-    ENCODER_CAL_VERSION = 0x102,     
-    ENCODER_CAL_MAGIC = 0xCA01,     
-    ENCODER_CAL_REG_COUNT = 3      
+    ENCODER_MAX_ID = 247,              
+    ENCODER_SNAP = 0,                  
+    ENCODER_CAL_COMMAND = 1,           
+    ENCODER_CAL_STATE = 0x100,         
+    ENCODER_EEPROM_READY = 0x101,      
+    ENCODER_CAL_VERSION = 0x102,       
+    ENCODER_CAL_MAGIC = 0xCA01,        
+    ENCODER_CAL_REG_COUNT = 3,         
+    ENCODER_DWT_TICKS_PER_US = 216     
 };
+
  
 
 typedef enum {
@@ -17686,6 +17712,14 @@ typedef enum {
 
  
 encoder_cal_result_t encoder_calibration_command(uint16_t command);
+
+
+
+
+
+ 
+void encoder_calibration_step(void);
+
 
  
 extern unsigned char encoder_state;

@@ -23,7 +23,7 @@
   *   calc_sector()      -> data_byte, rem_sec   (декодирование номера сектора)
   *   err_corr()         -> sector, errorflag    (контроль и коррекция ошибок)
   *   calc_ang()         -> cur_ang_X            (итоговый угол в градусах)
-  *   find_avg()/offset_cal()/angk_cal()/angtab_cal() - самокалибровки
+  *   find_avg() -> encoder_calibration_step()   (диспетчер самокалибровки)
   *
   * ТЕРМИНЫ (подробно - в docs/main_c_overview.md и docs/angle_math_and_calibration.md):
   *   ADC/АЦП, DMA, DAC/ЦАП, I2C, EEPROM, GPIO, EXTI, NVIC, DWT,
@@ -49,6 +49,7 @@
 #include "mb.h"
 #include "modbus_board.h"
 #include "snapshot_registers.h"
+#include "encoder_calibration.h"
 #include "math.h"
 #include "arm_math.h"
 #include  <stdio.h>
@@ -112,6 +113,22 @@
    не вышел за массив из 128 пикселей (57+69 = 126 < 128).                    */
 #define STARTPIXEL_MIN          6
 #define STARTPIXEL_MAX          57
+
+/* Рабочий диапазон пикселей линейки для калибровки чувствительности buf_k[]:
+   охватывает все отсчёты [6..126], участвующие в поиске реперов find_startpixel()
+   (STARTPIXEL_MIN = 6 .. STARTPIXEL_MAX + 69 = 126) и в субпиксельной оценке
+   mes_piks() / BR4_C() для обоих реперов пары (ядро [max_X0 - 3 .. max_X0 + 3]).
+   Прежний интервал [15..119]/[16..119] оставлял рабочие краевые пиксели 6..15 и
+   120..126 с коэффициентом 1.0 рядом с откалиброванными соседями, создавая
+   ступенчатое искажение профиля репера внутри антисимметричного ядра BR4_C().
+   Пиксели 0 и 127 функцией copy_data() не обновляются. */
+#define ANGK_CAL_PIX_MIN        STARTPIXEL_MIN
+#define ANGK_CAL_PIX_MAX        (STARTPIXEL_MAX + 69)
+/* Нижний порог достоверного пика (защита от деления на 0 -> Inf/NaN в EEPROM)
+   и физические границы коэффициента выравнивания чувствительности buf_k[]. */
+#define ANGK_MIN_VALID_PEAK     50.0f
+#define ANGK_GAIN_MIN           0.25f
+#define ANGK_GAIN_MAX           4.00f
 
 /* Пиксель-"водораздел": если найденный репер правее CENTER_PIXEL, он считается
    ПРАВЫМ репером пары, иначе - ЛЕВЫМ. Нужно, чтобы однозначно достроить
@@ -1107,8 +1124,9 @@ int buf_x5_num;
 
 
 /* Попиксельные корректирующие коэффициенты чувствительности (см. angk_cal()).
-   Значения по умолчанию перекрываются содержимым EEPROM в init_vars().
-   Элементы 0..20 оставлены равными 1.0: края линейки в расчёте не участвуют.  */
+   Заводской массив по умолчанию перекрывается содержимым EEPROM в init_vars().
+   При калибровке angk_cal() выравнивает весь рабочий диапазон [6..126],
+   а неиспользуемые края 0..5 и 127 фиксирует равными 1.0.                     */
 float buf_k[128] ={
 
 
@@ -1248,10 +1266,10 @@ float buf_k[128] ={
 
 
 
-/* Точка съёма угла на линейке (в пикселях, дробная). Значение по умолчанию 68
+/* Точка съёма угла на линейке (в пикселях, дробная). Значение по умолчанию 64
    перекрывается значением из EEPROM в init_vars(), если его CRC16 сошлась.
    Подбирается автоматически функцией offset_cal() (команда SPI 0x13).        */
-float  offset=68;
+uint8_t offset=64U;
 
 
 
@@ -1460,6 +1478,9 @@ float calc (float *mas, int centor_int);
 
 
 void init_vars();
+void angtab_cal(void);
+void offset_cal(void);
+void angk_cal(void);
 static void Backlight_StartFromSI(void);
 static void Backlight_StartTimer(uint16_t ticks);
 static void DelayTim4Ticks(uint16_t ticks);
@@ -1629,35 +1650,39 @@ void find_startpixel(void) {
   * Поэтому положение светлого пятна репера уточняется до сотых долей пикселя.
   *
   * Порядок действий:
-  *   1) в окне [star_pixel+4, star_pixel+16) формируется скорректированный
-  *      профиль buf_x2[i] = buf_x1[i] * buf_k[i] (buf_k компенсирует разброс
-  *      чувствительности пикселей);
-  *   2) находится max_X0 - индекс самого яркого пикселя окна;
-  *   3) BR4_C() по 4-6 отсчётам вокруг max_X0 вычисляет дробную координату
-  *      центра пятна.
+  *   1) в расширенном окне [star_pixel+1, star_pixel+19) формируется профиль
+  *      buf_x2[i] = buf_x1[i] * buf_k[i], полностью покрывающий 6-точечное ядро
+  *      BR4_C [max_X0 - 3 .. max_X0 + 3] при любом положении пика внутри окна;
+  *   2) в окне репера [star_pixel+4, star_pixel+16) находится индекс максимума max_X0;
+  *   3) BR4_C() вычисляет дробную координату центра пятна без обращения к
+  *      устаревшим отсчётам прошлых кадров или неоткалиброванным пикселям.
   *
   * @param  star_pixel целочисленная оценка начала репера (startpixel1/startpixel2)
   * @retval субпиксельная координата центра репера в пикселях (тип float)
   */
 /******************************************************************************/
-    float mes_piks(uint16_t star_pixel){                                                      
-      short unsigned amax_X0=0;
-      float mes_pix = 0;
-                    
-      for (unsigned char i=star_pixel+4;i<star_pixel+16;i++) {
-           
-        buf_x2[i]=buf_x1[i]*buf_k[i];
-      
-        uint16_t temp_X1 = (int) buf_x2[i];
-        if ( temp_X1 > amax_X0 ) { 
-          amax_X0=temp_X1;
-          max_X0 = i;
-        }    
-      }
-        
-      mes_pix = BR4_C (buf_x2, max_X0);
+    float mes_piks(uint16_t star_pixel) {
+      unsigned short amax_X0 = 0;
+      float mes_pix = 0.0f;
+      max_X0 = (unsigned char)(star_pixel + 10U);
 
-      return (mes_pix);
+      for (unsigned char i = (unsigned char)(star_pixel + 1U);
+           i < (unsigned char)(star_pixel + 19U); i++) {
+        buf_x2[i] = (float)buf_x1[i] * buf_k[i];
+      }
+
+      for (unsigned char i = (unsigned char)(star_pixel + 4U);
+           i < (unsigned char)(star_pixel + 16U); i++) {
+        uint16_t temp_X1 = (uint16_t)((int)buf_x2[i]);
+        if (temp_X1 > amax_X0) {
+          amax_X0 = temp_X1;
+          max_X0 = i;
+        }
+      }
+
+      mes_pix = BR4_C(buf_x2, max_X0);
+
+      return mes_pix;
     }
 
 
@@ -2393,256 +2418,160 @@ void find_avg() {
 /**
   * @brief  САМОКАЛИБРОВКА ТАБЛИЦЫ УГЛОВ СЕКТОРОВ ang_tab[] (метод замыкания оборота).
   *
-  * ИДЕЯ. Ширину сектора j можно измерить локально и очень точно - это расстояние
-  * между его реперами A_j = s_l2 - s_l1 (переменная pix_dif, пиксели). Абсолютный
-  * масштаб "пиксели -> градусы" неизвестен, но известно УСЛОВИЕ ЗАМЫКАНИЯ: сумма
-  * всех 144 секторов равна ровно 360 градусов. Отсюда:
-  *     ang_tab[0] = 0
-  *     ang_tab[j] = ang_tab[j-1] + 360 * A_(j-1) / SUM(A_k, k=0..143)
-  * Никакого внешнего эталона угла не требуется - это классическая self-calibration
-  * круговой шкалы (принцип полной окружности / closure method).
+  * На каждом из двух встречных проходов (0x11 -> state 0x20, 0x12 -> state 0x40)
+  * накапливается по pix_dif_num_avg = 5 независимых измерений межреперного расстояния
+  * pix_dif = s_l2 - s_l1 в симметричном однопиксельном стробе [offset-26..offset-25] /
+  * [offset+25..offset+26] (51/2 = 25.5 пикс.).
   *
-  * ЗАПУСК И ХОД (два прохода; внешний командный канал удалён вместе с SPI,
- *   запуск будет переведён на RS485/ModBus, флаги те же):
- *   start_calibrate=1, encoder_state=0x10 : проход "вправо";
-  *           оператор вращает вал в одну сторону, пока не будут измерены все 144
-  *           сектора; по завершении auto_cal=0 и encoder_state=0x20;
- *   start_calibrate=2, encoder_state=0x30 : проход "влево";
-  *           по завершении таблицы усредняются
-  *               new_ang_tab[j] = (new_ang_tab1[j] + new_ang_tab2[j]) / 2,
-  *           копируются в ang_tab, пишутся в EEPROM (стр. 0, адрес 0, 576 байт +
-  *           CRC16), encoder_state=0x40;
- *   аварийная остановка: start_calibrate=0, auto_cal=0, encoder_state=0x00.
-  *
-  * УСЛОВИЕ ВЗЯТИЯ ОТСЧЁТА (ключевая строка if ниже):
-  *     (cur_sector != old_sector) И ( s_l1 в [offset-25, offset-24]
-  *                                 ИЛИ s_l2 в [offset+24, offset+25] )
-  * То есть отсчёт берётся не в произвольный момент, а когда сектор стоит
-  * СИММЕТРИЧНО относительно точки съёма (половина сектора = 51/2 = 25.5 пикс).
-  * Это убирает зависимость измеренной ширины от положения сектора в поле зрения
-  * (дисторсия оптики, расфокусировка по краям линейки). Защёлка old_sector
-  * (= rsector в проходе 1, = lsector в проходе 2) задаёт НАПРАВЛЕНИЕ обхода и
-  * не даёт многократно засчитать один и тот же сектор.
-  *
-  * НАКОПЛЕНИЕ. На каждый сектор набирается pix_dif_num_avg = 5 измерений, они
-  * усредняются в pix_dif_tab[j], сектор помечается готовым (pix_rdy_tab[j]=1),
-  * счётчик готовых pix_rdy_num растёт от 0 до BIT_TAB_SIZE=144.
-  * КОНТРОЛЬ ХОДА калибровки: читать pix_rdy_num1 / pix_rdy_num2 (отладчик/SWD)
-  * и encoder_state. Пока pix_rdy_num < 144 - продолжать вращение.
-  *
-  * ВАЖНО: pix_dif берётся из глобальной переменной, вычисленной в calc_ang(),
-  * и НЕ зависит от старого содержимого ang_tab - калибровка не "тянет" за собой
-  * предыдущую ошибку и может запускаться с любой начальной таблицей.
-  *
-  * @param  none
-  * @retval none
+  * Направление вращения определяется автоматически на проходе 1 (cal_pass1_dir)
+  * и проверяется как строго противоположное (-cal_pass1_dir) на проходе 2.
+  * Защёлка old_sector = cur_sector гарантирует не более одного отсчёта на сектор
+  * за один оборот вала.
   */
 /*-----------------------------------------------------------------------------------*/
-void angtab_cal(){
+void angtab_cal(void) {
 
+  static int16_t cal_prev_sector = -1;
+  static int8_t cal_dir = 0;
+  static int8_t cal_pass1_dir = 0;
   uint16_t crc16;
 
-  if (start_calibrate>0) {
-    auto_cal=start_calibrate;
-    start_calibrate=0;
+  if (start_calibrate > 0) {
+    auto_cal = start_calibrate;
+    start_calibrate = 0;
+    old_sector = -1;
+    cal_prev_sector = -1;
+    cal_dir = 0;
 
-    //
-    if (auto_cal==1) {
-      for (unsigned char j=0;j<BIT_TAB_SIZE;j++) {
-        pix_rdy_tab1[j]=0;
-        pix_dif_sum1[j]=0;
-        pix_dif_num1[j]=0;
+    if (auto_cal == 1) {
+      cal_pass1_dir = 0;
+      pix_rdy_num1 = 0;
+      for (unsigned char j = 0; j < BIT_TAB_SIZE; j++) {
+        pix_rdy_tab1[j] = 0;
+        pix_dif_sum1[j] = 0.0f;
+        pix_dif_num1[j] = 0;
+        new_ang_tab1[j] = 0.0f;
       }
-      pix_rdy_num1=0;
-      for (unsigned char j=0;j<BIT_TAB_SIZE;j++) {
-        new_ang_tab1[j]=0;
+    } else if (auto_cal == 2) {
+      if (cal_pass1_dir == 0) {
+        cal_pass1_dir = 1;
       }
-    }
-    else if (auto_cal==2) {
-
-      for (unsigned char j=0;j<BIT_TAB_SIZE;j++) {
-        pix_rdy_tab2[j]=0;
-        pix_dif_sum2[j]=0;
-        pix_dif_num2[j]=0;
-      }
-      pix_rdy_num2=0;
-
-
-      for (unsigned char j=0;j<BIT_TAB_SIZE;j++) {
-        new_ang_tab2[j]=0;
+      pix_rdy_num2 = 0;
+      for (unsigned char j = 0; j < BIT_TAB_SIZE; j++) {
+        pix_rdy_tab2[j] = 0;
+        pix_dif_sum2[j] = 0.0f;
+        pix_dif_num2[j] = 0;
+        new_ang_tab2[j] = 0.0f;
       }
     }
-    
-    
-  }    
+  }
 
-  
-  if (auto_cal==1) {
+  if ((auto_cal == 1) || (auto_cal == 2)) {
+    if ((cal_prev_sector >= 0) && (cur_sector != cal_prev_sector)) {
+      int diff = (cur_sector - (int)cal_prev_sector + BIT_TAB_SIZE) % BIT_TAB_SIZE;
+      if ((diff >= 1) && (diff <= 8)) {
+        cal_dir = -1; /* индекс сектора растёт -> выходной угол убывает */
+      } else if ((diff >= (BIT_TAB_SIZE - 8)) && (diff < BIT_TAB_SIZE)) {
+        cal_dir = 1;  /* индекс сектора убывает -> выходной угол растёт */
+      }
+    }
+    cal_prev_sector = (int16_t)cur_sector;
 
-    /* Триггер отсчёта: сектор сменился И один из его реперов стоит ровно в
-       полусекторе (51/2 = 25.5 пикс) от точки съёма offset - то есть сектор
-       расположен симметрично в поле зрения. Всегда одинаковая геометрия
-       измерения => систематика оптики не попадает в результат.               */
-    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-25) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+25)))) )  ) {
+    if ((old_sector >= 0) && (cur_sector != old_sector)) {
+      old_sector = -1;
+    }
+  }
 
-      old_sector=rsector;                                                       //защёлка направления обхода (проход 1)
-      cal_sector=cur_sector;
+  const uint8_t in_strobe =
+      (((s_l1 >= (offset - 26)) && (s_l1 <= (offset - 25))) ||
+       ((s_l2 >= (offset + 25)) && (s_l2 <= (offset + 26)))) ? 1U : 0U;
 
+  if (auto_cal == 1) {
+    if ((cal_dir != 0) && (cal_pass1_dir == 0)) {
+      cal_pass1_dir = cal_dir;
+    }
 
-        if ( (pix_dif_num1[cal_sector]>=pix_dif_num_avg) ) {
+    if ((cal_dir != 0) && (cal_dir == cal_pass1_dir) &&
+        (cur_sector != old_sector) && in_strobe) {
+      old_sector = cur_sector;
+      cal_sector = cur_sector;
 
-          if ( pix_rdy_tab1[cal_sector]==0 ) {
+      if (pix_rdy_tab1[cal_sector] == 0) {
+        pix_dif_sum1[cal_sector] += pix_dif;
+        pix_dif_num1[cal_sector]++;
 
-            pix_dif_tab1[cal_sector]=pix_dif_sum1[cal_sector]/pix_dif_num1[cal_sector];
-            pix_rdy_tab1[cal_sector]=1;
-            pix_rdy_num1++;
-            
-            if(pix_rdy_num1==BIT_TAB_SIZE) {
+        if (pix_dif_num1[cal_sector] >= pix_dif_num_avg) {
+          pix_dif_tab1[cal_sector] = pix_dif_sum1[cal_sector] / (float)pix_dif_num1[cal_sector];
+          pix_rdy_tab1[cal_sector] = 1;
+          pix_rdy_num1++;
 
-              float tmp_sum=0;
-              for (unsigned char j=0;j<BIT_TAB_SIZE;j++) {
-                tmp_sum+=pix_dif_tab1[j];
-              }
-              /* ЗАМЫКАНИЕ ОБОРОТА: сумма всех измеренных ширин секторов
-                 приравнивается к 360 град, и углы границ получаются как
-                 нарастающий итог нормированных ширин. Внешний эталон не нужен. */
-              sum_Ai1=tmp_sum;
-              new_ang_tab1[0]=0;
-              for (unsigned char j=1;j<BIT_TAB_SIZE;j++) {
-                new_ang_tab1[j]=new_ang_tab1[j-1]+pix_dif_tab1[j-1]/sum_Ai1*360;
-
-              }
-              auto_cal=0;                                                       //проход 1 завершён
-                
-              encoder_state=0x20;                                               //статус "ждём команду 0x12 (проход 2)"
-              
+          if (pix_rdy_num1 >= BIT_TAB_SIZE) {
+            float tmp_sum = 0.0f;
+            for (unsigned char j = 0; j < BIT_TAB_SIZE; j++) {
+              tmp_sum += pix_dif_tab1[j];
             }
-            
-          }
-          
-        }
-        else {
-
-          if ( pix_rdy_tab1[cal_sector]==0 ) {
-
-
-            pix_dif_sum1[cal_sector]+=pix_dif;
-            pix_dif_num1[cal_sector]++;
-
-          }
-
-
-        }
-        
-          
-        
-          
-    }
-    
-
-  }      
-    
-
-
-
-  else if (auto_cal==2) {
-
-    if (  (cur_sector!=old_sector)&& ( ((s_l1>=(offset-25) )&&(s_l1<=(offset-24)))||(((s_l2>=(offset+24))&&(s_l2<=(offset+25)))) )  ) {
-
-      old_sector=lsector;  
-      cal_sector=cur_sector;
-
-        if ( (pix_dif_num2[cal_sector]>=pix_dif_num_avg) ) {
-
-          if ( pix_rdy_tab2[cal_sector]==0 ) {
-
-            pix_dif_tab2[cal_sector]=pix_dif_sum2[cal_sector]/pix_dif_num2[cal_sector];
-            pix_rdy_tab2[cal_sector]=1;
-            pix_rdy_num2++;
-            
-            if(pix_rdy_num2==BIT_TAB_SIZE) {
-
-              float tmp_sum=0;
-              for (unsigned char j=0;j<BIT_TAB_SIZE;j++) {
-                tmp_sum+=pix_dif_tab2[j];
-              }
-              sum_Ai2=tmp_sum;
-              new_ang_tab2[0]=0;
-              for (unsigned char j=1;j<BIT_TAB_SIZE;j++) {
-                new_ang_tab2[j]=new_ang_tab2[j-1]+pix_dif_tab2[j-1]/sum_Ai2*360;
-              }
-                
-              /* Усреднение двух проходов (вращение в разные стороны) снимает
-                 направленно-зависимую составляющую ошибки: люфт, гистерезис
-                 механики и динамическое запаздывание обработки.              */
-              for (unsigned char j=0;j<BIT_TAB_SIZE;j++) {
-                new_ang_tab[j]=(new_ang_tab1[j]+new_ang_tab2[j])/2;
-              }
-
-              memcpy(ang_tab,new_ang_tab,BIT_TAB_SIZE*4);                       //use found ang_tab
-
-              memcpy(&eeprom_buf[eeprom_ang_tab],&ang_tab,BIT_TAB_SIZE*4);      //copy ang_tab to write buffer
-              crc16=0xFFFF;                                                     //CRC16 calc
-              for (int i=eeprom_ang_tab;i<eeprom_ang_tab+BIT_TAB_SIZE*4;i++) {
-                crc16 = crc_16_step (eeprom_buf[i],crc16);
-              }
-              eeprom_buf[eeprom_ang_tab_crc+0]=crc16&0xff;
-              eeprom_buf[eeprom_ang_tab_crc+1]=crc16>>8;
-              i2c3_tx_wp=0;                                                     //tx_wp flag reset
-              LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_9);                     //WP disable
-              HAL_I2C_Mem_Write_IT(&I2c3Handle, EEPROM_DEVICE_PAGE0, eeprom_ang_tab&0xFF, I2C_MEMADD_SIZE_8BIT, &eeprom_buf[eeprom_ang_tab], BIT_TAB_SIZE*4+2); //write ang_tab to FLASH
-
-              encoder_state=0x40;                                               //set "ang_tab calibration ready" status
-
-              auto_cal=0;                                                       //reset ang_tab calibration flag
-                
-              
+            sum_Ai1 = tmp_sum;
+            new_ang_tab1[0] = 0.0f;
+            for (unsigned char j = 1; j < BIT_TAB_SIZE; j++) {
+              new_ang_tab1[j] = new_ang_tab1[j - 1] + (pix_dif_tab1[j - 1] / sum_Ai1) * 360.0f;
             }
-            
+            auto_cal = 0;
+            encoder_state = 0x20;
           }
-          
         }
-        else {
-
-          if ( pix_rdy_tab2[cal_sector]==0 ) {
-
-            pix_dif_sum2[cal_sector]+=pix_dif;
-            pix_dif_num2[cal_sector]++;
-
-          }
-
-
-        }
-        
-          
+      }
     }
-    
+  } else if (auto_cal == 2) {
+    if ((cal_dir != 0) && (cal_dir == -cal_pass1_dir) &&
+        (cur_sector != old_sector) && in_strobe) {
+      old_sector = cur_sector;
+      cal_sector = cur_sector;
 
-  }      
-    
+      if (pix_rdy_tab2[cal_sector] == 0) {
+        pix_dif_sum2[cal_sector] += pix_dif;
+        pix_dif_num2[cal_sector]++;
 
+        if (pix_dif_num2[cal_sector] >= pix_dif_num_avg) {
+          pix_dif_tab2[cal_sector] = pix_dif_sum2[cal_sector] / (float)pix_dif_num2[cal_sector];
+          pix_rdy_tab2[cal_sector] = 1;
+          pix_rdy_num2++;
 
+          if (pix_rdy_num2 >= BIT_TAB_SIZE) {
+            float tmp_sum = 0.0f;
+            for (unsigned char j = 0; j < BIT_TAB_SIZE; j++) {
+              tmp_sum += pix_dif_tab2[j];
+            }
+            sum_Ai2 = tmp_sum;
+            new_ang_tab2[0] = 0.0f;
+            for (unsigned char j = 1; j < BIT_TAB_SIZE; j++) {
+              new_ang_tab2[j] = new_ang_tab2[j - 1] + (pix_dif_tab2[j - 1] / sum_Ai2) * 360.0f;
+            }
 
+            for (unsigned char j = 0; j < BIT_TAB_SIZE; j++) {
+              new_ang_tab[j] = (new_ang_tab1[j] + new_ang_tab2[j]) * 0.5f;
+            }
 
+            memcpy(ang_tab, new_ang_tab, BIT_TAB_SIZE * 4);
+            memcpy(&eeprom_buf[eeprom_ang_tab], &ang_tab, BIT_TAB_SIZE * 4);
+            crc16 = 0xFFFFU;
+            for (int i = eeprom_ang_tab; i < eeprom_ang_tab + BIT_TAB_SIZE * 4; i++) {
+              crc16 = crc_16_step(eeprom_buf[i], crc16);
+            }
+            eeprom_buf[eeprom_ang_tab_crc + 0] = (uint8_t)(crc16 & 0xFFU);
+            eeprom_buf[eeprom_ang_tab_crc + 1] = (uint8_t)(crc16 >> 8);
+            i2c3_tx_wp = 0;
+            LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_9);
+            HAL_I2C_Mem_Write_IT(&I2c3Handle, EEPROM_DEVICE_PAGE0, eeprom_ang_tab & 0xFF,
+                                 I2C_MEMADD_SIZE_8BIT, &eeprom_buf[eeprom_ang_tab], BIT_TAB_SIZE * 4 + 2);
 
-
-  
-
-
-}  
-  
-  
-
-
-
-
-
-
-
-
-
-
-
+            encoder_state = 0x40;
+            auto_cal = 0;
+          }
+        }
+      }
+    }
+  }
+}
 
 /**
   * @brief  САМОКАЛИБРОВКА offset - поиск точки съёма угла на линейке.
@@ -2675,675 +2604,237 @@ void angtab_cal(){
   * @retval none
   */
 /*-----------------------------------------------------------------------------------*/
-void offset_cal() {    
+void offset_cal(void) {
 
   uint16_t crc16;
-    
-  if (start_offset_cal>0) {
-      
-   switch (offset_phase)  {
-    
-    case 0: 
-      
-      offset=offset_cur;
-    
-      offset_phase=1;
-    
+  const int left_limit = (offset_start > offset_snum) ? (offset_start - offset_snum) : 0;
+  const int right_limit = (offset_end + offset_snum < 128) ? (offset_end + offset_snum) : 127;
+
+  if (start_offset_cal > 0) {
+
+    switch (offset_phase) {
+
+    case 0:
+      offset = offset_cur;
+      offset_phase = 1;
       break;
-    
-      
-    case 1: 
-      
-      if (avg_minmax_num>offset_avg_num) {
 
-
-        if ((offset_cur>=offset_start)&&(offset_cur<=offset_end)){
-          
-          offset_min[offset_cur]=avg_min;
-          offset_max[offset_cur]=avg_max;
-          offset_minmax[offset_cur]=min_max;
-        
+    case 1:
+      if (avg_minmax_num > offset_avg_num) {
+        if ((offset_cur >= offset_start) && (offset_cur <= offset_end)) {
+          offset_min[offset_cur] = avg_min;
+          offset_max[offset_cur] = avg_max;
+          offset_minmax[offset_cur] = min_max;
         }
-        
-        avg_minmax_num=0;
+        avg_minmax_num = 0;
 
-        
-        
-        if (offset_cur<offset_end) {
-          
+        if (offset_cur < offset_end) {
           offset_cur++;
-          offset_phase=0;
-          
-        }
-        else {
-         
-
-          offset_tmp=1;
-          offset_found=offset_start;
-          for (int i=offset_start;i<=offset_end;i++) {
-            if (offset_minmax[i]<offset_tmp) {
-              offset_found=i;
-              offset_tmp=offset_minmax[i];
+          offset_phase = 0;
+        } else {
+          offset_tmp = 1;
+          offset_found = offset_start;
+          for (int i = offset_start; i <= offset_end; i++) {
+            if (offset_minmax[i] < offset_tmp) {
+              offset_found = i;
+              offset_tmp = offset_minmax[i];
             }
-            
-          }
-          
-
-
-          if (offset_found<64) {
-
-            offset_cur=offset_found;
-            offset_cur--;
-            offset_phase=2;
-
           }
 
-          else if(offset_found>64) {
-
-            offset_cur=offset_found;
-            offset_cur++;
-            offset_phase=4;
-
+          /* Если минимум попал на левый или правый край базового окна
+             [offset_start, offset_end], расширяем поиск на offset_snum шагов
+             наружу от соответствующей границы без повторного прогона уже
+             измеренных точек. */
+          if ((offset_found <= offset_start) && (offset_start > left_limit)) {
+            offset_cur = offset_start - 1;
+            offset_phase = 2;
+          } else if ((offset_found >= offset_end) && (offset_end < right_limit)) {
+            offset_cur = offset_end + 1;
+            offset_phase = 4;
+          } else {
+            offset_phase = 100;
           }
-
-          else {
-
-            offset_phase=100;
-
-
-          }
-
-          
         }
-        
-        
       }
-      
       break;
 
-      
-
-
-    case 2: 
-      
-      offset=offset_cur;
-    
-      offset_phase=3;
-    
+    case 2:
+      offset = offset_cur;
+      offset_phase = 3;
       break;
-
 
     case 3:
+      if (avg_minmax_num > offset_avg_num) {
+        offset_min[offset_cur] = avg_min;
+        offset_max[offset_cur] = avg_max;
+        offset_minmax[offset_cur] = min_max;
+        avg_minmax_num = 0;
 
-     
-      if (avg_minmax_num>offset_avg_num) {
-       
-        offset_min[offset_cur]=avg_min;
-        offset_max[offset_cur]=avg_max;
-        offset_minmax[offset_cur]=min_max;
-        
-        avg_minmax_num=0;
-        
-        if (offset_cur>offset_start-offset_snum) {
-          
+        if (offset_cur > left_limit) {
           offset_cur--;
-          offset_phase=2;
-          
-        }
-        else {
-
-          offset_tmp=1;
-          offset_found=offset_start-offset_snum;
-          for (int i=offset_start-offset_snum;i<=offset_end;i++) {
-            if (offset_minmax[i]<offset_tmp) {
-              offset_found=i;
-              offset_tmp=offset_minmax[i];
+          offset_phase = 2;
+        } else {
+          offset_tmp = 1;
+          offset_found = left_limit;
+          for (int i = left_limit; i <= offset_end; i++) {
+            if (offset_minmax[i] < offset_tmp) {
+              offset_found = i;
+              offset_tmp = offset_minmax[i];
             }
-            
           }
-
-          offset_phase=100;
-
-          
+          offset_phase = 100;
         }
-        
-        
       }
-      
       break;
 
-
-
-    case 4: 
-      
-      offset=offset_cur;
-    
-      offset_phase=5;
-    
+    case 4:
+      offset = offset_cur;
+      offset_phase = 5;
       break;
-
 
     case 5:
+      if (avg_minmax_num > offset_avg_num) {
+        offset_min[offset_cur] = avg_min;
+        offset_max[offset_cur] = avg_max;
+        offset_minmax[offset_cur] = min_max;
+        avg_minmax_num = 0;
 
-      if (avg_minmax_num>offset_avg_num) {
-       
-        offset_min[offset_cur]=avg_min;
-        offset_max[offset_cur]=avg_max;
-        offset_minmax[offset_cur]=min_max;
-        
-        avg_minmax_num=0;
-        
-        if (offset_cur<offset_end+offset_snum) {
-          
+        if (offset_cur < right_limit) {
           offset_cur++;
-          offset_phase=4;
-          
-        }
-        else {
-
-          offset_tmp=1;
-          offset_found=offset_start;
-          for (int i=offset_start;i<=offset_end+offset_snum;i++) {
-            if (offset_minmax[i]<offset_tmp) {
-              offset_found=i;
-              offset_tmp=offset_minmax[i];
+          offset_phase = 4;
+        } else {
+          offset_tmp = 1;
+          offset_found = offset_start;
+          for (int i = offset_start; i <= right_limit; i++) {
+            if (offset_minmax[i] < offset_tmp) {
+              offset_found = i;
+              offset_tmp = offset_minmax[i];
             }
-            
           }
-
-          offset_phase=100;
-
-          
+          offset_phase = 100;
         }
-        
-        
       }
-      
       break;
 
+    case 100:
+      offset = offset_found;                                                    // use found offset
 
-   
+      memcpy(&eeprom_buf[eeprom_offset], &offset, 4);                           // copy offset to write buffer
+      crc16 = 0xFFFFU;                                                          // CRC16 calc
+      for (int i = eeprom_offset; i < eeprom_offset + 4; i++) {
+        crc16 = crc_16_step(eeprom_buf[i], crc16);
+      }
+      eeprom_buf[eeprom_offset_crc + 0] = (uint8_t)(crc16 & 0xFFU);
+      eeprom_buf[eeprom_offset_crc + 1] = (uint8_t)(crc16 >> 8);
+      i2c3_tx_wp = 0;                                                           // tx_wp flag reset
+      LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_9);                             // WP disable
+      HAL_I2C_Mem_Write_IT(&I2c3Handle, EEPROM_DEVICE_PAGE6, eeprom_offset & 0xFF, I2C_MEMADD_SIZE_8BIT, &eeprom_buf[eeprom_offset], 6);
 
+      encoder_state = 0x60;                                                     // set "offset calibration ready" status
+      offset_phase = 101;
+      start_offset_cal = 0;                                                     // reset offset calibration flag
+      break;
 
-
-    case 100: 
-        offset=offset_found;                                                    //use found offset
-
-        memcpy(&eeprom_buf[eeprom_offset],&offset,4);                           //copy offset to write buffer
-        crc16=0xFFFF;                                                           //CRC16 calc
-        for (int i=eeprom_offset;i<eeprom_offset+4;i++) {
-          crc16 = crc_16_step (eeprom_buf[i],crc16);
-        }
-        eeprom_buf[eeprom_offset_crc+0]=crc16&0xff;
-        eeprom_buf[eeprom_offset_crc+1]=crc16>>8;
-        i2c3_tx_wp=0;                                                           //tx_wp flag reset
-        LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_9);                           //WP disable
-        HAL_I2C_Mem_Write_IT(&I2c3Handle, EEPROM_DEVICE_PAGE6, eeprom_offset&0xFF, I2C_MEMADD_SIZE_8BIT, &eeprom_buf[eeprom_offset], 6); //write offset to FLASH
-
-        encoder_state=0x60;                                                     //set "offset calibration ready" status
-        offset_phase=101;
-
-        start_offset_cal=0;                                                     //reset offset calibration flag
-
-        break;
-
-
-    case 101: 
-        break;
-   
-    
-
-
-
-    
-
-     default:
-        break;
+    case 101:
+    default:
+      break;
+    }
   }
-    
-    
-    
-}  
-    
-    
-}    
-    
-    
-
-
-
-
+}
 
 /**
-  * @brief  САМОКАЛИБРОВКА buf_k[] - выравнивание чувствительности пикселей.
+  * @brief  САМОКАЛИБРОВКА buf_k[] - прямое однопроходное выравнивание чувствительности.
   *
-  * ЗАЧЕМ. Разброс чувствительности пикселей линейки (PRNU), виньетирование
-  * оптики и загрязнения делают профиль одного и того же репера разным в разных
-  * местах линейки, а BR4 чувствителен к асимметрии профиля - появляется
-  * периодическая ошибка угла. buf_k[i] выравнивает отклик пикселей.
+  * Так как масштабирование buf_x2[i] = buf_x1[i] * buf_k[i] строго линейно по buf_k[i],
+  * для выравнивания амплитудного отклика фотодиодов достаточно одного цикла накопления
+  * огибающей максимумов buf_x3[i] при единичных коэффициентах buf_k[] = 1.0f без
+  * итеративных подгонок по порогу pix_min_max < 100 и искусственного перебора множителей.
   *
-  * Фазы (anglek_phase), запуск установкой флагов (ранее - команда SPI 0x14,
- * encoder_state = 0x70; команда 0x14 через encoder_calibration_command()):
-  *   0   - сбросить buf_k[15..119] = 1, начать накопление. Параллельно
-  *         copy_data() заполняет buf_x3[i] пиковой яркостью пикселя i
-  *         (пиковый детектор работает, пока anglek_phase < 4);
-  *   1   - после 3 оборотов (все пиксели успели "увидеть" репер) выровнять
-  *         отклик: buf_k[i] = pix_max / buf_x3[i]. Заодно найти 4 самых
-  *         "слабых" пикселя pix_min1..4_num в зоне 30..110;
-  *   2   - итеративное уточнение: повторять buf_k[i] *= pix_max/buf_x3[i],
-  *         пока размах pix_min_max = pix_max - pix_min не станет < 100 отсчётов;
-  *   3/4, 5/6, 7/8 - для трёх самых слабых пикселей (pix_min1..3_num) прямым
-  *         перебором трёх значений усиления (шаг *1.04) выбирается то, при
-  *         котором min_max (размах ошибки угла за оборот) минимален;
-  *   100 - запись buf_k (128 float = 512 байт) + CRC16 в EEPROM (стр. 3,
-  *         адрес 768), encoder_state = 0x80, backlight_width_en = 1
-  *         (АРУ подсветки снова разрешена), start_angk_cal = 0;
+  * Фазы (anglek_phase), запуск через encoder_calibration_command(0x14), state = 0x70:
+  *   0   - сбросить buf_k[0..127] = 1.0f и buf_x3[0..127] = 0.0f, запустить накопление
+  *         максимумов в copy_data();
+  *   1   - после (offset_avg_num + 1) полных оборотов вычислить прямые коэффициенты
+  *         buf_k[i] = clamp(pix_max / buf_x3[i], ANGK_GAIN_MIN, ANGK_GAIN_MAX) на всём
+  *         рабочем диапазоне [ANGK_CAL_PIX_MIN..ANGK_CAL_PIX_MAX] = [6..126] (неиспользуемые
+  *         края 0..5 и 127 остаются равными 1.0f) и сразу перейти к сохранению (фаза 100);
+  *   100 - записать buf_k (512 байт) + CRC16 в EEPROM (стр. 3, адрес 768),
+  *         выставить encoder_state = 0x80, backlight_width_en = 1, start_angk_cal = 0;
   *   101 - завершено.
-  *
-  * Команда 0x14 перед стартом обнуляет buf_x3[] и ЗАПРЕЩАЕТ АРУ подсветки
-  * (backlight_width_en = 0) - иначе пиковый детектор мерил бы меняющуюся яркость.
-  *
-  * @param  none
-  * @retval none
   */
 /*-----------------------------------------------------------------------------------*/
-void angk_cal() {    
+void angk_cal(void) {
 
   uint16_t crc16;
-    
-  if (start_angk_cal>0) {
-      
-   switch (anglek_phase)  {
 
+  if (start_angk_cal > 0) {
 
-    case 0: 
+    switch (anglek_phase) {
 
-      for (int i=15;i<120;i++) {
-        buf_k[i]=1;
+    case 0:
+      for (int i = 0; i < 128; i++) {
+        buf_k[i] = 1.0f;
+        buf_x3[i] = 0.0f;
       }
-      avg_minmax_num=0;
-      anglek_phase=1;
-    
+      avg_minmax_num = 0;
+      anglek_phase = 1;
       break;
 
-
-
-    case 1: 
-      
-      if (avg_minmax_num>offset_avg_num) {
-
-        pix_max=0;
-        pix_min=4095;
-        for (int i=16;i<120;i++) {
-          if (buf_x3[i]>pix_max) {
-            pix_max=buf_x3[i];
-          }
-          if (buf_x3[i]<pix_min) {
-            pix_min=buf_x3[i];
+    case 1:
+      if (avg_minmax_num > offset_avg_num) {
+        pix_max = 0.0f;
+        pix_min = 4095.0f;
+        for (int i = ANGK_CAL_PIX_MIN; i <= ANGK_CAL_PIX_MAX; i++) {
+          if (buf_x3[i] >= ANGK_MIN_VALID_PEAK) {
+            if (buf_x3[i] > pix_max) pix_max = buf_x3[i];
+            if (buf_x3[i] < pix_min) pix_min = buf_x3[i];
           }
         }
-        pix_min_max=pix_max-pix_min;
-
-
-        for (int i=16;i<120;i++) {
-          buf_k[i]=pix_max/buf_x3[i];
+        if (pix_max < ANGK_MIN_VALID_PEAK) {
+          pix_min = pix_max;
         }
+        pix_min_max = pix_max - pix_min;
 
-
-
-
-        pix_min1_val=4096;
-        for (int i=30;i<110;i++) {
-          if (buf_x3[i]<pix_min1_val) {
-            pix_min1_val=buf_x3[i];
-            pix_min1_num=i;
+        for (int i = ANGK_CAL_PIX_MIN; i <= ANGK_CAL_PIX_MAX; i++) {
+          if ((pix_max >= ANGK_MIN_VALID_PEAK) && (buf_x3[i] >= ANGK_MIN_VALID_PEAK)) {
+            float gain = pix_max / buf_x3[i];
+            if (gain < ANGK_GAIN_MIN) gain = ANGK_GAIN_MIN;
+            if (gain > ANGK_GAIN_MAX) gain = ANGK_GAIN_MAX;
+            buf_k[i] = gain;
+          } else {
+            buf_k[i] = 1.0f;
           }
         }
 
-        pix_min2_val=4096;
-        for (int i=30;i<110;i++) {
-          if ( (buf_x3[i]<pix_min2_val) && (i!=pix_min1_num) ) {
-            pix_min2_val=buf_x3[i];
-            pix_min2_num=i;
-          }
-        }
-
-        pix_min3_val=4096;
-        for (int i=30;i<110;i++) {
-          if ( (buf_x3[i]<pix_min3_val) && (i!=pix_min1_num) && (i!=pix_min2_num) ) {
-            pix_min3_val=buf_x3[i];
-            pix_min3_num=i;
-          }
-        }
-
-        pix_min4_val=4096;
-        for (int i=30;i<110;i++) {
-          if ( (buf_x3[i]<pix_min4_val) && (i!=pix_min1_num) && (i!=pix_min2_num) && (i!=pix_min3_num) ) {
-            pix_min4_val=buf_x3[i];
-            pix_min4_num=i;
-          }
-        }
-
-
-
-        avg_minmax_num=0;
-        anglek_phase=2;
-           
-    
+        avg_minmax_num = 0;
+        anglek_phase = 100;
       }
-      
       break;
 
-
-
-
-    case 2: 
-
-      if (avg_minmax_num>offset_avg_num) {
-
-
-        pix_max=0;
-        pix_min=4095;
-        for (int i=16;i<120;i++) {
-          if (buf_x3[i]>pix_max) {
-            pix_max=buf_x3[i];
-          }
-          if (buf_x3[i]<pix_min) {
-            pix_min=buf_x3[i];
-          }
-        }
-        pix_min_max=pix_max-pix_min;
-
-
-        if (pix_min_max<100) {
-          anglek_phase=3;
-        }
-        else {
-
-          for (int i=16;i<120;i++) {
-            buf_k[i]=buf_k[i]*(pix_max/buf_x3[i]);
-          }
-
-          avg_minmax_num=0;
-          anglek_phase=2;
-        }
-
-
+    case 100:
+      memcpy(&eeprom_buf[eeprom_buf_k], &buf_k, 512);
+      crc16 = 0xFFFFU;
+      for (int i = eeprom_buf_k; i < eeprom_buf_k + 512; i++) {
+        crc16 = crc_16_step(eeprom_buf[i], crc16);
       }
+      eeprom_buf[eeprom_buf_k_crc + 0] = (uint8_t)(crc16 & 0xFFU);
+      eeprom_buf[eeprom_buf_k_crc + 1] = (uint8_t)(crc16 >> 8);
+      i2c3_tx_wp = 0;
+      LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_9);
+      HAL_I2C_Mem_Write_IT(&I2c3Handle, EEPROM_DEVICE_PAGE3, eeprom_buf_k & 0xFF,
+                           I2C_MEMADD_SIZE_8BIT, &eeprom_buf[eeprom_buf_k], 514);
 
-      
-
+      encoder_state = 0x80;
+      backlight_width_en = 1;
+      anglek_phase = 101;
+      start_angk_cal = 0;
       break;
 
-
-
-    case 3: 
-      
-      avg_minmax_num=0;
-      for (int i=anglek_start;i<=anglek_end;i++) {
-        anglek_minmax[i]=1;
-      }
-      anglek_cur=anglek_start;
-
-      buf_k_num=pix_min1_num;
-
-      anglek_data[anglek_start]=buf_k[buf_k_num];
-      for (int i=anglek_start+1;i<anglek_end+1;i++) {
-        anglek_data[i]=anglek_data[i-1]*1.04;
-      }
-
-      buf_k[buf_k_num]=anglek_data[anglek_cur];
-
-      anglek_phase++;
-
+    case 101:
+    default:
       break;
-   
-
-
-    case 4: 
-      
-      if (avg_minmax_num>offset_avg_num) {
-        
-
-        if ((anglek_cur>=anglek_start)&&(anglek_cur<=anglek_end)){
-          
-          anglek_minmax[anglek_cur]=min_max;
-          
-        }
-      
-        avg_minmax_num=0;
-
-        if (anglek_cur<anglek_end) {
-          
-          anglek_cur++;
-
-          buf_k[buf_k_num]=anglek_data[anglek_cur];
-
-          
-        }
-        else {
-
-          anglek_tmp=1;
-          anglek_found=anglek_start;
-          for (int i=anglek_start;i<=anglek_end;i++) {
-            if (anglek_minmax[i]<anglek_tmp) {
-              anglek_found=i;
-              anglek_tmp=anglek_minmax[i];
-            }
-            
-          }
-     
-          buf_k[buf_k_num]=anglek_data[anglek_found];                             //use found angle_k
-      
-          anglek_phase++;
-          
-        }
-
-
-      }
-      
-      break;
-
-
-
-
-
-
-    case 5: 
-      
-      avg_minmax_num=0;
-      for (int i=anglek_start;i<=anglek_end;i++) {
-        anglek_minmax[i]=1;
-      }
-      anglek_cur=anglek_start;
-
-      buf_k_num=pix_min2_num;
-
-      anglek_data[anglek_start]=buf_k[buf_k_num];
-      for (int i=anglek_start+1;i<anglek_end+1;i++) {
-        anglek_data[i]=anglek_data[i-1]*1.04;
-      }
-
-      buf_k[buf_k_num]=anglek_data[anglek_cur];
-
-      anglek_phase++;
-
-      break;
-
-
-    case 6: 
-      
-      if (avg_minmax_num>offset_avg_num) {
-        
-
-        if ((anglek_cur>=anglek_start)&&(anglek_cur<=anglek_end)){
-          
-          anglek_minmax[anglek_cur]=min_max;
-          
-        }
-      
-        avg_minmax_num=0;
-
-        if (anglek_cur<anglek_end) {
-          
-          anglek_cur++;
-
-          buf_k[buf_k_num]=anglek_data[anglek_cur];
-
-          
-        }
-        else {
-
-          anglek_tmp=1;
-          anglek_found=anglek_start;
-          for (int i=anglek_start;i<=anglek_end;i++) {
-            if (anglek_minmax[i]<anglek_tmp) {
-              anglek_found=i;
-              anglek_tmp=anglek_minmax[i];
-            }
-            
-          }
-     
-          buf_k[buf_k_num]=anglek_data[anglek_found];                             //use found angle_k
-      
-          anglek_phase++;
-
-
-          
-        }
-
-
-      }
-      
-      break;
-
-
-
-
-
-
-
-
-    case 7: 
-      
-      avg_minmax_num=0;
-      for (int i=anglek_start;i<=anglek_end;i++) {
-        anglek_minmax[i]=1;
-      }
-      anglek_cur=anglek_start;
-
-      buf_k_num=pix_min3_num;
-
-      anglek_data[anglek_start]=buf_k[buf_k_num];
-      for (int i=anglek_start+1;i<anglek_end+1;i++) {
-        anglek_data[i]=anglek_data[i-1]*1.04;
-      }
-
-      buf_k[buf_k_num]=anglek_data[anglek_cur];
-
-      anglek_phase++;
-
-      break;
-
-
-
-    case 8: 
-      
-      if (avg_minmax_num>offset_avg_num) {
-        
-
-        if ((anglek_cur>=anglek_start)&&(anglek_cur<=anglek_end)){
-          
-          anglek_minmax[anglek_cur]=min_max;
-          
-        }
-      
-        avg_minmax_num=0;
-
-        if (anglek_cur<anglek_end) {
-          
-          anglek_cur++;
-
-          buf_k[buf_k_num]=anglek_data[anglek_cur];
-
-          
-        }
-        else {
-
-          anglek_tmp=1;
-          anglek_found=anglek_start;
-          for (int i=anglek_start;i<=anglek_end;i++) {
-            if (anglek_minmax[i]<anglek_tmp) {
-              anglek_found=i;
-              anglek_tmp=anglek_minmax[i];
-            }
-            
-          }
-     
-          buf_k[buf_k_num]=anglek_data[anglek_found];                             //use found angle_k
-      
-          anglek_phase++;
-          anglek_phase=100;
-
-          
-        }
-
-
-      }
-      
-      break;
-
-
-
-    case 100: 
-
-        memcpy(&eeprom_buf[eeprom_buf_k],&buf_k,512);                           //copy buf_k to write buffer
-        crc16=0xFFFF;                                                           //CRC16 calc
-        for (int i=eeprom_buf_k;i<eeprom_buf_k+512;i++) {
-          crc16 = crc_16_step (eeprom_buf[i],crc16);
-        }
-        eeprom_buf[eeprom_buf_k_crc+0]=crc16&0xff;
-        eeprom_buf[eeprom_buf_k_crc+1]=crc16>>8;
-        i2c3_tx_wp=0;                                                           //tx_wp flag reset
-        LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_9);                           //WP disable
-        HAL_I2C_Mem_Write_IT(&I2c3Handle, EEPROM_DEVICE_PAGE3, eeprom_buf_k&0xFF, I2C_MEMADD_SIZE_8BIT, &eeprom_buf[eeprom_buf_k], 514); //write buf_k to FLASH
-
-        encoder_state=0x80;                                                     //set "angle_k calibration ready" status
-        backlight_width_en=1;
-        anglek_phase=101;
-
-        start_angk_cal=0;                                                       //reset angle_k calibration flag
-
-        break;
-
-
-    case 101: 
-        break;
-   
-    
-
-     default:
-        break;
+    }
   }
-    
-    
-    
-}  
-    
-    
-}    
-    
-
-
-
-
-
-
-
-
-
-
-
+}
 
 
 /**
@@ -3570,7 +3061,7 @@ void init_vars() {
   //compensation BR4
   phase=0;
   for (unsigned char j=0;j<200;j++) {
-   delta_cor[j]=0.01*sin((j-100)*3.1415926/50.+phase);
+   delta_cor[j]=0.01f*sin((float)((j-100)*3.1415926f/50.0f+phase));
   }
 
 
@@ -3635,7 +3126,7 @@ int main(void)
   init_vars();                                                                  // init variables
 
   /* Инициализировать Modbus RTU slave: индивидуальный адрес головки, USART1,
-     115200/8E1; библиотека подключит IRQ USART1 и таймер паузы TIM2. */
+     230400/8E1; библиотека подключит IRQ USART1 и таймер паузы TIM2 (t3.5 = 200 мкс). */
   if (eMBInit(MB_RTU, MB_SLAVE_ADDRESS, 1, MB_BAUD, MB_PAR_EVEN, 1) != MB_ENOERR ||
       eMBEnable() != MB_ENOERR) Error_Handler();
 
@@ -3684,13 +3175,12 @@ int main(void)
         }
       }
       if (errorflag == 0U){
-        find_avg();                                                             // average calculation
+        find_avg();                                                             // метрика гладкости и счётчик оборотов
 
-        offset_cal();                                                           // offset calibration
-
-        angk_cal();                                                             // angk calibration
-        
-        angtab_cal();                                                           // angtab calibration
+        /* Очередность этапов калибровки (0x14 buf_k -> 0x13 offset -> 0x11/0x12 ang_tab)
+           централизована в мастере ESP32 (workflow.c). Диспетчер головки исполняет
+           ровно один активный автомат за кадр и блокирует одновременный запуск. */
+        encoder_calibration_step();
 
         cur_ang_E=cur_ang_X;
 
@@ -3714,10 +3204,10 @@ int main(void)
 
     }
 
-    /* Разбор Modbus в том же суперцикле: SNAP фиксирует последний кадр,
-       FC06 holding[1] вызывает encoder_calibration_command(). Обработчик
-       задаёт флаги/фазы; offset_cal/angk_cal/angtab_cal выше выполняют шаги
-       по валидным кадрам и выставляют состояния завершения. SPI не нужен. */
+    /* Разбор адресных запросов Modbus в суперцикле (вещательный SNAP уже
+       зафиксирован в TIM2_IRQHandler): FC06 holding[1] вызывает
+       encoder_calibration_command(), а encoder_calibration_step() выше продвигает
+       единственный активный автомат по достоверным кадрам. */
         /*
      * Обычно первый вызов разбирает EV_FRAME_RECEIVED,
      * второй — поставленный им EV_EXECUTE.
@@ -4503,14 +3993,12 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *I2cHandle)
   */
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *I2cHandle)
 {
-  /** Error_Handler() function is called when error occurs.
-    * 1- When Slave don't acknowledge it's address, Master restarts communication.
-    * 2- When Master don't acknowledge the last data transferred, Slave don't care in this example.
-    */
-  if (HAL_I2C_GetError(I2cHandle) != HAL_I2C_ERROR_AF)
+  /* При сбое шины I2C возвращаем аппаратную защиту записи WP (PA9 = 1);
+     флаг i2c3_tx_wp остаётся 0, чтобы LIVE[0x101] не сообщил ложную готовность EEPROM. */
+  if (I2cHandle == &I2c3Handle)
   {
-
-
+    i2c3_err = 1U;
+    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_9);
   }
 }
 

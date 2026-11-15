@@ -12,7 +12,7 @@
 
 --device_macro="C:\Program Files\IAR Systems\Embedded Workbench 9.2\arm/config/debugger/ST/STM32F7xx_TRACE.dmac" 
 
---flash_loader="C:\Program Files\IAR Systems\Embedded Workbench 9.2\arm/config/flashloader/ST/FlashSTM32F72xxE.board" 
+--flash_loader="C:\Program Files\IAR Systems\Embedded Workbench 9.2\arm/config/flashloader/ST/FlashSTM32F72xxC.board" 
 
 
 

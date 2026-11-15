@@ -1,0 +1,7 @@
+POLL_END attempted=91305 delivered=91305 complete=91297 dropped=0 overruns=0 snap_err=0 read_err=0 frame_err=8 period_us=10000
+TIMING dt_us count=91304 min=9876 avg=9999 max=10009 p2p=133
+TIMING snap_us count=91305 min=714 avg=714 max=719 p2p=5
+TIMING poll_us count=91305 min=4927 avg=4993 max=5153 p2p=226
+TIMING head id=1 count=91305 read_min_us=1966 read_avg_us=1989 read_max_us=2044 age_min_us=25 age_avg_us=76 age_max_us=129
+TIMING head id=2 count=91305 read_min_us=1966 read_avg_us=2011 read_max_us=2040 age_min_us=23 age_avg_us=74 age_max_us=127
+POLL_REPORT_DONE

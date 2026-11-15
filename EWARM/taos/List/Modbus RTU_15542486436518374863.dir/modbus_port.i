@@ -6,12 +6,6 @@
 
 
 
-
-
-
-
-
-
  
  
 
@@ -45959,6 +45953,45 @@ void eeprom_write_byte(uint16_t eeprom_address, unsigned char value);
 
 
 
+extern volatile uint32_t modbus_rxne_probe_cyccnt;
+extern volatile uint8_t modbus_rxne_probe_valid;
+
+
+
+
+ 
+static inline void modbus_poll_rx_cyccnt(void)
+{
+    if (!modbus_rxne_probe_valid &&
+        ((((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL))->ISR & (0x1UL << (5U))) != 0U) &&
+        ((((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL))->CR1 & (0x1UL << (5U))) != 0U)) {
+        modbus_rxne_probe_cyccnt = ((DWT_Type *) (0xE0001000UL) )->CYCCNT;
+        modbus_rxne_probe_valid = 1U;
+    }
+}
+
+
+
+
+
+
+
+ 
+
+
+ 
+enum {
+    ENCODER_MAX_ID = 247,              
+    ENCODER_SNAP = 0,                  
+    ENCODER_CAL_COMMAND = 1,           
+    ENCODER_CAL_STATE = 0x100,         
+    ENCODER_EEPROM_READY = 0x101,      
+    ENCODER_CAL_VERSION = 0x102,       
+    ENCODER_CAL_MAGIC = 0xCA01,        
+    ENCODER_CAL_REG_COUNT = 3,         
+    ENCODER_DWT_TICKS_PER_US = 216     
+};
+
 
 
 
@@ -46663,6 +46696,41 @@ eMBErrorCode    eMBRegFileCB( UCHAR * pucFileBuffer, USHORT usFileNumber,
 
 
 
+
+
+
+
+ 
+enum { SNAP_SEQ, SNAP_READY, SNAP_ANGLE_HI, SNAP_ANGLE_LO, SNAP_SECTOR,
+       SNAP_ERROR, SNAP_ENCODER_STATE, SNAP_SAMPLE_HI, SNAP_SAMPLE_LO,
+       SNAP_TIME_HI, SNAP_TIME_LO, SNAP_REG_COUNT };
+
+ 
+void snapshot_publish(float angle_deg, uint16_t sector, uint8_t error,
+                      uint8_t encoder_state, uint32_t tick_ms);
+
+
+
+ 
+void snapshot_publish_timed(float angle_deg, uint16_t sector, uint8_t error,
+                            uint8_t encoder_state, uint32_t exp_cyccnt);
+
+
+ 
+void snapshot_set_rx_cyccnt(uint32_t rx_cyccnt);
+
+ 
+void snapshot_latch_timed(uint16_t seq, uint32_t snap_rx_cyccnt, uint32_t ticks_per_us);
+
+
+ 
+void snapshot_latch(uint16_t seq);
+
+ 
+uint16_t snapshot_register(uint16_t address);
+
+
+
  
 static volatile CHAR rx_byte;
 
@@ -46671,21 +46739,22 @@ static volatile BOOL tx_finishing;
 
 
 
-
+ 
+static volatile uint32_t usart1_last_rx_cyccnt;
+volatile uint32_t modbus_rxne_probe_cyccnt;
+volatile uint8_t modbus_rxne_probe_valid;
+volatile uint32_t modbus_uart_error_count;
 
  
 static volatile eMBEventType events[8];
 static volatile uint8_t event_head, event_tail;
 
- 
 BOOL xMBPortEventInit(void)
 {
     event_head = event_tail = 0;
     return 1;
 }
 
-
- 
 BOOL xMBPortEventPost(eMBEventType event)
 {
     uint32_t saved = (__iar_builtin_rsr("PRIMASK"));
@@ -46698,7 +46767,6 @@ BOOL xMBPortEventPost(eMBEventType event)
     return 1;
 }
 
- 
 BOOL xMBPortEventGet(eMBEventType *event)
 {
     uint32_t saved = (__iar_builtin_rsr("PRIMASK"));
@@ -46710,34 +46778,22 @@ BOOL xMBPortEventGet(eMBEventType *event)
     return 1;
 }
 
-
- 
 static void transceiver_rx(void)
 {
     LL_GPIO_ResetOutputPin(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0400UL)), 0x00000020U);
     LL_GPIO_ResetOutputPin(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0400UL)), 0x00000010U);
 }
 
-
- 
 static void transceiver_tx(void)
 {
     LL_GPIO_SetOutputPin(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0400UL)), 0x00000010U);
     LL_GPIO_SetOutputPin(((GPIO_TypeDef *) ((0x40000000UL + 0x00020000UL) + 0x0400UL)), 0x00000020U);
 }
 
-
-
-
-
-
-
-
- 
 BOOL xMBPortSerialInit(UCHAR port, ULONG baud, UCHAR data_bits,
                        eMBParity parity, UCHAR stop_bits)
 {
-    if (port != 1 || baud != 115200U || data_bits != 8 ||
+    if (port != 1 || baud != 230400U || data_bits != 8 ||
         parity != MB_PAR_EVEN || stop_bits != 1) return 0;
     LL_APB2_GRP1_EnableClock((0x1UL << (4U)));
     LL_AHB1_GRP1_EnableClock((0x1UL << (1U)));
@@ -46762,21 +46818,20 @@ BOOL xMBPortSerialInit(UCHAR port, ULONG baud, UCHAR data_bits,
     LL_USART_SetStopBitsLength(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)), 0x00000000U);
     LL_USART_SetBaudRate(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)), HAL_RCC_GetPCLK2Freq(), 0x00000000U, baud);
     LL_USART_Enable(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)));
-     
+    
+
+
+ 
     __NVIC_SetPriority(USART1_IRQn, 2);
     __NVIC_EnableIRQ(USART1_IRQn);
     return 1;
 }
 
-
-
-
-
- 
 void vMBPortSerialEnable(BOOL rx, BOOL tx)
 {
     LL_USART_DisableIT_RXNE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)));
     LL_USART_DisableIT_TXE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)));
+    modbus_rxne_probe_valid = 0U;
     if (tx) {
         tx_finishing = 0;
         LL_USART_DisableIT_TC(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)));
@@ -46791,16 +46846,12 @@ void vMBPortSerialEnable(BOOL rx, BOOL tx)
     }
 }
 
- 
 BOOL xMBPortSerialGetByte(CHAR *byte) { *byte = rx_byte; return 1; }
 BOOL xMBPortSerialPutByte(CHAR byte)
 {
     LL_USART_TransmitData8(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)), (uint8_t)byte);
     return 1;
 }
-
-
-
 
 
  
@@ -46813,14 +46864,13 @@ BOOL xMBPortTimersInit(USHORT timeout_50us)
     LL_TIM_SetPrescaler(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)), tim_clk / 1000000U - 1U);
     LL_TIM_SetAutoReload(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)), timeout_50us * 50U - 1U);
     LL_TIM_EnableIT_UPDATE(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)));
-    LL_TIM_GenerateEvent_UPDATE(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)));  
+    LL_TIM_GenerateEvent_UPDATE(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)));
     LL_TIM_ClearFlag_UPDATE(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)));
-    __NVIC_SetPriority(TIM2_IRQn, 2);
+    __NVIC_SetPriority(TIM2_IRQn, 3);
     __NVIC_EnableIRQ(TIM2_IRQn);
     return 1;
 }
 
- 
 void vMBPortTimersEnable(void)
 {
     LL_TIM_DisableCounter(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)));
@@ -46830,22 +46880,30 @@ void vMBPortTimersEnable(void)
 }
 void vMBPortTimersDisable(void) { LL_TIM_DisableCounter(((TIM_TypeDef *) (0x40000000UL + 0x0000UL))); LL_TIM_ClearFlag_UPDATE(((TIM_TypeDef *) (0x40000000UL + 0x0000UL))); }
 
-
-
-
-
-
-
-
- 
 void USART1_IRQHandler(void)
 {
-    if (LL_USART_IsActiveFlag_ORE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)))) LL_USART_ClearFlag_ORE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)));
-    if (LL_USART_IsActiveFlag_FE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)))) LL_USART_ClearFlag_FE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)));
-    if (LL_USART_IsActiveFlag_NE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)))) LL_USART_ClearFlag_NE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)));
-    if (LL_USART_IsActiveFlag_PE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)))) LL_USART_ClearFlag_PE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)));
+    uint32_t err = 0U;
+    if (LL_USART_IsActiveFlag_ORE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)))) { LL_USART_ClearFlag_ORE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL))); err = 1U; }
+    if (LL_USART_IsActiveFlag_FE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL))))  { LL_USART_ClearFlag_FE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)));  err = 1U; }
+    if (LL_USART_IsActiveFlag_NE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL))))  { LL_USART_ClearFlag_NE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)));  err = 1U; }
+    if (LL_USART_IsActiveFlag_PE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL))))  { LL_USART_ClearFlag_PE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)));  err = 1U; }
+    if (err) modbus_uart_error_count++;
+
     if (LL_USART_IsEnabledIT_RXNE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL))) && LL_USART_IsActiveFlag_RXNE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)))) {
+        const uint32_t now_cyccnt = ((DWT_Type *) (0xE0001000UL) )->CYCCNT;
+        
+ 
         rx_byte = (CHAR)LL_USART_ReceiveData8(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)));
+        if (modbus_rxne_probe_valid) {
+            const uint32_t probed = modbus_rxne_probe_cyccnt;
+            modbus_rxne_probe_valid = 0U;
+            const uint32_t delta = now_cyccnt - probed;
+            usart1_last_rx_cyccnt = (delta < (48U * ENCODER_DWT_TICKS_PER_US))
+                ? probed
+                : now_cyccnt;
+        } else {
+            usart1_last_rx_cyccnt = now_cyccnt;
+        }
         pxMBFrameCBByteReceived();
     }
     if (LL_USART_IsEnabledIT_TXE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL))) && LL_USART_IsActiveFlag_TXE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL))))
@@ -46854,22 +46912,20 @@ void USART1_IRQHandler(void)
         LL_USART_DisableIT_TC(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)));
         LL_USART_ClearFlag_TC(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)));
         tx_finishing = 0;
-         
         if (LL_USART_IsActiveFlag_RXNE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL))))
             (void)LL_USART_ReceiveData8(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)));
+        modbus_rxne_probe_valid = 0U;
         transceiver_rx();
         LL_USART_EnableIT_RXNE(((USART_TypeDef *) ((0x40000000UL + 0x00010000UL) + 0x1000UL)));
     }
 }
 
-
-
- 
 void TIM2_IRQHandler(void)
 {
     if (LL_TIM_IsActiveFlag_UPDATE(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)))) {
         LL_TIM_ClearFlag_UPDATE(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)));
         LL_TIM_DisableCounter(((TIM_TypeDef *) (0x40000000UL + 0x0000UL)));
+        snapshot_set_rx_cyccnt(usart1_last_rx_cyccnt);
         pxMBPortCBTimerExpired();
     }
 }

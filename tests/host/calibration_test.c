@@ -22,6 +22,7 @@
 #include "mb.h"
 #include "snapshot_registers.h"
 #include "encoder_protocol.h"
+#include "encoder_calibration.h"
 
 extern int start_calibrate, auto_cal, start_offset_cal, offset_phase;
 extern int start_angk_cal, anglek_phase, offset_cur, offset_start, offset_end;
@@ -30,6 +31,7 @@ extern float offset_minmax[128], buf_x3[128];
 extern unsigned char encoder_state;
 extern uint32_t cycles_max;
 extern uint8_t backlight_width_en, i2c3_tx_wp;
+extern unsigned stub_angk_calls, stub_offset_calls, stub_angtab_calls;
 
 static eMBErrorCode command(uint16_t c)
 {
@@ -97,5 +99,21 @@ int main(void)
     assert(eMBRegInputCB(b, 0xffff, 2) == MB_ENOREG);
     assert(eMBRegHoldingCB(b, ENCODER_CAL_COMMAND + 1, 2, MB_REG_WRITE) == MB_ENOREG);
     assert(eMBRegHoldingCB(b, ENCODER_CAL_COMMAND + 1, 1, MB_REG_READ) == MB_ENOREG);
+
+    /* Exclusive single-place step dispatch & SWD flag-collision protection. */
+    stub_angk_calls = stub_offset_calls = stub_angtab_calls = 0;
+    encoder_calibration_step();
+    assert(stub_angk_calls == 0 && stub_offset_calls == 0 && stub_angtab_calls == 0);
+
+    assert(command(0x14) == MB_ENOERR);
+    encoder_calibration_step();
+    assert(stub_angk_calls == 1 && stub_offset_calls == 0 && stub_angtab_calls == 0);
+
+    /* Simulate simultaneous flag collision via SWD: step must abort all machines safely. */
+    start_offset_cal = 1;
+    encoder_calibration_step();
+    assert(!start_angk_cal && !start_offset_cal && !start_calibrate && !auto_cal);
+    assert(encoder_state == 0 && backlight_width_en == 1);
+    assert(stub_angk_calls == 1 && stub_offset_calls == 0 && stub_angtab_calls == 0);
     return 0;
 }
