@@ -46,7 +46,7 @@ idf.py set-target esp32
 idf.py build
 idf.py -p <PORT> flash monitor
 ```
-Консоль `idf.py monitor` и скрипт `diagnostics/serial_head_logger.py` работают на скорости `921600 8N1` (задано в `esp32_master/sdkconfig.defaults`: `CONFIG_ESPTOOLPY_MONITOR_BAUD=921600`, `CONFIG_ESP_CONSOLE_UART_BAUDRATE=921600`).
+Консоль `idf.py monitor` и скрипт `diagnostics/serial_head_logger.py` работают на скорости `921600 8N1` (задано в `esp32_master/sdkconfig.defaults`: `CONFIG_ESP_CONSOLE_UART_BAUDRATE=921600`, `CONFIG_ESPTOOLPY_MONITOR_BAUD_CONSOLE=y`).
 
 ## 4. Карта регистров Modbus
 
@@ -99,11 +99,12 @@ idf.py -p <PORT> flash monitor
 1. **Широковещательный `SNAP`**: передача 8 байт `00 06 00 00 seq_hi seq_lo crc_lo crc_hi` (`~382 мкс` на линии), фиксация метки мастера `t_us` сразу по `uart_wait_tx_done()` и выдержка `RS485_SNAP_SETTLE_US = 300 мкс`.
 2. **Фиксация на головках STM32**: стоп-бит последнего байта `SNAP` сохраняет `snap_rx_cyccnt = DWT->CYCCNT` (в `USART1_IRQHandler` либо через неразрушающий опрос `modbus_poll_rx_cyccnt()` внутри критической секции `DMA2_Stream3_IRQHandler`). По истечении `TIM2` (`t3.5 = 200 мкс`) функция `xMBRTUTimerT35Expired()` проверяет CRC пакета `SNAP` и непосредственно в прерывании вызывает `snapshot_latch(seq)`. Чужие адресные кадры отбрасываются в `TIM2_IRQHandler` без постановки событий в `eMBPoll()`.
 3. **Поочерёдное чтение `FC 0x04`**: мастер запрашивает у каждой выбранной головки `11` регистров `0..10` одним пакетом (ответ `27` байт, порог пробуждения `UART2 RX FIFO = 27` байт, таймаут `3.5 мс`). Между соседними головками выдерживается зазор `250 мкс`.
-4. **Валидация и приведение к `t_snap`**: проверяются условия `r[0] == seq`, `r[1] == 1`, `sector < 144`, `error == 0`, `raw_angle < 360 000 000` и `age_us ∈ [-500, +2500]`. Функция `pc_sync_compensate_udeg()` линейно экстраполирует угол со времени экспозиции кадра `t_us - age_us` к общему моменту `t_us` в 64-битной знаковой целочисленной арифметике микроградусов.
+4. **Валидация и приведение к `t_snap`**: проверяются условия `r[0] == seq`, `r[1] == 1`, `sector < 144`, `error == 0` и `raw_angle < 360 000 000`; при нарушении любого из них цикл получает бит ошибки `4`, а угол головки выдаётся как `nan`. Функция `pc_sync_compensate_udeg()` линейно экстраполирует угол со времени экспозиции кадра `t_us - age_us` к общему моменту `t_us` в 64-битной знаковой целочисленной арифметике микроградусов. Поправка применяется, если `age_us ∈ [-500, +2500]` мкс и интервал между соседними экспозициями головки лежит в `[0.5, 100]` мс; иначе (в том числе для первого отсчёта после запуска `poll`) выдаётся `ang = raw_ang` без признака ошибки.
 5. **Выдача в ПК (Core 1)**: запись передаётся через `RINGBUF_TYPE_NOSPLIT` задаче `pc_link`, формирующей строку:
    ```text
    DATA seq=<u16> t_us=<u64> snap_us=<u32> poll_us=<u32> error=<mask> id=<id> ang=<deg|nan> raw_ang=<deg|nan> age_us=<i32> read_us=<u32> gap_us=<u32> ...
    ```
+   Поле `error` — маска ошибок цикла по типам, общая для всех головок: `1` — `SNAP` не отправлен, `2` — нет ответа или сбой `CRC` при чтении головки, `4` — невалидный снимок. По завершении `poll` выдаётся отчёт `POLL_END` / `TIMING` / `POLL_REPORT_DONE` (счётчики `attempted`, `delivered`, `complete`, `dropped`, `overruns`, `snap_err`, `read_err`, `frame_err` и минимум / среднее / максимум периода, `snap_us`, `poll_us`, времени чтения и возраста по каждой головке).
 
 ## 6. Режим калибровки `calib`
 
@@ -138,7 +139,7 @@ idf.py -p <PORT> flash monitor
 
 ## 8. Автоматические регрессионные тесты
 
-Все тесты выполняются на хосте без целевых плат и компилятора IAR (`Python 3`, `POSIX sh`, `cc` с поддержкой `C99`):
+Все тесты выполняются на хосте без целевых плат и компилятора IAR (`Python 3`, `POSIX sh`, `cc` с поддержкой `C99`; для `period_analysis_test.py` нужны `numpy` и `pandas` из зависимостей проекта, без них он пропускается):
 
 ```bash
 python3 tests/sector_decode_test.py
@@ -148,6 +149,7 @@ sh tests/host/run_calibration_test.sh
 python3 tests/calibration_state_test.py
 sh tests/host/run_workflow_test.sh
 python3 tests/master_poll_test.py
+python3 tests/period_analysis_test.py
 ```
 
 | Тест | Объект проверки |
@@ -156,6 +158,7 @@ python3 tests/master_poll_test.py
 | `tests/modbus_snapshot_test.py` | Фиксация `SNAP`, целочисленный перевод `float -> udeg`, знаковый `age_us`, изоляция `frozen` от текущих публикаций |
 | `tests/host/run_rtu_test.sh` | Полный тракт байтового RTU-кадра через FreeModbus (`CRC16`, broadcast `SNAP`, unicast `FC04`/`FC06`, коды исключений) |
 | `tests/host/run_calibration_test.sh` | Обработчик `encoder_calibration_command()`, `LIVE`-регистры `0x0100..0x0102`, диспетчер `encoder_calibration_step()` и защита от коллизии флагов |
-| `tests/calibration_state_test.py` | Сквозная работа реальных `angk_cal()`, `offset_cal()`, `angtab_cal()`, `mes_piks()`, `BR4_C()` из `Src/main.c`: однопроходное выравнивание `buf_k[6..126]`, защита от `Inf`/`NaN`, `offset_cal()` и оба порядка направлений в `angtab_cal()` |
+| `tests/calibration_state_test.py` | Сквозная работа реальных `angk_cal()`, `offset_cal()`, `angtab_cal()`, `mes_piks()`, `BR4_C()` из `Src/main.c`: однопроходное выравнивание `buf_k[6..126]`, защита от `Inf`/`NaN`, `offset_cal()`, оба порядка направлений в `angtab_cal()`, образ `uint8_t offset` в EEPROM и его загрузка `init_vars()` (включая образы прежних прошивок) |
 | `tests/host/run_workflow_test.sh` | Парсер CSV ID, ручной `scan`, последовательность `0x14 -> 0x13 -> 0x11 -> 0x12 -> 0x10`, обработка отказов и таймаутов в `workflow.c` |
 | `tests/master_poll_test.py` | Кадры `rs485_rtu.c`, метка `t_us`, компенсация `pc_sync_compensate_udeg()` при переходе через `0°/360°`, совместимость `serial_head_logger.py` |
+| `tests/period_analysis_test.py` | Независимость пооборотного профиля `head_period_analysis.py` от оси `x` (`seq` / `t_us`): окно скользящего среднего в отсчётах, сохранение гармоники `1x/об` и вычитание медленного дрейфа |

@@ -9,7 +9,7 @@
 | `Src/`, `Inc/`, `EWARM/` | Прошивка считывающей головки STM32F722RE (проект IAR Embedded Workbench `EWARM/Project.eww`) |
 | `ThirdParty/FreeModbus/` | Стек FreeModbus RTU slave с перехватом широковещательного `SNAP` в прерывании таймера `t3.5` |
 | `esp32_master/` | Прошивка мастера шины RS-485 на ESP32 (ESP-IDF v5.x, изоляция ядер Core 0 / Core 1, `UART0` `921600 8N1`) |
-| `diagnostics/` | Запись потоковых логов (`serial_head_logger.py`), регрессионный анализ невязки (`residual_plots.py`) и пооборотный спектральный анализ головок (`head_period_analysis.py`) |
+| `diagnostics/` | Запись потоковых логов (`serial_head_logger.py`), регрессионный анализ невязки (`residual_plots.py`) и пооборотная статистика погрешности головок (`head_period_analysis.py`) |
 | `tests/` | Автоматические хост-тесты конвейера декодирования, `SNAP`, Modbus RTU, калибровки и мастера ESP32 |
 | `docs/` | Техническая документация проекта |
 

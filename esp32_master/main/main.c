@@ -64,7 +64,7 @@
 
 typedef struct {
     command_t cmd;
-    uint32_t  period_us; /* 0 = автоматический выбор (10 мс для <=4 головок) */
+    uint32_t  period_us; /* 0 = автоматический выбор (10 мс для 1..3 головок, 11 мс для 4) */
 } bus_msg_t;
 
 static const char *TAG = "encoder";
